@@ -3,19 +3,22 @@ import java.util.HashMap;
 
 public class Posting {
 
-    HashMap< Integer, ArrayList<Integer> > posting;
+    HashMap<Integer, ArrayList<Integer>> posting;
     int docID;
+    int numberOfPositions;
 
     public Posting(int docID, int position){
         this.docID = docID;
         this.posting = new HashMap<>();
         ArrayList<Integer> tmp = new ArrayList<>();
         tmp.add(position);
-        posting.put(docID, tmp);
+        this.posting.put(docID, tmp);
+        this.numberOfPositions = 0;
     }
 
     public void addPosition(int position){
         posting.get(docID).add(position);
+        this.numberOfPositions++;
     }
 
     public static void main(String[] args){
