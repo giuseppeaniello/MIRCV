@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Posting {
+public class Posting implements Serializable {
 
     HashMap<Integer, ArrayList<Integer>> posting;
     int docID;
