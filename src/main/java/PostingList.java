@@ -1,19 +1,34 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostingList {
+public class PostingList implements Serializable {
 
     List<Posting> postingList;
-    int numOfDocuments;
+    //int numOfDocuments;
 
     public PostingList(){
         this.postingList = new ArrayList<>();
-        this.numOfDocuments = 0;
+        //this.numOfDocuments = 0;
     }
 
     public void addPosting(Posting pos){
         this.postingList.add(pos);
-        this.numOfDocuments++;
+       // this.numOfDocuments++;
+    }
+
+    public int getPosting(int docId){
+        for (Posting post:this.postingList){
+            if(post.docID == docId)
+                return postingList.indexOf(post);
+        }
+        return -1;
+    }
+
+    public void stampaLista2(){
+        for(int i=0; i<this.postingList.size(); i++){
+            System.out.print("il docID è: " +this.postingList.get(i).docID + " le posizioni sono: " + this.postingList.get(i).posting.values() + "  ");
+        }
     }
 
     public static void main(String[] args){
