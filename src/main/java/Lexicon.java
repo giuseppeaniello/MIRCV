@@ -1,28 +1,34 @@
 import java.io.*;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class Lexicon {
 
     HashMap<String, Integer> lexicon;
+    HashMap<String, HashSet> documentsAlreadyPresent;
 
     public Lexicon(){
         this.lexicon = new HashMap<String,Integer>();
+        this.documentsAlreadyPresent = new HashMap<>();
     }
 
-    public void checkNewTerm(String term){
-        if(lexicon.containsKey(term))
-            return;
-        else
+    public void checkNewTerm(String term, String docID){
+        if(lexicon.containsKey(term)){    // se la chiave c'è già non aggiungiamo il termine e valutiamo se era già comparso il termine in questo document
+            if(documentsAlreadyPresent.get(term).contains(docID)) // se era già comparso non facciamo nulla
+                return;
+            else{
+                lexicon.replace(term, lexicon.get(term),lexicon.get(term)+1); // se è la prima volta che compare in questo document aggiorniamo la DF
+                documentsAlreadyPresent.get(term).add(docID); // e aggiungiamo il document al set di document già comparsi
+            }
+        }
+        else{
             lexicon.put(term, 1);
+            HashSet emptyHashSet = new HashSet();
+            emptyHashSet.add(docID);
+            documentsAlreadyPresent.put(term, emptyHashSet);
+        }
     }
 
-    public void generateDocumentFrequency(){
-        /* TODO:
-            set the values (document frequency) for each key (term)
-            of this.lexicon exploiting the length of the posting list
-            of each term
-         */
-    }
 
     public void saveLexiconInDisk(String outputPath){
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath));){
@@ -37,7 +43,6 @@ public class Lexicon {
     public void readLexiconFromDisk(String inputPath){
         try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(inputPath));){
             this.lexicon = (HashMap<String, Integer>) ois.readObject();
-            ois.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) { //metti queste eccezioni nell'ordine giusto
@@ -52,22 +57,24 @@ public class Lexicon {
         String a = "pippo";
         String b = "pluto";
         String c = "paperino";
-        String d = "Gennaro";
+        String d = "pippo";
         String e = "pippo";
 
         Lexicon lex = new Lexicon();
-        lex.checkNewTerm(a);
-        lex.checkNewTerm(b);
-        lex.checkNewTerm(c);
-        lex.checkNewTerm(d);
-        lex.checkNewTerm(e);
+        lex.checkNewTerm(a, "1");
+        lex.checkNewTerm(b, "2");
+        lex.checkNewTerm(c,"1");
+        lex.checkNewTerm(d,"1");
+        lex.checkNewTerm(e, "2");
 
         lex.saveLexiconInDisk("TestDictionary.txt");
 
         Lexicon lex2 = new Lexicon();
         lex2.readLexiconFromDisk("TestDictionary.txt");
-        for (String s: lex2.lexicon.keySet())
+        for (String s: lex2.lexicon.keySet()) {
             System.out.println(s);
+            System.out.println(lex2.lexicon.get(s));
+        }
     }
 
 }

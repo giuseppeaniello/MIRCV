@@ -85,7 +85,7 @@ public class InvertedIndex {
         invInd2.readIndexFromDisk("testIndex.txt");
         invInd2.stampaLista();
 
-
+        // la parte che manca da testare è controllare bene se conta giuste le document frequencies
 
     }
 
