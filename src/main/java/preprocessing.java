@@ -17,9 +17,9 @@ public class preprocessing {
     System.out.println(doc_out);
     String stopwords= getStopwords();
     String temp[]; //split del doc out in piu parole
-    for(String word:stopwords){
+  /*  for(String word:stopwords){
 
-    }
+    } */
 
     }
 

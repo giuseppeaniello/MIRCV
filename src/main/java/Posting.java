@@ -30,6 +30,6 @@ public class Posting implements Serializable {
         Posting post1 = new Posting(a,Pa);
         post1.addPosition(Pa2);
 
-        System.out.println(post1.posting.keySet() + " " + post1.posting.values());
+        System.out.println("DocID: " + post1.posting.keySet() + " " + "Positions: "  + post1.posting.values());
     }
 }

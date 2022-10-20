@@ -43,7 +43,6 @@ public class InvertedIndex {
     public void readIndexFromDisk(String inputPath){
         try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(inputPath));){
             this.invertedIndex = (HashMap<String, PostingList>) ois.readObject();
-            ois.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) { //metti queste eccezioni nell'ordine giusto
@@ -84,9 +83,6 @@ public class InvertedIndex {
         InvertedIndex invInd2 = new InvertedIndex();
         invInd2.readIndexFromDisk("testIndex.txt");
         invInd2.stampaLista();
-
-        // la parte che manca da testare è controllare bene se conta giuste le document frequencies
-
     }
 
 }

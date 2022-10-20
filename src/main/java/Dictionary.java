@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Dictionary {
+public class Dictionary { // CLASSE DA ELIMINARE
     List<String> dictionary;
 
     public Dictionary(){   // constructor

@@ -9,7 +9,7 @@ public class Lexicon {
 
     public Lexicon(){
         this.lexicon = new HashMap<String,Integer>();
-        this.documentsAlreadyPresent = new HashMap<>();
+        this.documentsAlreadyPresent = new HashMap<String, HashSet>();
     }
 
     public void checkNewTerm(String term, String docID){
@@ -30,18 +30,17 @@ public class Lexicon {
     }
 
 
-    public void saveLexiconInDisk(String outputPath){
+    public void saveLexiconInDisk(String outputPath){ // salvataggio sbagliato, manca la compressione
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath));){
             oos.writeObject(this.lexicon);
             oos.flush();
-            oos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void readLexiconFromDisk(String inputPath){
-        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(inputPath));){
+    public void readLexiconFromDisk(String inputPath){ // lettura sbagliata, manca la decompressione
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(inputPath))){
             this.lexicon = (HashMap<String, Integer>) ois.readObject();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -54,25 +53,25 @@ public class Lexicon {
 
     // main for testing Lexicon class
     public static void main (String[] args){
-        String a = "pippo";
-        String b = "pluto";
-        String c = "paperino";
-        String d = "pippo";
-        String e = "pippo";
+        String pippo = "pippo";
+        String pluto = "pluto";
+        String paperino = "paperino";
+        String pippo2 = "pippo";
+        String pippo3 = "pippo";
 
         Lexicon lex = new Lexicon();
-        lex.checkNewTerm(a, "1");
-        lex.checkNewTerm(b, "2");
-        lex.checkNewTerm(c,"1");
-        lex.checkNewTerm(d,"1");
-        lex.checkNewTerm(e, "2");
+        lex.checkNewTerm(pippo, "1");
+        lex.checkNewTerm(pluto, "2");
+        lex.checkNewTerm(paperino,"1");
+        lex.checkNewTerm(pippo2,"1");
+        lex.checkNewTerm(pippo3, "2");
 
         lex.saveLexiconInDisk("TestDictionary.txt");
 
         Lexicon lex2 = new Lexicon();
         lex2.readLexiconFromDisk("TestDictionary.txt");
         for (String s: lex2.lexicon.keySet()) {
-            System.out.println(s);
+            System.out.print(s + " ");
             System.out.println(lex2.lexicon.get(s));
         }
     }

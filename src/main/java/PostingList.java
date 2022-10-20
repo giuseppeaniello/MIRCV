@@ -5,16 +5,13 @@ import java.util.List;
 public class PostingList implements Serializable {
 
     List<Posting> postingList;
-    //int numOfDocuments;
 
     public PostingList(){
         this.postingList = new ArrayList<>();
-        //this.numOfDocuments = 0;
     }
 
     public void addPosting(Posting pos){
         this.postingList.add(pos);
-       // this.numOfDocuments++;
     }
 
     public int getPosting(int docId){
