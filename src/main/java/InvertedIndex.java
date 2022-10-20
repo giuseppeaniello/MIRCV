@@ -34,7 +34,6 @@ public class InvertedIndex {
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath));){
             oos.writeObject(this.invertedIndex);
             oos.flush();
-            oos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
