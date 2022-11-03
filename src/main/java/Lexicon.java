@@ -1,6 +1,5 @@
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -32,45 +31,48 @@ public class Lexicon {
     }
 
 
-    public void saveLexiconInDisk(String outputPathListTerms, String outputPathListDocumentFrequencies){ // manca la compressione
-        try(ObjectOutputStream ooslt = new ObjectOutputStream(new FileOutputStream(outputPathListTerms));
-            ObjectOutputStream oosldf = new ObjectOutputStream(new FileOutputStream(outputPathListDocumentFrequencies))){
+    public void saveLexiconInDisk(String outputPathListTerms){
+        try {
+            File file = new File(outputPathListTerms);
+            FileWriter fw = new FileWriter(file);
+            BufferedWriter bw = new BufferedWriter(fw);
 
             ArrayList<String> tmp1 = new ArrayList<>();
             tmp1.addAll(this.lexicon.keySet());
-            ooslt.writeObject(tmp1);
-            ooslt.flush();
-
             ArrayList<Integer> tmp2 = new ArrayList<>();
             tmp2.addAll(this.lexicon.values());
-            oosldf.writeObject(tmp2);
-            oosldf.flush();
 
-        } catch (IOException e) {
+            for(int i=0; i<tmp1.size(); i++) {
+                bw.write(tmp1.get(i) + " " + tmp2.get(i) + "\n");
+                bw.flush();
+            }
+            bw.close();
+        }
+        catch(IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void readLexiconFromDisk(String inputPathListTerms, String inputPathListDocumentFrequencies){ // manca la decompressione
-        try(ObjectInputStream oislt = new ObjectInputStream(new FileInputStream(inputPathListTerms));
-            ObjectInputStream oisldf = new ObjectInputStream(new FileInputStream(inputPathListDocumentFrequencies))){
-            this.lexicon = createHashMapFromLists((ArrayList<String>) oislt.readObject(), (ArrayList<Integer>) oisldf.readObject());
-           // this.lexicon = (HashMap<String, Integer>) ois.readObject();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) { //metti queste eccezioni nell'ordine giusto
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+
+    public void readLexiconFromDisk(String inputPathListTerms){
+        try {
+            File file = new File(inputPathListTerms);
+            FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+            String line = br.readLine();
+            HashMap newMap = new HashMap();
+            while(line != null) {
+                newMap.put(line.split(" ")[0], line.split(" ")[1]);
+                line = br.readLine();
+            }
+            this.lexicon = newMap;
+            br.close();
+        } catch(IOException e) {
             e.printStackTrace();
         }
     }
 
-    private HashMap createHashMapFromLists(ArrayList<String> listKeys, ArrayList<Integer> listValues){
-        HashMap result = new HashMap();
-        for(int i=0; i<listKeys.size(); i++)
-            result.put(listKeys.get(i), listValues.get(i));
-        return result;
-    }
+
 
     // main for testing Lexicon class
     public static void main (String[] args){
@@ -87,10 +89,9 @@ public class Lexicon {
         lex.checkNewTerm(pippo2,"1");
         lex.checkNewTerm(pippo3, "2");
 
-        lex.saveLexiconInDisk("TestDictionaryKeys.txt", "TestDictionaryValues.txt");
-
+        lex.saveLexiconInDisk("TestNuovaScrittura.txt");
         Lexicon lex2 = new Lexicon();
-        lex2.readLexiconFromDisk("TestDictionaryKeys.txt", "TestDictionaryValues.txt");
+        lex2.readLexiconFromDisk("TestNuovaScrittura.txt");
         for (String s: lex2.lexicon.keySet()) {
             System.out.print(s + " ");
             System.out.println(lex2.lexicon.get(s));

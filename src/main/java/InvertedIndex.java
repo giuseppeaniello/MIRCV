@@ -30,7 +30,7 @@ public class InvertedIndex {
         }
     }
 
-    public void saveIndexOnDisk(String outputPath){
+    public void saveIndexOnDisk(String outputPath){ // questo non va bene, non deve usare serializzazione
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath));){
             oos.writeObject(this.invertedIndex);
             oos.flush();
@@ -39,7 +39,7 @@ public class InvertedIndex {
         }
     }
 
-    public void readIndexFromDisk(String inputPath){
+    public void readIndexFromDisk(String inputPath){ // questa va cambiata di conseguenza con quella sopra
         try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(inputPath));){
             this.invertedIndex = (HashMap<String, PostingList>) ois.readObject();
         } catch (FileNotFoundException e) {
