@@ -2,7 +2,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostingList implements Serializable {
+public class PostingList{
 
     List<Posting> postingList;
 
@@ -22,11 +22,11 @@ public class PostingList implements Serializable {
         return -1;
     }
 
-    public void stampaLista2(){
+   /* public void stampaLista2(){
         for(int i=0; i<this.postingList.size(); i++){
             System.out.print("il docID è: " +this.postingList.get(i).docID + " le posizioni sono: " + this.postingList.get(i).posting.values() + "  ");
         }
-    }
+    } */
 
     public static void main(String[] args){
         int a = 12;
@@ -44,8 +44,8 @@ public class PostingList implements Serializable {
         PostingList PosLis = new PostingList();
         PosLis.addPosting(post1);
         PosLis.addPosting(post2);
-        for( Posting p: PosLis.postingList)
-            System.out.println(p.posting.keySet() + " " + p.posting.values());
+    /*    for( Posting p: PosLis.postingList)
+            System.out.println(p.posting.keySet() + " " + p.posting.values()); */
     }
 
 

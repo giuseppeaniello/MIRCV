@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class InvertedIndex {
@@ -30,10 +31,44 @@ public class InvertedIndex {
         }
     }
 
+
+    /*
     public void saveIndexOnDisk(String outputPath){ // questo non va bene, non deve usare serializzazione
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath));){
             oos.writeObject(this.invertedIndex);
             oos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    */
+    public void saveIndexOnDisk(String outputPath) { //da finire e testare
+        try {
+            File file = new File(outputPath);
+            FileWriter fw = new FileWriter(file);
+            BufferedWriter bw = new BufferedWriter(fw);
+
+            for(PostingList posList:this.invertedIndex.values()){
+                for(Posting pos:posList.postingList){
+                    // scriviamo in fila tutti i docId
+                    bw.write(pos.docID + " ");
+                    bw.flush();
+                }
+                bw.write("\t");
+                bw.flush();
+                for(Posting pos:posList.postingList) {
+                    for (Integer position : pos.positions) {
+                        //scrivi tutte le posizioni in fila
+                        bw.write(position + " ");
+                        bw.flush();
+                    }
+                    bw.write("\t");
+                    bw.flush();
+                }
+                bw.write("\n");
+                bw.flush();
+            }
+            bw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -51,6 +86,7 @@ public class InvertedIndex {
         }
     }
 
+    /*
     public void stampaLista(){
         System.out.println("Stampa lista");
         for(int i=0; i<this.invertedIndex.keySet().size(); i++){
@@ -58,30 +94,29 @@ public class InvertedIndex {
             this.invertedIndex.get(this.invertedIndex.keySet().toArray()[i]).stampaLista2();
             System.out.println(" ");
         }
-
-    }
+    } */
 
     public static void main(String[] args){
         InvertedIndex invInd = new InvertedIndex();
         String docTest = "ciao ciao de santis ciao";
-        String docTest2 = "santis è il numero uno ciao";
+       // String docTest2 = "santis è il numero uno ciao";
         int docID1 = 1;
-        int docID2 = 2;
+       // int docID2 = 2;
 
         for(int i=0; i<docTest.split(" ").length; i++){
             invInd.addTermToIndex(docTest.split(" ")[i], docID1, i);
         }
-        for(int i=0; i<docTest2.split(" ").length; i++){
-            invInd.addTermToIndex(docTest2.split(" ")[i], docID2, i);
-        }
+      //  for(int i=0; i<docTest2.split(" ").length; i++){
+       //     invInd.addTermToIndex(docTest2.split(" ")[i], docID2, i);
+       // }
 
-        invInd.stampaLista();
-        invInd.saveIndexOnDisk("testIndex.txt");
+       // invInd.stampaLista();
+        invInd.saveIndexOnDisk("SecondoTestIndex.txt");
 
-        System.out.println( "\n l'indice letto da file è: ");
-        InvertedIndex invInd2 = new InvertedIndex();
-        invInd2.readIndexFromDisk("testIndex.txt");
-        invInd2.stampaLista();
+        //System.out.println( "\n l'indice letto da file è: ");
+       // InvertedIndex invInd2 = new InvertedIndex();
+        //invInd2.readIndexFromDisk("testIndex.txt");
+       // invInd2.stampaLista();
     }
 
 }

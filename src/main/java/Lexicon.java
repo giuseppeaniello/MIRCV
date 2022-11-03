@@ -73,7 +73,6 @@ public class Lexicon {
     }
 
 
-
     // main for testing Lexicon class
     public static void main (String[] args){
         String pippo = "pippo";
