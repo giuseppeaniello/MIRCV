@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.Scanner; // Import the Scanner class to read text files
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.lucene.analysis.*;
 import org.tartarus.snowball.ext.PorterStemmer;
 
 
