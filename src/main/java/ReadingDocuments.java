@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class ReadingDocuments {
@@ -25,8 +24,12 @@ public class ReadingDocuments {
                     int i = -1;
                     for(String term : docPreproc){
                         i++;
-                        lex.checkNewTerm(term, docId);
+                        lex.addTermToLexicon(term, docId);
                         invInd.addTermToIndex(term, docId, i);
+                        // here we should do a sorting to have a correspondance between Lexicon and InvertedIndex
+                        // this isn't necessary because we are using TreeMap data structure in which values are ordered
+                        // by alphabetical order (keys are Strings) in both Lexicon and InvertedIndex so the keys are the same
+                        // and they are already ordered.
                     }
                 }
                 else{

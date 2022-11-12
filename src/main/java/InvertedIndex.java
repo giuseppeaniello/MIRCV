@@ -1,13 +1,12 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.TreeMap;
 
 public class InvertedIndex {
 
-    HashMap<String, PostingList> invertedIndex;
+    TreeMap<String, PostingList> invertedIndex;
 
     public InvertedIndex(){
-        this.invertedIndex = new HashMap<>();
+        this.invertedIndex = new TreeMap<>();
     }
 
     public void addTermToIndex(String term, String docId, int position){ //codice per creare l'inverted index di un singolo blocco
@@ -76,7 +75,7 @@ public class InvertedIndex {
 
     public void readIndexFromDisk(String inputPath){ // questa va cambiata di conseguenza con quella sopra
         try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(inputPath));){
-            this.invertedIndex = (HashMap<String, PostingList>) ois.readObject();
+            this.invertedIndex = (TreeMap<String, PostingList>) ois.readObject();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) { //metti queste eccezioni nell'ordine giusto
@@ -108,16 +107,16 @@ public class InvertedIndex {
     public static void main(String[] args){
         InvertedIndex invInd = new InvertedIndex();
         String docTest = "ciao ciao de santis ciao";
-       // String docTest2 = "santis è il numero uno ciao";
+        String docTest2 = "santis è il numero uno ciao";
         String docID1 = "1";
-       // int docID2 = 2;
+        String docID2 = "2";
 
         for(int i=0; i<docTest.split(" ").length; i++){
             invInd.addTermToIndex(docTest.split(" ")[i], docID1, i);
         }
-      //  for(int i=0; i<docTest2.split(" ").length; i++){
-       //     invInd.addTermToIndex(docTest2.split(" ")[i], docID2, i);
-       // }
+        for(int i=0; i<docTest2.split(" ").length; i++){
+            invInd.addTermToIndex(docTest2.split(" ")[i], docID2, i);
+        }
 
        // invInd.stampaLista();
         invInd.saveIndexOnDisk("SecondoTestIndex.txt");
