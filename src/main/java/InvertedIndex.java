@@ -10,21 +10,21 @@ public class InvertedIndex {
         this.invertedIndex = new HashMap<>();
     }
 
-    public void addTermToIndex(String term, int docId, int position){ //codice per creare l'inverted index di un singolo blocco
+    public void addTermToIndex(String term, String docId, int position){ //codice per creare l'inverted index di un singolo blocco
         if (this.invertedIndex.containsKey(term)){
-            int index = this.invertedIndex.get(term).getPosting(docId);
+            int index = this.invertedIndex.get(term).getPosting(Integer.parseInt(docId));
             if(index != -1){
                 // caso esiste già posting di quel documento
                 this.invertedIndex.get(term).postingList.get(index).addPosition(position);
             }
             else{
                 // caso non c'è ancora posting relativo a quel documento
-                Posting newPost = new Posting(docId, position);
+                Posting newPost = new Posting(Integer.parseInt(docId), position);
                 this.invertedIndex.get(term).addPosting(newPost);
             }
         }
         else {
-            Posting firstPost = new Posting(docId, position);
+            Posting firstPost = new Posting(Integer.parseInt(docId), position);
             PostingList posList = new PostingList();
             posList.addPosting(firstPost);
             this.invertedIndex.put(term, posList);
@@ -109,7 +109,7 @@ public class InvertedIndex {
         InvertedIndex invInd = new InvertedIndex();
         String docTest = "ciao ciao de santis ciao";
        // String docTest2 = "santis è il numero uno ciao";
-        int docID1 = 1;
+        String docID1 = "1";
        // int docID2 = 2;
 
         for(int i=0; i<docTest.split(" ").length; i++){
