@@ -1,19 +1,19 @@
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeMap;
 
 public class Lexicon {
 
-    HashMap<String, Integer> lexicon;
-    HashMap<String, HashSet> documentsAlreadyPresent;
+    TreeMap<String, Integer> lexicon;
+    TreeMap<String, HashSet> documentsAlreadyPresent;
 
     public Lexicon(){
-        this.lexicon = new HashMap<String,Integer>();
-        this.documentsAlreadyPresent = new HashMap<String, HashSet>();
+        this.lexicon = new TreeMap<String,Integer>();
+        this.documentsAlreadyPresent = new TreeMap<String, HashSet>();
     }
 
-    public void checkNewTerm(String term, String docID){
+    public void addTermToLexicon(String term, String docID){
         if(lexicon.containsKey(term)){    // se la chiave c'è già non aggiungiamo il termine e valutiamo se era già comparso il termine in questo document
             if(documentsAlreadyPresent.get(term).contains(docID)) // se era già comparso non facciamo nulla
                 return;
@@ -60,7 +60,7 @@ public class Lexicon {
             FileReader fr = new FileReader(file);
             BufferedReader br = new BufferedReader(fr);
             String line = br.readLine();
-            HashMap newMap = new HashMap();
+            TreeMap newMap = new TreeMap();
             while(line != null) {
                 newMap.put(line.split(" ")[0], line.split(" ")[1]);
                 line = br.readLine();
@@ -70,6 +70,11 @@ public class Lexicon {
         } catch(IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void clear(){
+        this.lexicon.clear();
+        this.documentsAlreadyPresent.clear();
     }
 
 
@@ -82,11 +87,11 @@ public class Lexicon {
         String pippo3 = "pippo";
 
         Lexicon lex = new Lexicon();
-        lex.checkNewTerm(pippo, "1");
-        lex.checkNewTerm(pluto, "2");
-        lex.checkNewTerm(paperino,"1");
-        lex.checkNewTerm(pippo2,"1");
-        lex.checkNewTerm(pippo3, "2");
+        lex.addTermToLexicon(pippo, "1");
+        lex.addTermToLexicon(pluto, "2");
+        lex.addTermToLexicon(paperino,"1");
+        lex.addTermToLexicon(pippo2,"1");
+        lex.addTermToLexicon(pippo3, "2");
 
         lex.saveLexiconInDisk("TestNuovaScrittura.txt");
         Lexicon lex2 = new Lexicon();
