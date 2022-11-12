@@ -15,26 +15,21 @@ import org.tartarus.snowball.ext.PorterStemmer;
 
 public class preprocessing {
 
-    public static void preprocess (String doc_in) {  //applies the preprocessing
+    public static ArrayList<String> preprocess (String doc_in) {  //applies the preprocessing
 
     String doc_out=doc_in;
-    String nostopwords;
-    int id=getDocID(doc_in);
-    System.out.println("ID: "+ id);
-    doc_out=textclean(doc_out);
-    doc_out=doc_out.toLowerCase(); //To lower case
-    System.out.println("DOC IN"+doc_in);
-    System.out.println("DOC OUT"+doc_out);
-    String stopwords= getStopwords();
-    ArrayList<String> doc_no_sw=removeStopwords(doc_out,stopwords);
-    ArrayList<String> doc_stemmed= stemming(doc_no_sw);
+    //int id=getDocID(doc_in);
+    //System.out.println("ID: "+ id);
+    doc_out=textclean(doc_out); //Text cleaned and converted from ASCII to UNICODE
+    doc_out=doc_out.toLowerCase(); //Text to lower case
+    //System.out.println("DOC IN"+doc_in);
+    //System.out.println("DOC OUT"+doc_out);
+    String stopwords= getStopwords(); //Get the list of stopwords
+    ArrayList<String> doc_no_sw=removeStopwords(doc_out,stopwords); //Remove the stopwords
+    ArrayList<String> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
     for(String i:doc_stemmed)
         System.out.println(i);
-    /*System.out.println("NO STOPWORDS");
-    for(String i:doc_no_sw) {
-        System.out.print(i+" ");
-
-    }*/
+    return doc_stemmed;
 
     }
 
