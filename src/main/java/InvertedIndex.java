@@ -86,6 +86,10 @@ public class InvertedIndex {
         }
     }
 
+    public void clear(){
+        this.invertedIndex.clear();
+    }
+
     /*
     public void stampaLista(){
         System.out.println("Stampa lista");
@@ -95,6 +99,11 @@ public class InvertedIndex {
             System.out.println(" ");
         }
     } */
+
+
+
+
+
 
     public static void main(String[] args){
         InvertedIndex invInd = new InvertedIndex();

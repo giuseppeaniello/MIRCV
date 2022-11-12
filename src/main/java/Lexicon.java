@@ -72,6 +72,11 @@ public class Lexicon {
         }
     }
 
+    public void clear(){
+        this.lexicon.clear();
+        this.documentsAlreadyPresent.clear();
+    }
+
 
     // main for testing Lexicon class
     public static void main (String[] args){
