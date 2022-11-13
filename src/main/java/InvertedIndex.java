@@ -88,7 +88,7 @@ public class InvertedIndex {
 
     public void clear(){
         this.invertedIndex.clear();
-
+        System.gc();
     }
 
     /*

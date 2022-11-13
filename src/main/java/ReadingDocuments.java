@@ -5,7 +5,8 @@ import java.util.ArrayList;
 
 public class ReadingDocuments {
     public static void readDoc() {
-        File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collection.tsv");
+        //File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collection.tsv");
+        File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
         ; //initializing a new ArrayList out of String[]'s
         Lexicon lex = new Lexicon();
         InvertedIndex invInd = new InvertedIndex();

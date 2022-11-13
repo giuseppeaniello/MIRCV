@@ -75,6 +75,7 @@ public class Lexicon {
     public void clear(){
         this.lexicon.clear();
         this.documentsAlreadyPresent.clear();
+        System.gc();
     }
 
 
