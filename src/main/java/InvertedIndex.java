@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.management.GarbageCollectorMXBean;
 import java.util.TreeMap;
 
 public class InvertedIndex {
@@ -87,6 +88,7 @@ public class InvertedIndex {
 
     public void clear(){
         this.invertedIndex.clear();
+
     }
 
     /*

@@ -12,15 +12,14 @@ public class ReadingDocuments {
         int indexFile = 0;
         try (BufferedReader TSVReader = new BufferedReader(new FileReader(test2))) {
             String line = null;
-
-            long freeMemory = Runtime.getRuntime().freeMemory();
+            long freeMemory;
             long totalMemory = Runtime.getRuntime().totalMemory();
-
             while ((line = TSVReader.readLine()) != null) {
+                freeMemory = Runtime.getRuntime().freeMemory();
                 if(freeMemory/totalMemory < 0.75) {
                     String docId = line.split("\\t")[0];
                     String doc = new String(line.split("\\t")[1].getBytes(), "UTF-8");
-                    ArrayList<String> docPreproc = preprocessing(doc);
+                    ArrayList<String> docPreproc = preprocessing.preprocess(doc);
                     int i = -1;
                     for(String term : docPreproc){
                         i++;
