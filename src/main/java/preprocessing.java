@@ -145,6 +145,7 @@ public class preprocessing {
         String text2= "8841817\tThat's chemistry  123 too! Fireworks get their color from metal compounds (also known as metal salts) packed inside. You probably know that if you burn metals in a hot flame (such as a Bunsen burner in a school laboratory), they glow with very intense colorsâ\u0080\u0094 that's exactly what's happening in fireworks.";
         String test="[1123] (123) {123} [[123]] (3[2{1]})12-13-14 12/45/56 12\\?12\\?12 ciao/ [ciao ciao\\ /ciao \\ciao ";
         String test2= test;
+
         /*
         REGEX TEST
         test2=test2.replaceAll("([\\[\\_\\(\\)\\{\\}\\]]+)([0-9]+)","$2");
