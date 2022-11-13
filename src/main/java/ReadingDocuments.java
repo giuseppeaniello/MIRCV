@@ -14,10 +14,11 @@ public class ReadingDocuments {
         try (BufferedReader TSVReader = new BufferedReader(new FileReader(test2))) {
             String line = null;
             long freeMemory;
-            long totalMemory = Runtime.getRuntime().totalMemory();
+            long totalMemory;
             while ((line = TSVReader.readLine()) != null) {
                 freeMemory = Runtime.getRuntime().freeMemory();
-                if(freeMemory/totalMemory < 0.75) {
+                totalMemory = Runtime.getRuntime().totalMemory();
+                if(freeMemory > totalMemory*0.25) {
                     String docId = line.split("\\t")[0];
                     String doc = new String(line.split("\\t")[1].getBytes(), "UTF-8");
                     ArrayList<String> docPreproc = preprocessing.preprocess(doc);
@@ -40,6 +41,11 @@ public class ReadingDocuments {
                     invInd.clear();
                 }
             }
+            //ultimo file da creare
+            lex.saveLexiconInDisk("Lexicon_number_" + indexFile);
+            invInd.saveIndexOnDisk("Inverted_Index_number_" + indexFile);
+            lex.clear();
+            invInd.clear();
         } catch (Exception e) {
             System.out.println("Something went wrong");
         }
