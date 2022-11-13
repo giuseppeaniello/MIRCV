@@ -99,7 +99,7 @@ public class preprocessing {
         document_in= document_in.replaceAll("([0-9]+)([\\[\\_\\(\\)\\{\\}\\]]+)","$1");
         document_in= document_in.replaceAll("([\\W])([a-zA-Z]+)"," $2");
         document_in= document_in.replaceAll("([a-zA-Z]+)([\\W])+","$1 ");
-        document_in= document_in.replaceAll("[!._'?\"£$%&=]","");
+        document_in= document_in.replaceAll("[!._'?\"£#$%&=]","");
         //document_in= document_in.replaceAll("[!._'?]\\{{]][[}\\+\\*_^'!£$%()=%&]","");
         //document_in= document_in.replaceAll("[!-._'?\[["]]{{}}}]","");
         //document_in= document_in.replaceAll("[!-._'?\"]","");
