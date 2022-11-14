@@ -1,5 +1,4 @@
 import java.io.*;
-import java.lang.management.GarbageCollectorMXBean;
 import java.util.TreeMap;
 
 public class InvertedIndex {
@@ -12,7 +11,7 @@ public class InvertedIndex {
 
     public void addTermToIndex(String term, String docId, int position){ //codice per creare l'inverted index di un singolo blocco
         if (this.invertedIndex.containsKey(term)){
-            int index = this.invertedIndex.get(term).getPosting(Integer.parseInt(docId));
+            int index = this.invertedIndex.get(term).getIndexOfPosting(Integer.parseInt(docId));
             if(index != -1){
                 // caso esiste già posting di quel documento
                 this.invertedIndex.get(term).postingList.get(index).addPosition(position);

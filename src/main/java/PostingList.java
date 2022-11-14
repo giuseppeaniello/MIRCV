@@ -2,7 +2,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostingList{
+public class PostingList implements Serializable{
 
     List<Posting> postingList;
 
@@ -14,13 +14,14 @@ public class PostingList{
         this.postingList.add(pos);
     }
 
-    public int getPosting(int docId){
+    public int getIndexOfPosting(int docId){
         for (Posting post:this.postingList){
             if(post.docID == docId)
                 return postingList.indexOf(post);
         }
         return -1;
     }
+
 
    /* public void stampaLista2(){
         for(int i=0; i<this.postingList.size(); i++){

@@ -1,22 +1,21 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Posting {
+public class Posting implements Serializable {
 
     ArrayList<Integer> positions;
     int docID;
-    int numberOfPositions;
+
 
     public Posting(int docID, int position){
         this.docID = docID;
         ArrayList<Integer> tmp = new ArrayList<>();
         tmp.add(position);
         this.positions = tmp;
-        this.numberOfPositions = 0;
     }
 
     public void addPosition(int position){
         positions.add(position);
-        this.numberOfPositions++;
     }
 
 
