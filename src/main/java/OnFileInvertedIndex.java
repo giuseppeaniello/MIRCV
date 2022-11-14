@@ -1,7 +1,6 @@
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.HTreeMap;
-import org.mapdb.Serializer;
+import org.mapdb.*;
+import org.mapdb.volume.MappedFileVol;
+import org.mapdb.volume.Volume;
 
 public class OnFileInvertedIndex {
 
@@ -62,8 +61,11 @@ public class OnFileInvertedIndex {
     }
 
 
-
     public static void main(String[] args){
+        long freeMemory = Runtime.getRuntime().freeMemory();
+        long totalMemory = Runtime.getRuntime().totalMemory();
+        System.out.println("MEMORIA TOTALE INIZIO  " + totalMemory);
+        System.out.println("MEMORIA LIBERA INIZIO  " + freeMemory);
         OnFileInvertedIndex invInd = new OnFileInvertedIndex(8);
         String docTest = "ciao ciao de santis ciao";
         String docTest2 = "santis è il numero uno ciao";
@@ -93,11 +95,9 @@ public class OnFileInvertedIndex {
         }
 
         invInd.closeInvertedIndex();
+        freeMemory = Runtime.getRuntime().freeMemory();
+        System.out.println("MEMORIA LIBERA FINE  " + freeMemory);
 
-        //System.out.println( "\n l'indice letto da file è: ");
-        // InvertedIndex invInd2 = new InvertedIndex();
-        //invInd2.readIndexFromDisk("testIndex.txt");
-        // invInd2.stampaLista();
     }
 
 

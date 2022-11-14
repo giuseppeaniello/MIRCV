@@ -11,7 +11,7 @@ public class Dictionary {
     HTreeMap<String, Integer> dictionary;
     HTreeMap<String, HashSet> documentsAlreadyPresent;
 
-    public Dictionary(String indexOfBlock){
+    public Dictionary(int indexOfBlock){
         db = DBMaker.fileDB("dictionaryDB" + indexOfBlock + ".db" ).make();
         dictionary = db.hashMap("dictionaryOnFile" + indexOfBlock).keySerializer(Serializer.STRING).valueSerializer(Serializer.INTEGER).create();
         db2 = DBMaker.fileDB("fileSetDB" + indexOfBlock + ".db" ).make();
@@ -50,7 +50,7 @@ public class Dictionary {
         String pippo2 = "pippo";
         String pippo3 = "pippo";
 
-        Dictionary lex = new Dictionary("6");
+        Dictionary lex = new Dictionary(6);
         lex.addTermToDictionary(pippo, "1");
         lex.addTermToDictionary(pluto, "2");
         lex.addTermToDictionary(paperino,"1");

@@ -106,6 +106,7 @@ public class InvertedIndex {
 
 
     public static void main(String[] args){
+
         InvertedIndex invInd = new InvertedIndex();
         String docTest = "ciao ciao de santis ciao";
         String docTest2 = "santis è il numero uno ciao";
