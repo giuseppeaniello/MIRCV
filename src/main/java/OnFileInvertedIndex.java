@@ -18,7 +18,7 @@ public class OnFileInvertedIndex {
             if(index != -1){
                 // caso esiste già posting di quel documento
                 //prendo la posting list
-                PostingList newPostingList = this.invertedIndex.get(term);
+                PostingList newPostingList = (PostingList) this.invertedIndex.get(term);
                 //prendo il posting da modificare
                 int indexOfNewPosting = newPostingList.getIndexOfPosting(Integer.parseInt(docId));
                 Posting newPosting = newPostingList.postingList.get(indexOfNewPosting);
@@ -31,20 +31,22 @@ public class OnFileInvertedIndex {
                 //rimuovo la posting list vecchia dall'inverted index
                 invertedIndex.remove(term);
                 //inserisco la posting list nuova
-                invertedIndex.put(term,newPostingList);
+                invertedIndex.put(term, newPostingList);
+                System.out.println("caso esiste già posting di quel documento");
             }
             else{
                 // caso non c'è ancora posting relativo a quel documento ma c'è già posting per quel term
                 //creo il nuovo posting
                 Posting newPost = new Posting(Integer.parseInt(docId), position);
                 //prendo la posting list
-                PostingList newPostingList = this.invertedIndex.get(term);
+                PostingList newPostingList = (PostingList) this.invertedIndex.get(term);
                 //aggiungo il posting alla nuova postinglist
                 newPostingList.postingList.add(newPost);
                 //elimino la vecchia posting list dall'invertedindex
                 this.invertedIndex.remove(term);
                 //inserisco la nuova posting list nell'inverted index
                 this.invertedIndex.put(term, newPostingList);
+                System.out.println("caso non c'è ancora posting relativo a quel documento ma c'è già posting per quel term");
             }
         }
         else {
@@ -52,6 +54,7 @@ public class OnFileInvertedIndex {
             PostingList posList = new PostingList();
             posList.addPosting(firstPost);
             this.invertedIndex.put(term, posList);
+            System.out.println("primo posting");
         }
     }
 

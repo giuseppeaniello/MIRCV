@@ -1,15 +1,12 @@
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
-import org.mapdb.SortedTableMap;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+
 
 public class SecondVersionReadingDocuments {
 
@@ -19,7 +16,7 @@ public class SecondVersionReadingDocuments {
         indexOfBlock = 0;
     }
 
-    public static void readDoc(){
+    public static void readDoc2(){
         File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction10.tsv");
         Dictionary dict = new Dictionary(indexOfBlock);
         OnFileInvertedIndex invInd = new OnFileInvertedIndex(indexOfBlock);
@@ -36,6 +33,7 @@ public class SecondVersionReadingDocuments {
                     ArrayList<String> docPreproc = preprocessing.preprocess(doc);
                     int i = -1;
                     for(String term : docPreproc){
+                    //    System.out.println(term);   //to be eliminated
                         i++;
                         dict.addTermToDictionary(term, docId);
                         invInd.addTermToIndex(term, docId, i);
@@ -49,17 +47,84 @@ public class SecondVersionReadingDocuments {
                     dict = new Dictionary(indexOfBlock);
                     invInd = new OnFileInvertedIndex(indexOfBlock);
                 }
-                dict.closeDictionary();
-                invInd.closeInvertedIndex();
             }
+            dict.closeDictionary();
+            invInd.closeInvertedIndex();
         } catch (Exception e) {
             System.out.println("Something went wrong");
         }
     }
 
     public static void main(String args[]){
-        readDoc();
+        readDoc2();
 
+        /* words appeared for testing
+            equal
+            import
+            success
+            manhattan
+            project
+            scientif
+            intellect
+         */
+
+
+        // test code for the Dictionary
+        DB db = DBMaker.fileDB("dictionaryDB0.db").make();
+        HTreeMap myMap = db.hashMap("dictionaryOnFile0").open();
+        Integer a = (Integer) myMap.get("equal");
+        System.out.println(a);
+        Integer b = (Integer) myMap.get("import");
+        System.out.println(b);
+        Integer c = (Integer) myMap.get("success");
+        System.out.println(c);
+        Integer d = (Integer) myMap.get("manhattan");
+        System.out.println(d);
+        // dictionary funziona
+
+
+        DB db2 = DBMaker.fileDB("invIndDB0.db").make();
+
+        HTreeMap myMap2 = db2.hashMap("invertedIndexOnFile0").open();
+        PostingList ps = (PostingList) myMap2.get("equal");
+        for(Posting posting: ps.postingList) {
+            System.out.print("DOC_ID:  " + posting.docID + "   ");
+            System.out.print("POSITIONS: ");
+            for(int position : posting.positions) {
+                System.out.print(position + " ");
+            }
+        }
+        System.out.println("");
+
+        ps = (PostingList) myMap2.get("import");
+        for(Posting posting: ps.postingList) {
+            System.out.print("DOC_ID:  " + posting.docID + "   ");
+            System.out.print("POSITIONS: ");
+            for(int position : posting.positions) {
+                System.out.print(position + " ");
+            }
+        }
+        System.out.println("");
+
+        ps = (PostingList) myMap2.get("success");
+        for(Posting posting: ps.postingList) {
+            System.out.print("DOC_ID:  " + posting.docID + "   ");
+            System.out.print("POSITIONS: ");
+            for(int position : posting.positions) {
+                System.out.print(position + " ");
+            }
+        }
+        System.out.println("");
+
+        ps = (PostingList) myMap2.get("manhattan");
+        for(Posting posting: ps.postingList) {
+            System.out.print("DOC_ID:  " + posting.docID + "   ");
+            System.out.print("POSITIONS: ");
+            for(int position : posting.positions) {
+                System.out.print(position + " ");
+            }
+        }
+        System.out.println("");
     }
 
 }
