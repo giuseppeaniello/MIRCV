@@ -30,7 +30,7 @@ public class SecondVersionReadingDocuments {
                 if(freeMemory > totalMemory*0.8) {
                     String docId = line.split("\\t")[0];
                     String doc = new String(line.split("\\t")[1].getBytes(), "UTF-8");
-                    ArrayList<String> docPreproc = preprocessing.preprocess(doc);
+                    ArrayList<String> docPreproc = preprocessing.preprocess(doc,1);
                     int i = -1;
                     for(String term : docPreproc){
                     //    System.out.println(term);   //to be eliminated

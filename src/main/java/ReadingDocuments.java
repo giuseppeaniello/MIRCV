@@ -21,7 +21,7 @@ public class ReadingDocuments {
                 if(freeMemory > totalMemory*0.25) {
                     String docId = line.split("\\t")[0];
                     String doc = new String(line.split("\\t")[1].getBytes(), "UTF-8");
-                    ArrayList<String> docPreproc = preprocessing.preprocess(doc);
+                    ArrayList<String> docPreproc = preprocessing.preprocess(doc,1);
                     int i = -1;
                     for(String term : docPreproc){
                         i++;

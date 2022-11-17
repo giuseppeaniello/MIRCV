@@ -15,23 +15,40 @@ import org.tartarus.snowball.ext.PorterStemmer;
 
 public class preprocessing {
 
-    public static ArrayList<String> preprocess (String doc_in) {  //applies the preprocessing
-
-    String doc_out=doc_in;
-    //int id=getDocID(doc_in);
-    //System.out.println("ID: "+ id);
-    doc_out=textclean(doc_out); //Text cleaned and converted from ASCII to UNICODE
-    doc_out=doc_out.toLowerCase(); //Text to lower case
-    //System.out.println("DOC IN"+doc_in);
-    //System.out.println("DOC OUT"+doc_out);
-    String stopwords= getStopwords(); //Get the list of stopwords
-    ArrayList<String> doc_no_sw=removeStopwords(doc_out,stopwords); //Remove the stopwords
-    ArrayList<String> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
-    for(String i:doc_stemmed)
-        System.out.println(i);
-    return doc_stemmed;
-
+    public static ArrayList<String> preprocess (String doc_in,int check) {  //applies the preprocessing
+    if(check==1){ //If check==1 the stemming and stopwords removal are applied
+            String doc_out=doc_in;
+            //int id=getDocID(doc_in);
+            //System.out.println("ID: "+ id);
+            doc_out=textclean(doc_out); //Text cleaned and converted from ASCII to UNICODE
+            doc_out=doc_out.toLowerCase(); //Text to lower case
+            //System.out.println("DOC IN"+doc_in);
+            //System.out.println("DOC OUT"+doc_out);
+            String stopwords= getStopwords(); //Get the list of stopwords
+            ArrayList<String> doc_no_sw=removeStopwords(doc_out,stopwords); //Remove the stopwords
+            ArrayList<String> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
+            for(String i:doc_stemmed)
+                System.out.println(i);
+            return doc_stemmed;}
+    else{
+            String doc_out=doc_in;
+            //int id=getDocID(doc_in);
+            //System.out.println("ID: "+ id);
+            doc_out=textclean(doc_out); //Text cleaned and converted from ASCII to UNICODE
+            doc_out=doc_out.toLowerCase(); //Text to lower case
+            //System.out.println("DOC IN"+doc_in);
+            //System.out.println("DOC OUT"+doc_out);
+            ArrayList<String> doc_final= new ArrayList<String>();
+            String doc_w[]=doc_out.split("\\s+"); //split the string by space separator
+            for(String i:doc_w )
+                doc_final.add(i);
+            for (String i:doc_final)
+                System.out.println(i);
+            return doc_final;
+        }
     }
+
+
 
     public static String getStopwords(){ //ritorna il dizionario di stopwords
         String file=("C:\\Users\\Rauro\\OneDrive\\Desktop\\Uni\\Information Retrivial\\stopwords.txt");
@@ -154,11 +171,16 @@ public class preprocessing {
         test2=test2.replaceAll("([a-zA-Z]+)([\\W])+","$1 ");
         test2=test2.replaceAll("[!._'?\"£$%&=]","");
         System.out.println(test);
-        System.out.println(test2); */
+        System.out.println(test2);
+        System.out.println("CHECK 1");
+        preprocessing.preprocess(text2,1);
+        System.out.println("\n------------------------\nCHECK 0");
+        preprocessing.preprocess(text2,0);
+        */
 
-        preprocessing.preprocess(text2);
 
-    }
+
+        }
 
 
 }
