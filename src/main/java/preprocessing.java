@@ -11,11 +11,13 @@ import java.util.Scanner; // Import the Scanner class to read text files
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.tartarus.snowball.ext.PorterStemmer;
+import org.apache.hadoop.io.Text;
+
 
 
 public class preprocessing {
 
-    public static ArrayList<String> preprocess (String doc_in,int check) {  //applies the preprocessing
+    public static ArrayList<Text> preprocess (String doc_in,int check) {  //applies the preprocessing
     if(check==1){ //If check==1 the stemming and stopwords removal are applied
             String doc_out=doc_in;
             //int id=getDocID(doc_in);
@@ -26,9 +28,9 @@ public class preprocessing {
             //System.out.println("DOC OUT"+doc_out);
             String stopwords= getStopwords(); //Get the list of stopwords
             ArrayList<String> doc_no_sw=removeStopwords(doc_out,stopwords); //Remove the stopwords
-            ArrayList<String> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
-            for(String i:doc_stemmed)
-                System.out.println(i);
+            ArrayList<Text> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
+            for(Text i:doc_stemmed)
+                System.out.println(i+" - "+i.getLength());
             return doc_stemmed;}
     else{
             String doc_out=doc_in;
@@ -38,12 +40,13 @@ public class preprocessing {
             doc_out=doc_out.toLowerCase(); //Text to lower case
             //System.out.println("DOC IN"+doc_in);
             //System.out.println("DOC OUT"+doc_out);
-            ArrayList<String> doc_final= new ArrayList<String>();
+            ArrayList<Text> doc_final= new ArrayList<Text>();
             String doc_w[]=doc_out.split("\\s+"); //split the string by space separator
-            for(String i:doc_w )
-                doc_final.add(i);
-            for (String i:doc_final)
-                System.out.println(i);
+            for(String i:doc_w ){
+                Text new_word=cutWord(i);
+                doc_final.add(new_word);}
+            for (Text i:doc_final)
+                System.out.println(i+" - "+i.getLength());
             return doc_final;
         }
     }
@@ -141,8 +144,8 @@ public class preprocessing {
     public static String getDocument(String row){ //return the document removing the id part
         return row=row.replaceAll("^[0-9].*\t"," ");
     }
-    public static ArrayList<String> stemming(ArrayList<String> doc_in){
-        ArrayList<String> doc_out= new ArrayList<String>();
+    public static ArrayList<Text> stemming(ArrayList<String> doc_in){
+        ArrayList<Text> doc_out= new ArrayList<Text>();
         PorterStemmer stemmer= new PorterStemmer();
         if(doc_in.isEmpty()){
             System.out.println("Document not found. Can't stem");
@@ -151,20 +154,39 @@ public class preprocessing {
         for(int i=0;i<doc_in.size();i++){
             stemmer.setCurrent(doc_in.get(i)); //set string you need to stem
             stemmer.stem();  //stem the word
-            doc_out.add(stemmer.getCurrent());//get the stemmed word
+            Text new_word= cutWord(stemmer.getCurrent());  //Cut the word to MAX 20 characters
+            doc_out.add(new_word);//get the stemmed word
         }
         return doc_out;
+    }
+
+    public static Text cutWord(String word){ //cut the word into 20 character lenghts if it has more and return it as a Hadoop.Text type
+        if(word==null){
+            System.out.println("Word not present. Cannot cut");
+            return null;
+        }
+        if(word.length()>20) {
+            word = word.substring(0, 20);
+            Text new_word = new Text(word);
+            return new_word;
+        }
+        else{
+            String padded_word = String.format("%-20s", word); //Add whitespaces to words that have less than 20 char to reach max 20 characters lenght
+            Text padded_textw = new Text(padded_word);
+
+            return padded_textw;
+        }
     }
 
 
         public static void main(String[] args){
         String text= "0	The presence of communication amid scientific minds was equally important to the success of the Manhattan Project as scientific intellect was. The only cloud hanging over the impressive achievement of the atomic researchers and engineers is what their success truly meant; hundreds of thousands of innocent lives obliterated.";
-        String text2= "8841817\tThat's chemistry  123 too! Fireworks get their color from metal compounds (also known as metal salts) packed inside. You probably know that if you burn metals in a hot flame (such as a Bunsen burner in a school laboratory), they glow with very intense colorsâ\u0080\u0094 that's exactly what's happening in fireworks.";
+        String text2= "8841817\tThat's chemistry  123 too! Fireworks get their color from metal compounds (also known as metal salts) packed inside. You probably know that if you burn metals in a hot flame (such as a Bunsen burner in a school laboratory), they glow with very intense colorsâ\u0080\u0094 that's exactly what's happening in fireworks. AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         String test="[1123] (123) {123} [[123]] (3[2{1]})12-13-14 12/45/56 12\\?12\\?12 ciao/ [ciao ciao\\ /ciao \\ciao ";
         String test2= test;
 
-        /*
-        REGEX TEST
+
+        //REGEX TEST
         test2=test2.replaceAll("([\\[\\_\\(\\)\\{\\}\\]]+)([0-9]+)","$2");
         test2=test2.replaceAll("([0-9]+)([\\[\\_\\(\\)\\{\\}\\]]+)","$1");
         test2=test2.replaceAll("([\\W])([a-zA-Z]+)"," $2");
@@ -176,7 +198,7 @@ public class preprocessing {
         preprocessing.preprocess(text2,1);
         System.out.println("\n------------------------\nCHECK 0");
         preprocessing.preprocess(text2,0);
-        */
+
 
 
 
