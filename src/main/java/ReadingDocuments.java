@@ -56,3 +56,7 @@ public class ReadingDocuments {
             //System.out.println( "\\u" + Integer.toHexString('÷' | 0x10000).substring(1) );
     }
 }
+
+
+
+
