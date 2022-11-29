@@ -1,7 +1,9 @@
+import org.apache.hadoop.hdfs.util.ByteArray;
 import org.apache.hadoop.io.Text;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,23 +62,28 @@ public class NewLexicon {
         System.gc();
     }
 
-    public void saveLexicon(String filePath,NewLexicon lex, int position)throws IOException {
+    public void saveLexicon(String filePath, int indexOfFile) throws IOException {
 
-        RandomAccessFile file = new RandomAccessFile(filePath,"rw");
-        file.seek(position);
+        RandomAccessFile file = new RandomAccessFile(filePath + indexOfFile,"rw");
+        //file.seek(0);
         //Convertire struttura in byte
-        //file.write(convertLexToByte(lex));
+        int offsetOnFile = 0;
+        for(Text key : lexicon.keySet()){
+            file.write(key.getBytes());
+            offsetOnFile += 64;
+            byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(), lexicon.get(key).getOffset());
+            file.write(valueByte);
+            offsetOnFile += 20;
+        }
         file.close();
-
-
     }
 
-    public byte[] convertLexToByte(NewLexicon lex){
-
-        int size = 0;
-        byte[] lexiconByte = new byte[0];
-
-        return lexiconByte;
+    private byte[] transformValueToByte( int cF, long dF, long offset ) {
+        ByteBuffer bb = ByteBuffer.allocate(20);
+        bb.putInt(cF);
+        bb.putLong(dF);
+        bb.putLong(offset);
+        return bb.array();
     }
 
     public void updateAllOffsets(){
@@ -96,33 +103,18 @@ public class NewLexicon {
                 offset = lexicon.get(term).getOffset();
             }
         }
-
     }
 
 
 
 
-    public static void main (String[] arg){
+    public static void main (String[] arg) throws IOException {
+        NewLexicon lex = new NewLexicon(0);
 
-        String a = "cIAO";
-        Text aT = new Text(a);
-        String b = "bau";
-        Text bT = new Text(b);
-        String c = "cIAO";
-        Text cT = new Text(c);
-        String d = "a";
-        Text dT = new Text(d);
-        String e = "cIAO";
-        Text eT = new Text(e);
+        lex.addElement(new Text("pippo"), 1);
+        lex.addElement(new Text("pippo2"), 1);
+        lex.addElement(new Text("pippo3"), 1);
+        lex.saveLexicon("prova", 0);
 
-        NewLexicon newLex = new NewLexicon(0);
-        newLex.addElement(aT,1);
-        newLex.addElement(bT,1);
-        newLex.addElement(cT,1);
-        newLex.addElement(dT,1);
-        newLex.addElement(eT,2);
-
-        newLex.updateAllOffsets();
-        newLex.sortLexicon();
     }
 }
