@@ -1,4 +1,7 @@
+import sun.security.util.BitArray;
+
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 public class NewInvertedIndex {
@@ -40,6 +43,28 @@ public class NewInvertedIndex {
     public void clearInvertedIndex(){
         allPostingLists.clear();
         System.gc();
+    }
+
+    public byte[] compressListOfDocIDs(){
+
+    }
+
+
+    public byte[] compressListOfTFs() {
+        int sumOfTFs = 0;
+        for (newPosting post : allPostingLists) {
+            sumOfTFs += post.getTF();
+        }
+        BitSet result = new BitSet(sumOfTFs);
+        int j=0;
+        for(newPosting post : allPostingLists){
+            for(int i=0; i<post.getTF()-1; i++){
+                result.set(j);
+                j++;
+            }
+            j++;
+        }
+        return result.toByteArray();
     }
 
 }
