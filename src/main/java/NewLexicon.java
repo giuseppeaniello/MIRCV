@@ -30,16 +30,19 @@ public class NewLexicon {
             lexicon.put(term,lexiconValue);
             currentOffset += 1;
             lexiconValue.setLastDocument(docId);
+            updateAllOffsets();
         }
         else{
             if(lexicon.get(term).getLastDocument() == docId){
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
+                updateAllOffsets();
             }
             else{
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
                 lexicon.get(term).setDf(lexicon.get(term).getDf() + 1);
                 lexicon.get(term).setLastDocument(docId);
                 currentOffset += 1;
+                updateAllOffsets();
             }
         }
     }
@@ -67,13 +70,13 @@ public class NewLexicon {
         RandomAccessFile file = new RandomAccessFile(filePath + indexOfFile,"rw");
         //file.seek(0);
         //Convertire struttura in byte
-        int offsetOnFile = 0;
+        // int offsetOnFile = 0;
         for(Text key : lexicon.keySet()){
             file.write(key.getBytes());
-            offsetOnFile += 64;
+         //   offsetOnFile += key.getBytes().length;
             byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(), lexicon.get(key).getOffset());
             file.write(valueByte);
-            offsetOnFile += 20;
+         //   offsetOnFile += valueByte.length;
         }
         file.close();
     }
@@ -110,10 +113,9 @@ public class NewLexicon {
 
     public static void main (String[] arg) throws IOException {
         NewLexicon lex = new NewLexicon(0);
-
-        lex.addElement(new Text("pippo"), 1);
-        lex.addElement(new Text("pippo2"), 1);
-        lex.addElement(new Text("pippo3"), 1);
+        lex.addElement(new Text("pippo               "), 1);
+        lex.addElement(new Text("pippo2              "), 1);
+        lex.addElement(new Text("pippo3              "), 1);
         lex.saveLexicon("prova", 0);
 
     }
