@@ -45,12 +45,11 @@ public class NewInvertedIndex {
         System.gc();
     }
 
-    public byte[] compressListOfDocIDs(){
 
-    }
 
 
     public byte[] compressListOfTFs() {
+        //Use Unary compression
         int sumOfTFs = 0;
         for (newPosting post : allPostingLists) {
             sumOfTFs += post.getTF();
@@ -66,5 +65,39 @@ public class NewInvertedIndex {
         }
         return result.toByteArray();
     }
+    public static void decompressionListOfTfs(byte[] compression){
+        String s = compression.toString();
 
+    }
+   /* public byte[] compressionListOfDocId(){
+        //Use Gamma Compression
+        //sx -> Unary della dim dei bit che ci vogliono per conversione in binario
+        //dx -> Concersione in binario meno cifra significativa
+        for(newPosting post : allPostingLists){
+
+        }
+    }*/
+
+    public static void main(String[] argv ){
+
+        //a=1/3 b=2/2 c=3/4
+        newPosting a = new newPosting(1);
+        a.incrementDocumentFrequency();
+        a.incrementDocumentFrequency();
+        newPosting b = new newPosting(2);
+        b.incrementDocumentFrequency();
+        newPosting c = new newPosting(3);
+        c.incrementDocumentFrequency();
+        c.incrementDocumentFrequency();
+        c.incrementDocumentFrequency();
+        NewInvertedIndex d = new NewInvertedIndex(0);
+        d.allPostingLists.add(a);
+        d.allPostingLists.add(b);
+        d.allPostingLists.add(c);
+
+        byte[] compress = d.compressListOfTFs();
+        String s = compress.toString();
+
+
+    }
 }
