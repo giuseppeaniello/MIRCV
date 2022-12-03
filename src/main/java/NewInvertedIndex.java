@@ -1,6 +1,6 @@
-import sun.security.util.BitArray;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
@@ -37,7 +37,12 @@ public class NewInvertedIndex {
     }
 
     public void saveInvertedIndexOnFile(){
-        
+        // prendi lista di docID
+        // prendi lista TF
+        // comprimi lista docID
+        // salva lista docID compressi in un file
+        // comprimi lista TF
+        // salva lista TF compressa in un altro file
     }
 
     public void clearInvertedIndex(){
@@ -46,29 +51,53 @@ public class NewInvertedIndex {
     }
 
 
-
-
-    public byte[] compressListOfTFs() {
-        //Use Unary compression
+    public byte[] compressListOfTFs(){
+        // use unary compression
         int sumOfTFs = 0;
         for (newPosting post : allPostingLists) {
             sumOfTFs += post.getTF();
         }
-        BitSet result = new BitSet(sumOfTFs);
-        int j=0;
+        boolean[] result = new boolean[sumOfTFs];
+        int j = 0;
         for(newPosting post : allPostingLists){
             for(int i=0; i<post.getTF()-1; i++){
-                result.set(j);
+                result[j] = true;
                 j++;
             }
             j++;
         }
-        return result.toByteArray();
+        return fromBooleanArrToByteArr(result);
     }
+
+    private byte[] fromBooleanArrToByteArr(boolean[] boolArr){
+        BitSet bits = new BitSet(boolArr.length);
+        for (int i = 0; i < boolArr.length; i++) {
+            if (boolArr[i]) {
+                bits.set(i);
+            }
+        }
+        byte[] bytes = bits.toByteArray();
+        if (bytes.length * 8 >= boolArr.length) {
+            return bytes;
+        } else {
+            return Arrays.copyOf(bytes, boolArr.length / 8 + (boolArr.length % 8 == 0 ? 0 : 1));
+        }
+    }
+
+     private boolean[] fromByteArrToBooleanArr(byte[] byteArray) {
+        BitSet bits = BitSet.valueOf(byteArray);
+        boolean[] bools = new boolean[byteArray.length * 8];
+        for (int i = bits.nextSetBit(0); i != -1; i = bits.nextSetBit(i+1)) {
+            bools[i] = true;
+        }
+        return bools;
+    }
+
     public static void decompressionListOfTfs(byte[] compression){
         String s = compression.toString();
 
     }
+
    /* public byte[] compressionListOfDocId(){
         //Use Gamma Compression
         //sx -> Unary della dim dei bit che ci vogliono per conversione in binario
@@ -77,6 +106,7 @@ public class NewInvertedIndex {
 
         }
     }*/
+
 
     public static void main(String[] argv ){
 
@@ -90,14 +120,17 @@ public class NewInvertedIndex {
         c.incrementDocumentFrequency();
         c.incrementDocumentFrequency();
         c.incrementDocumentFrequency();
+        newPosting e = new newPosting(4);
+        e.incrementDocumentFrequency();
         NewInvertedIndex d = new NewInvertedIndex(0);
         d.allPostingLists.add(a);
         d.allPostingLists.add(b);
         d.allPostingLists.add(c);
+        d.allPostingLists.add(e);
 
         byte[] compress = d.compressListOfTFs();
         String s = compress.toString();
-
+        boolean[] pippo = d.fromByteArrToBooleanArr(compress);
 
     }
 }
