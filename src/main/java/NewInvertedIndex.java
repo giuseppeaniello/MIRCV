@@ -7,22 +7,22 @@ import java.util.List;
 public class NewInvertedIndex {
 
     int indexOfFile;
-    List<NewPosting> allPostingLists; //list in which we have all the posting lists of the terms in this blocks
+    List<newPosting> allPostingLists; //list in which we have all the posting lists of the terms in this blocks
 
 
     public NewInvertedIndex(int indexOfFile){
         this.indexOfFile = indexOfFile;
-        this.allPostingLists = new ArrayList<NewPosting>();
+        this.allPostingLists = new ArrayList<newPosting>();
     }
 
     // case term appeared for the first time
     public void addPostingOfNewTerm(long currentOffset, long docID){ //add the first posting of a new posting list
-        this.allPostingLists.add((int) currentOffset, new NewPosting(docID));
+        this.allPostingLists.add((int) currentOffset, new newPosting(docID));
     }
 
     // case term already appeared but in different document
     public void addPostingOfExistingTerm(long offset, long docID, long df){ //add a new posting in existing posting list
-        this.allPostingLists.add((int) (offset + df), new NewPosting(docID)); //we have offset+df to add the new posting at the end of the posting list
+        this.allPostingLists.add((int) (offset + df), new newPosting(docID)); //we have offset+df to add the new posting at the end of the posting list
         //CONTROLLA CHE QUA SOPRA NON CI VADA TIPO OFFSET+DF+1 O OFFSET+DF-1
     }
 
@@ -54,13 +54,13 @@ public class NewInvertedIndex {
     public byte[] compressListOfTFs(){
         // use unary compression
         int numOfBitsNecessary = 0;
-        for (NewPosting post : allPostingLists) { // Here we are looking for the number of bytes we will need for our compressed numbers
+        for (newPosting post : allPostingLists) { // Here we are looking for the number of bytes we will need for our compressed numbers
             int numOfByteNecessary = (int) (Math.floorDiv(post.getTF(), 8) + 1); // qui si può anche fare tutto con una variabile sola
             numOfBitsNecessary += (numOfByteNecessary * 8); // però diventa illeggibile quindi facciamolo alla fine
         }
         boolean[] result = new boolean[numOfBitsNecessary];
         int j = 0;
-        for(NewPosting post : allPostingLists){
+        for(newPosting post : allPostingLists){
            long zerosToAdd = 8 - (post.getTF() % 8); //number of zeros to be added to allign to byte each TF
             for(int i=0; i<post.getTF()-1; i++){
                 result[j] = true;
@@ -117,19 +117,19 @@ public class NewInvertedIndex {
     public static void main(String[] argv ){
 
         //a=1/3 b=2/2 c=3/4 e=4/2 f=5/1 g=6/11
-        NewPosting a = new NewPosting(1);
+        newPosting a = new newPosting(1);
         a.incrementDocumentFrequency();
         a.incrementDocumentFrequency();
-        NewPosting b = new NewPosting(2);
+        newPosting b = new newPosting(2);
         b.incrementDocumentFrequency();
-        NewPosting c = new NewPosting(3);
+        newPosting c = new newPosting(3);
         c.incrementDocumentFrequency();
         c.incrementDocumentFrequency();
         c.incrementDocumentFrequency();
-        NewPosting e = new NewPosting(4);
+        newPosting e = new newPosting(4);
         e.incrementDocumentFrequency();
-        NewPosting f = new NewPosting(5);
-        NewPosting g = new NewPosting(6);
+        newPosting f = new newPosting(5);
+        newPosting g = new newPosting(6);
         g.incrementDocumentFrequency();
         g.incrementDocumentFrequency();
         g.incrementDocumentFrequency();

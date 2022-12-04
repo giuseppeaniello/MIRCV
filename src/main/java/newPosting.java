@@ -1,4 +1,4 @@
-public class newPosting   {
+public class newPosting {
 
     private final long docID; // gamma compression da usare
     private long TF; //CONTROLLA CHE QUESTO SIA DAVVERO LONG // unary compression da usare

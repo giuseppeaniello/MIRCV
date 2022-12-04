@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 
-
+/*
 public class SecondVersionReadingDocuments {
 
    static int indexOfBlock;
@@ -68,7 +68,7 @@ public class SecondVersionReadingDocuments {
             intellect
          */
 
-
+/*
         // test code for the Dictionary
         DB db = DBMaker.fileDB("dictionaryDB0.db").make();
         HTreeMap myMap = db.hashMap("dictionaryOnFile0").open();
@@ -129,6 +129,6 @@ public class SecondVersionReadingDocuments {
 
 }
 
-
+*/
 
 
