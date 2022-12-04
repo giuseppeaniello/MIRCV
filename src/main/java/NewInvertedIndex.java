@@ -55,7 +55,7 @@ public class NewInvertedIndex {
         // use unary compression
         int numOfBitsNecessary = 0;
         for (newPosting post : allPostingLists) { // Here we are looking for the number of bytes we will need for our compressed numbers
-            int numOfByteNecessary = (int) (Math.floorDiv(post.getTF(), 8) + 1); // qui si può anche fare tutto con una variabile sola
+            int numOfByteNecessary = (int) (Math.floor(post.getTF()/8) + 1); // qui si può anche fare tutto con una variabile sola
             numOfBitsNecessary += (numOfByteNecessary * 8); // però diventa illeggibile quindi facciamolo alla fine
         }
         boolean[] result = new boolean[numOfBitsNecessary];
@@ -125,7 +125,7 @@ public class NewInvertedIndex {
 
 
     public static void main(String[] argv ){
-/*
+
         //a=1/3 b=2/2 c=3/4 e=4/2 f=5/1 g=6/11
         newPosting a = new newPosting(1);
         a.incrementDocumentFrequency();
@@ -161,6 +161,8 @@ public class NewInvertedIndex {
         d.allPostingLists.add(g);
 
         byte[] compress = d.compressListOfTFs();
+
+        /*
         String s = compress.toString();
         boolean[] pippo = d.fromByteArrToBooleanArr(compress);
 
@@ -172,8 +174,12 @@ public class NewInvertedIndex {
                 str += " 0 ";
         }
         System.out.println(str);
- */
+        */
 
+        List<Integer> test = new ArrayList<>();
+        test = d.decompressionListOfTfs(compress);
+
+        System.out.println(test);
 
     }
 }
