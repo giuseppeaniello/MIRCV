@@ -4,11 +4,17 @@ import org.apache.hadoop.io.Text;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 public class NewLexicon {
 
@@ -65,20 +71,35 @@ public class NewLexicon {
         System.gc();
     }
 
-    public void saveLexicon(String filePath, int indexOfFile) throws IOException {
+    public void saveLexicon(String filePath, int indexOfFile)  {
 
-        RandomAccessFile file = new RandomAccessFile(filePath + indexOfFile,"rw");
-        //file.seek(0);
-        //Convertire struttura in byte
-        // int offsetOnFile = 0;
-        for(Text key : lexicon.keySet()){
-            file.write(key.getBytes());
-         //   offsetOnFile += key.getBytes().length;
-            byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(), lexicon.get(key).getOffset());
-            file.write(valueByte);
-         //   offsetOnFile += valueByte.length;
+
+        Path file = Paths.get(filePath);
+        ByteBuffer buffer = null;
+
+        try (FileChannel fc = FileChannel.open(file, WRITE)) {
+
+
+            // buffer = ByteBuffer.wrap(songName.getBytes());
+            for(Text key : lexicon.keySet()){
+                buffer = ByteBuffer.wrap(key.getBytes());
+                while (buffer.hasRemaining()) {
+                    fc.write(buffer);
+                }
+                buffer.clear();
+                byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(), lexicon.get(key).getOffset());
+                buffer = ByteBuffer.wrap(valueByte);
+                while (buffer.hasRemaining()) {
+                    fc.write(buffer);
+                }
+                buffer.clear();
+            }
+
+
+            fc.close();
+        } catch (IOException ex) {
+        System.err.println("I/O Error: " + ex);
         }
-        file.close();
     }
 
     private byte[] transformValueToByte( int cF, long dF, long offset ) {
