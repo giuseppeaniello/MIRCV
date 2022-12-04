@@ -99,9 +99,19 @@ public class NewInvertedIndex {
         return bools;
     }
 
-    public static void decompressionListOfTfs(byte[] compression){
-        String s = compression.toString();
-
+    public ArrayList<Integer> decompressionListOfTfs(byte[] compression){
+        ArrayList<Integer> listOfTFs = new ArrayList<>();
+        boolean[] boolArray = fromByteArrToBooleanArr(compression);
+        int count = 0;
+        for(int i=0; i<boolArray.length; i++){
+            count++;
+            if(boolArray[i] == false){ // quando trova il primo 0 vuol dire che il numero è finito
+                listOfTFs.add(count); // lo aggiunge alla lista, adesso bisogna riprendere dal byte successivo
+                i = i + ( 8*(int)( Math.floor(count/8) +1 ) ) - count; // in questo modo si riparte dall'inizio del byte successivo (in realtà dal bit prima ma poi appena ricomincia in for fa i++)
+                count = 0;
+            }
+        }
+        return listOfTFs;
     }
 
    /* public byte[] compressionListOfDocId(){
@@ -115,7 +125,7 @@ public class NewInvertedIndex {
 
 
     public static void main(String[] argv ){
-
+/*
         //a=1/3 b=2/2 c=3/4 e=4/2 f=5/1 g=6/11
         newPosting a = new newPosting(1);
         a.incrementDocumentFrequency();
@@ -162,5 +172,8 @@ public class NewInvertedIndex {
                 str += " 0 ";
         }
         System.out.println(str);
+ */
+
+
     }
 }
