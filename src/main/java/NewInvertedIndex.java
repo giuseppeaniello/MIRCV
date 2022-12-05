@@ -1,8 +1,20 @@
 
+import org.apache.hadoop.io.Text;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
+
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 public class NewInvertedIndex {
 
@@ -123,11 +135,31 @@ public class NewInvertedIndex {
         }
     }*/
 
+    public void saveTFCompressedOnFile(byte [] compressedTF,String filePath) throws FileNotFoundException {
 
-    public static void main(String[] argv ){
+        RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
+
+        Path fileP = Paths.get(filePath );
+        ByteBuffer buffer = null;
+
+        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
+
+            buffer = ByteBuffer.wrap(compressedTF);
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
+            }
+            buffer.clear();
+            fc.close();
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+
+    }
+
+    public static void main(String[] argv ) throws IOException {
 
         //a=1/3 b=2/2 c=3/4 e=4/2 f=5/1 g=6/11
-        newPosting a = new newPosting(1);
+       /* newPosting a = new newPosting(1);
         a.incrementTermFrequency();
         a.incrementTermFrequency();
         newPosting b = new newPosting(2);
@@ -164,22 +196,13 @@ public class NewInvertedIndex {
 
         /*
         String s = compress.toString();
-        boolean[] pippo = d.fromByteArrToBooleanArr(compress);
+        boolean[] pippo = d.fromByteArrToBooleanArr(compress);*/
 
-        String str = "";
-        for (boolean tmp : pippo){
-            if(tmp == true)
-                str += " 1 ";
-            else
-                str += " 0 ";
-        }
-        System.out.println(str);
-        */
 
-        List<Integer> test = new ArrayList<>();
-        test = d.decompressionListOfTfs(compress);
 
-        System.out.println(test);
+
+
+
 
     }
 }

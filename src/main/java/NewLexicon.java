@@ -1,6 +1,8 @@
 import org.apache.hadoop.io.Text;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
@@ -68,11 +70,14 @@ public class NewLexicon {
         System.gc();
     }
 
-    public void saveLexicon(String filePath, int indexOfFile)  {
-        Path file = Paths.get(filePath);
+    public void saveLexiconOnFile(String filePath, int indexOfFile) throws FileNotFoundException {
+
+        RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
+
+        Path fileP = Paths.get(filePath );
         ByteBuffer buffer = null;
 
-        try (FileChannel fc = FileChannel.open(file, WRITE)) {
+        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
 
 
             // buffer = ByteBuffer.wrap(songName.getBytes());
@@ -82,7 +87,9 @@ public class NewLexicon {
                     fc.write(buffer);
                 }
                 buffer.clear();
-                byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(), lexicon.get(key).getOffsetDocID());
+                byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(),
+                                                            lexicon.get(key).getOffsetDocID(),
+                                                                lexicon.get(key).getOffsetTF());
                 buffer = ByteBuffer.wrap(valueByte);
                 while (buffer.hasRemaining()) {
                     fc.write(buffer);
@@ -97,11 +104,12 @@ public class NewLexicon {
         }
     }
 
-    private byte[] transformValueToByte( int cF, long dF, long offset ) {
-        ByteBuffer bb = ByteBuffer.allocate(20);
+    private byte[] transformValueToByte( int cF, long dF, long offsetDocId, long offsetTF ) {
+        ByteBuffer bb = ByteBuffer.allocate(28);
         bb.putInt(cF);
         bb.putLong(dF);
-        bb.putLong(offset);
+        bb.putLong(offsetDocId);
+        bb.putLong(offsetTF);
         return bb.array();
     }
 
@@ -149,36 +157,11 @@ public class NewLexicon {
 
     public static void main (String[] arg) throws IOException {
         NewLexicon lex = new NewLexicon(0);
-        NewInvertedIndex invInd = new NewInvertedIndex(0);
-        // 0,2,4
-        lex.addElement(new Text("pippo               "), 1, invInd);
-        lex.addElement(new Text("pippo               "), 1, invInd);
-        lex.addElement(new Text("pippo               "), 1, invInd);
-        lex.addElement(new Text("pippo               "), 1, invInd);
-        lex.addElement(new Text("pippo               "), 1, invInd);
-        lex.addElement(new Text("pippo               "), 1, invInd);
-        lex.addElement(new Text("pippo               "), 1, invInd);
-        lex.addElement(new Text("pippo               "), 1, invInd);
-
-
-        lex.addElement(new Text("pippo2              "), 1, invInd);
-        lex.addElement(new Text("pippo2              "), 1, invInd);
-        lex.addElement(new Text("pippo2              "), 1, invInd);
-        lex.addElement(new Text("pippo2              "), 1, invInd);
-        lex.addElement(new Text("pippo2              "), 1, invInd);
-        lex.addElement(new Text("pippo2              "), 1, invInd);
-        lex.addElement(new Text("pippo2              "), 1, invInd);
-        lex.addElement(new Text("pippo2              "), 1, invInd);
-        lex.addElement(new Text("pippo2              "), 1, invInd);
-
-        lex.addElement(new Text("pippo3              "), 1, invInd);
-        //lex.saveLexicon("prova", 0);
-        lex.updateAllOffsetsDocID();
-        lex.updateAllOffsetsTF(invInd);
-        for(Text term : lex.lexicon.keySet()){
-            System.out.println(lex.lexicon.get(term).getOffsetTF());
-        }
-
+        NewInvertedIndex inv = new NewInvertedIndex(0);
+        lex.addElement(new Text("pippo               "), 1,inv);
+        lex.addElement(new Text("pippo2              "), 1,inv);
+        lex.addElement(new Text("pippo3              "), 1,inv);
+        lex.saveLexiconOnFile("prova", 0);
 
     }
 }
