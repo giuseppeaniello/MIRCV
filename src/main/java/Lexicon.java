@@ -164,7 +164,7 @@ public class Lexicon {
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
-        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 5 , invInd);
 
 
         lex.addElement(new Text("c                   "), 1, invInd);
@@ -183,6 +183,7 @@ public class Lexicon {
         lex.updateAllOffsetsTF(invInd);
         lex.sortLexicon();
         for(Text term : lex.lexicon.keySet()){
+            //prova anche a scorrere i posting
             System.out.print(term + "  ");
             System.out.print("offsetTF: " + lex.lexicon.get(term).getOffsetTF() + "  ");
             System.out.print("offsetList: " + lex.lexicon.get(term).getOffsetInList() + "  ");

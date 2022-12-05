@@ -30,7 +30,9 @@ public class InvertedIndex {
 
     // case term already appeared but in different document
     public void addPostingOfExistingTerm(long offset, long docID, long df){ //add a new posting in existing posting list
-        this.allPostingLists.add((int) (offset + df), new Posting(docID)); //we have offset+df to add the new posting at the end of the posting list
+       // this.allPostingLists.add((int) (offset + df), new Posting(docID)); //we have offset+df to add the new posting at the end of the posting list
+        this.allPostingLists.add(new Posting(docID) ); //we have offset+df to add the new posting at the end of the posting list
+
         //CONTROLLA CHE QUA SOPRA NON CI VADA TIPO OFFSET+DF+1 O OFFSET+DF-1
     }
 
