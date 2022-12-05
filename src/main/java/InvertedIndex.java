@@ -1,6 +1,3 @@
-
-import org.apache.hadoop.io.Text;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -13,28 +10,27 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
-import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
-public class NewInvertedIndex {
+public class InvertedIndex {
 
     int indexOfFile;
-    List<newPosting> allPostingLists; //list in which we have all the posting lists of the terms in this blocks
+    List<Posting> allPostingLists; //list in which we have all the posting lists of the terms in this blocks
 
 
-    public NewInvertedIndex(int indexOfFile){
+    public InvertedIndex(int indexOfFile){
         this.indexOfFile = indexOfFile;
-        this.allPostingLists = new ArrayList<newPosting>();
+        this.allPostingLists = new ArrayList<Posting>();
     }
 
     // case term appeared for the first time
     public void addPostingOfNewTerm(long currentOffset, long docID){ //add the first posting of a new posting list
-        this.allPostingLists.add((int) currentOffset, new newPosting(docID));
+        this.allPostingLists.add((int) currentOffset, new Posting(docID));
     }
 
     // case term already appeared but in different document
     public void addPostingOfExistingTerm(long offset, long docID, long df){ //add a new posting in existing posting list
-        this.allPostingLists.add((int) (offset + df), new newPosting(docID)); //we have offset+df to add the new posting at the end of the posting list
+        this.allPostingLists.add((int) (offset + df), new Posting(docID)); //we have offset+df to add the new posting at the end of the posting list
         //CONTROLLA CHE QUA SOPRA NON CI VADA TIPO OFFSET+DF+1 O OFFSET+DF-1
     }
 
@@ -66,13 +62,13 @@ public class NewInvertedIndex {
     public byte[] compressListOfTFs(){
         // use unary compression
         int numOfBitsNecessary = 0;
-        for (newPosting post : allPostingLists) { // Here we are looking for the number of bytes we will need for our compressed numbers
+        for (Posting post : allPostingLists) { // Here we are looking for the number of bytes we will need for our compressed numbers
             int numOfByteNecessary = (int) (Math.floor(post.getTF()/8) + 1); // qui si può anche fare tutto con una variabile sola
             numOfBitsNecessary += (numOfByteNecessary * 8); // però diventa illeggibile quindi facciamolo alla fine
         }
         boolean[] result = new boolean[numOfBitsNecessary];
         int j = 0;
-        for(newPosting post : allPostingLists){
+        for(Posting post : allPostingLists){
            long zerosToAdd = 8 - (post.getTF() % 8); //number of zeros to be added to allign to byte each TF
             for(int i=0; i<post.getTF()-1; i++){
                 result[j] = true;

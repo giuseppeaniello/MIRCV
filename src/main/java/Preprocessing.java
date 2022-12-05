@@ -1,13 +1,5 @@
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Watchable;
-import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Scanner; // Import the Scanner class to read text files
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.tartarus.snowball.ext.PorterStemmer;
@@ -15,7 +7,7 @@ import org.apache.hadoop.io.Text;
 
 
 
-public class preprocessing {
+public class Preprocessing {
 
     public static ArrayList<Text> preprocess (String doc_in,int check) {  //applies the preprocessing
     if(check==1){ //If check==1 the stemming and stopwords removal are applied
@@ -195,9 +187,9 @@ public class preprocessing {
         System.out.println(test);
         System.out.println(test2);
         System.out.println("CHECK 1");
-        preprocessing.preprocess(text2,1);
+        Preprocessing.preprocess(text2,1);
         System.out.println("\n------------------------\nCHECK 0");
-        preprocessing.preprocess(text2,0);
+        Preprocessing.preprocess(text2,0);
 
 
 

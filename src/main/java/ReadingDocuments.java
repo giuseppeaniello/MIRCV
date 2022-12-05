@@ -1,4 +1,5 @@
-/*import java.io.BufferedReader;
+import org.w3c.dom.Text;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class ReadingDocuments {
                 if(freeMemory > totalMemory*0.25) {
                     String docId = line.split("\\t")[0];
                     String doc = new String(line.split("\\t")[1].getBytes(), "UTF-8");
-                    ArrayList<String> docPreproc = preprocessing.preprocess(doc,1);
+                    ArrayList<Text> docPreproc = Preprocessing.preprocess(doc,1);
                     int i = -1;
                     for(String term : docPreproc){
                         i++;
@@ -50,6 +51,7 @@ public class ReadingDocuments {
             System.out.println("Something went wrong");
         }
     }
+
     public static void main(String argv[]){
         readDoc();
 
@@ -57,6 +59,6 @@ public class ReadingDocuments {
     }
 }
 
-*/
+
 
 

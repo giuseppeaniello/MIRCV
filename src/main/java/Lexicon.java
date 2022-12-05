@@ -13,20 +13,20 @@ import java.util.List;
 
 import static java.nio.file.StandardOpenOption.WRITE;
 
-public class NewLexicon {
+public class Lexicon {
 
 
     LinkedHashMap<Text,LexiconValue> lexicon;
     int indexOfFile;
     long currentOffset;
 
-    public NewLexicon(int indexOfFile){
+    public Lexicon(int indexOfFile){
         lexicon             = new LinkedHashMap<>();
         this.indexOfFile    = indexOfFile;
         this.currentOffset  = 0;
     }
 
-    public void addElement(Text term, int docId, NewInvertedIndex invInd){
+    public void addElement(Text term, int docId, InvertedIndex invInd){
         if(!lexicon.containsKey(term)){ // case new term
             LexiconValue lexiconValue = new LexiconValue(currentOffset, docId);
             invInd.addPostingOfNewTerm(currentOffset, docId);
@@ -39,7 +39,6 @@ public class NewLexicon {
             if(lexicon.get(term).getLastDocument() == docId){
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
                 invInd.incrementPostingTF(lexicon.get(term).getOffsetDocID(), docId, lexicon.get(term).getDf());
-                updateAllOffsetsDocID();
             }
             else{ // case term already appeared but in different document
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
@@ -71,16 +70,10 @@ public class NewLexicon {
     }
 
     public void saveLexiconOnFile(String filePath, int indexOfFile) throws FileNotFoundException {
-
         RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
-
         Path fileP = Paths.get(filePath );
         ByteBuffer buffer = null;
-
         try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-
-
-            // buffer = ByteBuffer.wrap(songName.getBytes());
             for(Text key : lexicon.keySet()){
                 buffer = ByteBuffer.wrap(key.getBytes());
                 while (buffer.hasRemaining()) {
@@ -96,9 +89,6 @@ public class NewLexicon {
                 }
                 buffer.clear();
             }
-
-
-            fc.close();
         } catch (IOException ex) {
         System.err.println("I/O Error: " + ex);
         }
@@ -130,7 +120,7 @@ public class NewLexicon {
         }
     }
 
-    public void updateAllOffsetsTF(NewInvertedIndex invInd){ // to be done just one time before the sorting before the saving on file
+    public void updateAllOffsetsTF(InvertedIndex invInd){ // to be done just one time before the sorting before the saving on file
         boolean first = true;
         long numOfBytes = 0;
         long df = 0; // df of the previous term
@@ -146,7 +136,7 @@ public class NewLexicon {
                 lexicon.get(term).setOffsetTF(numOfBytes);
                 df = lexicon.get(term).getDf();
                 for(int i=0; i<df; i++){
-                    numOfBytes += (long) Math.floor(invInd.allPostingLists.get((int)lexicon.get(term).getOffsetDocID() + i).getTF() / 8)+1;
+                    numOfBytes += (long) Math.floor(invInd.allPostingLists.get((int)lexicon.get(term).getOffsetDocID() + i).getTF() / 8) + 1;
                 }
             }
         }
@@ -156,12 +146,43 @@ public class NewLexicon {
 
 
     public static void main (String[] arg) throws IOException {
-        NewLexicon lex = new NewLexicon(0);
-        NewInvertedIndex inv = new NewInvertedIndex(0);
-        lex.addElement(new Text("pippo               "), 1,inv);
-        lex.addElement(new Text("pippo2              "), 1,inv);
-        lex.addElement(new Text("pippo3              "), 1,inv);
-        lex.saveLexiconOnFile("prova", 0);
+        Lexicon lex = new Lexicon(0);
+        InvertedIndex invInd = new InvertedIndex(0);
+        // 0,2,4
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+
+
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+
+        lex.addElement(new Text("a                   "), 1, invInd);
+        //lex.saveLexicon("prova", 0);
+        lex.updateAllOffsetsDocID();
+        lex.updateAllOffsetsTF(invInd);
+        lex.sortLexicon();
+        for(Text term : lex.lexicon.keySet()){
+            System.out.print(term + "  ");
+            System.out.print("offsetTF: " + lex.lexicon.get(term).getOffsetTF() + "  ");
+            System.out.print("offsetDocID: " + lex.lexicon.get(term).getOffsetDocID() + "  ");
+            System.out.print("docID: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetDocID()).getDocID() + "  ");
+            System.out.println("TF: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetDocID()).getTF());
+
+        }
+
 
     }
 }
