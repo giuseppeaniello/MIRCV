@@ -33,7 +33,7 @@ public class Lexicon {
             lexicon.put(term,lexiconValue);
             currentOffset += 1;
             lexiconValue.setLastDocument(docId);
-            updateAllOffsetsDocID();
+            updateAllOffsetsInList();
         }
         else{ // case term already appeared in the same document
             if(lexicon.get(term).getLastDocument() == docId){
@@ -46,7 +46,7 @@ public class Lexicon {
                 lexicon.get(term).setLastDocument(docId);
                 invInd.addPostingOfExistingTerm(lexicon.get(term).getOffsetInList(), docId, lexicon.get(term).getDf());
                 currentOffset += 1;
-                updateAllOffsetsDocID();
+                updateAllOffsetsInList();
             }
         }
     }
@@ -103,7 +103,7 @@ public class Lexicon {
         return bb.array();
     }
 
-    public void updateAllOffsetsDocID(){ // questo non va chiamato, è già nel metodo che aggiunge gli elementi
+    public void updateAllOffsetsInList(){ // questo non va chiamato, è già nel metodo che aggiunge gli elementi
         boolean first = true;  // non lo faccio private perchè magari dopo il merging ci serve anche chiamarlo a parte
         long offset = 0;
         long df = 0;
@@ -178,7 +178,7 @@ public class Lexicon {
 
         lex.addElement(new Text("a                   "), 1, invInd);
         //lex.saveLexicon("prova", 0);
-        lex.updateAllOffsetsDocID();
+        lex.updateAllOffsetsInList();
         lex.updateAllOffsetsTF(invInd);
         lex.sortLexicon();
         for(Text term : lex.lexicon.keySet()){
