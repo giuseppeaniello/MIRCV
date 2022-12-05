@@ -54,7 +54,9 @@ public class InvertedIndex {
     }
 
     public void clearInvertedIndex(){
-        allPostingLists.clear();
+        this.allPostingLists.clear();
+        this.allPostingLists = null;
+        this.indexOfFile = 0;
         System.gc();
     }
 

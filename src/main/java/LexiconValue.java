@@ -2,15 +2,16 @@ public class LexiconValue {
 
     private int  cf;
     private long df;
+    private long offsetInList;
     private long offsetDocID;
     private long offsetTF;
-    private int lastDocument;
+    private long lastDocument;
 
-    public LexiconValue (long currentOffset, int lastDocument){
+    public LexiconValue (long currentOffset, long lastDocument){
 
         this.cf             = 1;
         this.df             = 1;
-        this.offsetDocID = currentOffset;
+        this.offsetInList = currentOffset;
         this.lastDocument   = lastDocument;
         this.offsetTF = 0;
 
@@ -20,7 +21,7 @@ public class LexiconValue {
         return cf;
     }
 
-    public int getLastDocument() {
+    public long getLastDocument() {
         return lastDocument;
     }
 
@@ -28,8 +29,8 @@ public class LexiconValue {
         return df;
     }
 
-    public long getOffsetDocID() {
-        return offsetDocID;
+    public long getOffsetInList() {
+        return offsetInList;
     }
 
     public void setCf(int cf) {
@@ -40,17 +41,23 @@ public class LexiconValue {
         this.df = df;
     }
 
-    public void setLastDocument(int lastDocument) {
+    public void setLastDocument(long lastDocument) {
         this.lastDocument = lastDocument;
+    }
+
+    public void setOffsetInList(long offsetInList) {
+        this.offsetInList = offsetInList;
+    }
+
+    public long getOffsetTF(){
+        return offsetTF;
     }
 
     public void setOffsetDocID(long offsetDocID) {
         this.offsetDocID = offsetDocID;
     }
 
-    public long getOffsetTF(){
-        return offsetTF;
-    }
+    public long getOffsetDocID(){ return offsetDocID; }
 
     public void setOffsetTF(long offsetTF){
         this.offsetTF = offsetTF;
