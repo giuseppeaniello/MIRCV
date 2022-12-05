@@ -43,8 +43,8 @@ public class Lexicon {
             else{ // case term already appeared but in different document
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
                 lexicon.get(term).setDf(lexicon.get(term).getDf() + 1);
+                invInd.addPostingOfExistingTerm(lexicon.get(term).getOffsetInList(), docId-lexicon.get(term).getLastDocument(), lexicon.get(term).getDf());
                 lexicon.get(term).setLastDocument(docId);
-                invInd.addPostingOfExistingTerm(lexicon.get(term).getOffsetInList(), docId, lexicon.get(term).getDf());
                 currentOffset += 1;
                 updateAllOffsetsInList();
             }
@@ -142,6 +142,7 @@ public class Lexicon {
         }
     }
 
+
     public void clearLexicon(){
         this.lexicon.clear();
         this.lexicon = null;
@@ -184,7 +185,7 @@ public class Lexicon {
         for(Text term : lex.lexicon.keySet()){
             System.out.print(term + "  ");
             System.out.print("offsetTF: " + lex.lexicon.get(term).getOffsetTF() + "  ");
-            System.out.print("offsetDocID: " + lex.lexicon.get(term).getOffsetInList() + "  ");
+            System.out.print("offsetList: " + lex.lexicon.get(term).getOffsetInList() + "  ");
             System.out.print("docID: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList()).getDocID() + "  ");
             System.out.println("TF: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList()).getTF());
 

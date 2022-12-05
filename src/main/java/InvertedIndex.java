@@ -36,12 +36,7 @@ public class InvertedIndex {
 
     // case term already appeared in the same document
     public void incrementPostingTF(long offset, long docID, long df){
-        for(int i=0; i<df; i++){ //look the entire posting list of this term //CONTROLLA CHE NON CI VADA TIPO i+1 O i-1
-            if(this.allPostingLists.get((int)offset + i).getDocID() == docID){ //find the posting of the right document
-                this.allPostingLists.get((int)offset + i).incrementTermFrequency(); //increment the TF of the posting of that document
-                break;
-            }
-        }
+        this.allPostingLists.get((int)(offset + df - 1) ).incrementTermFrequency(); //increment the TF of the posting of that document (the last of the posting list)
     }
 
     public void saveInvertedIndexOnFile(){
