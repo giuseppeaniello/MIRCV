@@ -17,7 +17,7 @@ public class newPosting {
         return this.TF;
     }
 
-    public void incrementDocumentFrequency(){
+    public void incrementTermFrequency(){
         this.TF += 1;
     }
 

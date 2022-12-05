@@ -27,10 +27,10 @@ public class NewInvertedIndex {
     }
 
     // case term already appeared in the same document
-    public void incrementPostingDF(long offset, long docID, long df){
+    public void incrementPostingTF(long offset, long docID, long df){
         for(int i=0; i<df; i++){ //look the entire posting list of this term //CONTROLLA CHE NON CI VADA TIPO i+1 O i-1
             if(this.allPostingLists.get((int)offset + i).getDocID() == docID){ //find the posting of the right document
-                this.allPostingLists.get((int)offset + i).incrementDocumentFrequency(); //increment the TF of the posting of that document
+                this.allPostingLists.get((int)offset + i).incrementTermFrequency(); //increment the TF of the posting of that document
                 break;
             }
         }
@@ -128,28 +128,28 @@ public class NewInvertedIndex {
 
         //a=1/3 b=2/2 c=3/4 e=4/2 f=5/1 g=6/11
         newPosting a = new newPosting(1);
-        a.incrementDocumentFrequency();
-        a.incrementDocumentFrequency();
+        a.incrementTermFrequency();
+        a.incrementTermFrequency();
         newPosting b = new newPosting(2);
-        b.incrementDocumentFrequency();
+        b.incrementTermFrequency();
         newPosting c = new newPosting(3);
-        c.incrementDocumentFrequency();
-        c.incrementDocumentFrequency();
-        c.incrementDocumentFrequency();
+        c.incrementTermFrequency();
+        c.incrementTermFrequency();
+        c.incrementTermFrequency();
         newPosting e = new newPosting(4);
-        e.incrementDocumentFrequency();
+        e.incrementTermFrequency();
         newPosting f = new newPosting(5);
         newPosting g = new newPosting(6);
-        g.incrementDocumentFrequency();
-        g.incrementDocumentFrequency();
-        g.incrementDocumentFrequency();
-        g.incrementDocumentFrequency();
-        g.incrementDocumentFrequency();
-        g.incrementDocumentFrequency();
-        g.incrementDocumentFrequency();
-        g.incrementDocumentFrequency();
-        g.incrementDocumentFrequency();
-        g.incrementDocumentFrequency();
+        g.incrementTermFrequency();
+        g.incrementTermFrequency();
+        g.incrementTermFrequency();
+        g.incrementTermFrequency();
+        g.incrementTermFrequency();
+        g.incrementTermFrequency();
+        g.incrementTermFrequency();
+        g.incrementTermFrequency();
+        g.incrementTermFrequency();
+        g.incrementTermFrequency();
 
 
         NewInvertedIndex d = new NewInvertedIndex(0);

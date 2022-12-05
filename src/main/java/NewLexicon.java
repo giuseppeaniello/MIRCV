@@ -24,23 +24,26 @@ public class NewLexicon {
         this.currentOffset  = 0;
     }
 
-    public void addElement(Text term, int docId){
-        if(!lexicon.containsKey(term)){
+    public void addElement(Text term, int docId, NewInvertedIndex invInd){
+        if(!lexicon.containsKey(term)){ // case new term
             LexiconValue lexiconValue = new LexiconValue(currentOffset, docId);
+            invInd.addPostingOfNewTerm(currentOffset, docId);
             lexicon.put(term,lexiconValue);
             currentOffset += 1;
             lexiconValue.setLastDocument(docId);
             updateAllOffsetsDocID();
         }
-        else{
+        else{ // case term already appeared in the same document
             if(lexicon.get(term).getLastDocument() == docId){
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
+                invInd.incrementPostingTF(lexicon.get(term).getOffsetDocID(), docId, lexicon.get(term).getDf());
                 updateAllOffsetsDocID();
             }
-            else{
+            else{ // case term already appeared but in different document
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
                 lexicon.get(term).setDf(lexicon.get(term).getDf() + 1);
                 lexicon.get(term).setLastDocument(docId);
+                invInd.addPostingOfExistingTerm(lexicon.get(term).getOffsetDocID(), docId, lexicon.get(term).getDf());
                 currentOffset += 1;
                 updateAllOffsetsDocID();
             }
@@ -146,10 +149,36 @@ public class NewLexicon {
 
     public static void main (String[] arg) throws IOException {
         NewLexicon lex = new NewLexicon(0);
-        lex.addElement(new Text("pippo               "), 1);
-        lex.addElement(new Text("pippo2              "), 1);
-        lex.addElement(new Text("pippo3              "), 1);
-        lex.saveLexicon("prova", 0);
+        NewInvertedIndex invInd = new NewInvertedIndex(0);
+        // 0,2,4
+        lex.addElement(new Text("pippo               "), 1, invInd);
+        lex.addElement(new Text("pippo               "), 1, invInd);
+        lex.addElement(new Text("pippo               "), 1, invInd);
+        lex.addElement(new Text("pippo               "), 1, invInd);
+        lex.addElement(new Text("pippo               "), 1, invInd);
+        lex.addElement(new Text("pippo               "), 1, invInd);
+        lex.addElement(new Text("pippo               "), 1, invInd);
+        lex.addElement(new Text("pippo               "), 1, invInd);
+
+
+        lex.addElement(new Text("pippo2              "), 1, invInd);
+        lex.addElement(new Text("pippo2              "), 1, invInd);
+        lex.addElement(new Text("pippo2              "), 1, invInd);
+        lex.addElement(new Text("pippo2              "), 1, invInd);
+        lex.addElement(new Text("pippo2              "), 1, invInd);
+        lex.addElement(new Text("pippo2              "), 1, invInd);
+        lex.addElement(new Text("pippo2              "), 1, invInd);
+        lex.addElement(new Text("pippo2              "), 1, invInd);
+        lex.addElement(new Text("pippo2              "), 1, invInd);
+
+        lex.addElement(new Text("pippo3              "), 1, invInd);
+        //lex.saveLexicon("prova", 0);
+        lex.updateAllOffsetsDocID();
+        lex.updateAllOffsetsTF(invInd);
+        for(Text term : lex.lexicon.keySet()){
+            System.out.println(lex.lexicon.get(term).getOffsetTF());
+        }
+
 
     }
 }
