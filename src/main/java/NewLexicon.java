@@ -1,8 +1,6 @@
-import org.apache.hadoop.hdfs.util.ByteArray;
 import org.apache.hadoop.io.Text;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
@@ -10,10 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class NewLexicon {
@@ -30,25 +25,24 @@ public class NewLexicon {
     }
 
     public void addElement(Text term, int docId){
-
         if(!lexicon.containsKey(term)){
             LexiconValue lexiconValue = new LexiconValue(currentOffset, docId);
             lexicon.put(term,lexiconValue);
             currentOffset += 1;
             lexiconValue.setLastDocument(docId);
-            updateAllOffsets();
+            updateAllOffsetsDocID();
         }
         else{
             if(lexicon.get(term).getLastDocument() == docId){
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
-                updateAllOffsets();
+                updateAllOffsetsDocID();
             }
             else{
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
                 lexicon.get(term).setDf(lexicon.get(term).getDf() + 1);
                 lexicon.get(term).setLastDocument(docId);
                 currentOffset += 1;
-                updateAllOffsets();
+                updateAllOffsetsDocID();
             }
         }
     }
@@ -72,8 +66,6 @@ public class NewLexicon {
     }
 
     public void saveLexicon(String filePath, int indexOfFile)  {
-
-
         Path file = Paths.get(filePath);
         ByteBuffer buffer = null;
 
@@ -87,7 +79,7 @@ public class NewLexicon {
                     fc.write(buffer);
                 }
                 buffer.clear();
-                byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(), lexicon.get(key).getOffset());
+                byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(), lexicon.get(key).getOffsetDocID());
                 buffer = ByteBuffer.wrap(valueByte);
                 while (buffer.hasRemaining()) {
                     fc.write(buffer);
@@ -110,21 +102,41 @@ public class NewLexicon {
         return bb.array();
     }
 
-    public void updateAllOffsets(){
-        boolean first = true;
+    public void updateAllOffsetsDocID(){ // questo non va chiamato, è già nel metodo che aggiunge gli elementi
+        boolean first = true;  // non lo faccio private perchè magari dopo il merging ci serve anche chiamarlo a parte
         long offset = 0;
         long df = 0;
-
         for(Text term : lexicon.keySet()){
-
             if(first){
                 df = lexicon.get(term).getDf();
                 first = false;
             }
             else{
-                lexicon.get(term).setOffset(offset + df);
+                lexicon.get(term).setOffsetDocID(offset + df);
                 df = lexicon.get(term).getDf();
-                offset = lexicon.get(term).getOffset();
+                offset = lexicon.get(term).getOffsetDocID();
+            }
+        }
+    }
+
+    public void updateAllOffsetsTF(NewInvertedIndex invInd){ // to be done just one time before the sorting before the saving on file
+        boolean first = true;
+        long numOfBytes = 0;
+        long df = 0; // df of the previous term
+        for(Text term : lexicon.keySet()){
+            if(first){ //the first time the offsetTF is already 0
+                df = lexicon.get(term).getDf();
+                for(int i=0; i<df; i++){ // df indicates the number of posting, for each posting we will need a certain number of bytes
+                    numOfBytes += (long) Math.floor(invInd.allPostingLists.get((int)lexicon.get(term).getOffsetDocID() + i).getTF() / 8)+1;
+                }
+                first = false;
+            }
+            else{
+                lexicon.get(term).setOffsetTF(numOfBytes);
+                df = lexicon.get(term).getDf();
+                for(int i=0; i<df; i++){
+                    numOfBytes += (long) Math.floor(invInd.allPostingLists.get((int)lexicon.get(term).getOffsetDocID() + i).getTF() / 8)+1;
+                }
             }
         }
     }

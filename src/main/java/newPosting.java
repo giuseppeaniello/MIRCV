@@ -21,6 +21,9 @@ public class newPosting {
         this.TF += 1;
     }
 
+    public int returnBytesNecessary(){
+        return (int) Math.floor(this.TF / 8) + 1;
+    }
 
 
 
