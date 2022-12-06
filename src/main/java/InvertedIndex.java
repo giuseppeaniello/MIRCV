@@ -43,22 +43,12 @@ public class InvertedIndex {
         this.allPostingLists.get((int)(offset + df - 1) ).incrementTermFrequency(); //increment the TF of the posting of that document (the last of the posting list)
     }
 
-    public void saveInvertedIndexOnFile(){
-        // prendi lista di docID
-        // prendi lista TF
-        // comprimi lista docID
-        // salva lista docID compressi in un file
-        // comprimi lista TF
-        // salva lista TF compressa in un altro file
-    }
-
     public void clearInvertedIndex(){
         this.allPostingLists.clear();
         this.allPostingLists = null;
         this.indexOfFile = 0;
         System.gc();
     }
-
 
     public byte[] compressListOfTFs(){
         // use unary compression
@@ -179,34 +169,39 @@ public class InvertedIndex {
         return listOfTFs;
     }
 
-   /* public byte[] compressionListOfDocId(){
-        //Use Gamma Compression
-        //sx -> Unary della dim dei bit che ci vogliono per conversione in binario
-        //dx -> Concersione in binario meno cifra significativa
-        for(newPosting post : allPostingLists){
 
-        }
-    }*/
-
-    public void saveTFCompressedOnFile(byte [] compressedTF,String filePath) throws FileNotFoundException {
+    public void saveTFCompressedOnFile(byte [] compressedTF,String filePath, int indexOfFile) throws FileNotFoundException {
 
         RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
 
-        Path fileP = Paths.get(filePath );
+        Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
-
         try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-
             buffer = ByteBuffer.wrap(compressedTF);
             while (buffer.hasRemaining()) {
                 fc.write(buffer);
             }
             buffer.clear();
-            fc.close();
         } catch (IOException ex) {
             System.err.println("I/O Error: " + ex);
         }
 
+    }
+
+    public void saveDocIdCompressedOnFile(byte [] compressedDocId,String filePath, int indexOfFile) throws FileNotFoundException {
+
+        RandomAccessFile fileDocId = new RandomAccessFile(filePath ,"rw");
+        Path fileP = Paths.get(filePath );
+        ByteBuffer buffer = null;
+        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
+            buffer = ByteBuffer.wrap(compressedDocId);
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
+            }
+            buffer.clear();
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
     }
 
     public static void main(String[] argv ) throws IOException {

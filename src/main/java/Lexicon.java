@@ -247,7 +247,7 @@ public class Lexicon {
         lex.sortLexicon();
         lex.saveLexiconOnFile("LEX1",1);
         System.out.println("---------------------------------");
-        lex.readLexicon("LEX1",58+58);
+        lex.readLexicon("LEX1",0);
        /* for(Text term : lex.lexicon.keySet()){
             //prova anche a scorrere i posting
             System.out.print(term + "  ");

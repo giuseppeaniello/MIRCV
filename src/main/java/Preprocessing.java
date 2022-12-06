@@ -21,8 +21,8 @@ public class Preprocessing {
             String stopwords= getStopwords(); //Get the list of stopwords
             ArrayList<String> doc_no_sw=removeStopwords(doc_out,stopwords); //Remove the stopwords
             ArrayList<Text> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
-            for(Text i:doc_stemmed)
-                System.out.println(i+" - "+i.getLength());
+           /* for(Text i:doc_stemmed)
+                System.out.println(i+" - "+i.getLength());*/
             return doc_stemmed;}
     else{
             String doc_out=doc_in;
@@ -46,7 +46,7 @@ public class Preprocessing {
 
 
     public static String getStopwords(){ //ritorna il dizionario di stopwords
-        String file=("stopwords.txt");
+        String file=("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\stopwords.txt");
         String stopwords="";
         String temp;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));) {
@@ -85,7 +85,7 @@ public class Preprocessing {
             for(String y:sw_w){
                 if (i.equals(y)) {
                     is_stopword = 1;
-                    System.out.println("STOP WORD DETECTED");
+                    //System.out.println("STOP WORD DETECTED");
                     break;
                 }
             }
