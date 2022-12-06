@@ -21,8 +21,7 @@ public class Preprocessing {
             String stopwords= getStopwords(); //Get the list of stopwords
             ArrayList<String> doc_no_sw=removeStopwords(doc_out,stopwords); //Remove the stopwords
             ArrayList<Text> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
-            for(Text i:doc_stemmed)
-                System.out.println(i+" - "+i.getLength());
+
             return doc_stemmed;}
     else{
             String doc_out=doc_in;
@@ -37,8 +36,6 @@ public class Preprocessing {
             for(String i:doc_w ){
                 Text new_word=cutWord(i);
                 doc_final.add(new_word);}
-            for (Text i:doc_final)
-                System.out.println(i+" - "+i.getLength());
             return doc_final;
         }
     }
@@ -73,7 +70,6 @@ public class Preprocessing {
     //Remove the stopwords in the document that are present in the stopword dictionary
     public static ArrayList removeStopwords(String document_in,String stopwords){
         if(document_in==null){
-            System.out.println("Document null");
             return null;
         }
         ArrayList<String> doc_final= new ArrayList<String>();
@@ -85,7 +81,7 @@ public class Preprocessing {
             for(String y:sw_w){
                 if (i.equals(y)) {
                     is_stopword = 1;
-                    System.out.println("STOP WORD DETECTED");
+
                     break;
                 }
             }

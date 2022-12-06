@@ -10,7 +10,7 @@ public class ReadingDocuments {
 
     public static void readDoc() {
         //File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collection.tsv");
-        File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction10.tsv");
+        File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
         ; //initializing a new ArrayList out of String[]'s
         int indexOfFile = 1;
         Lexicon lex = new Lexicon(indexOfFile);
@@ -39,16 +39,23 @@ public class ReadingDocuments {
                 else{
                     lex.updateAllOffsetsTF(invInd);
                     lex.sortLexicon();
-                    lex.saveLexiconOnFile("Lexicon_number_", indexOfFile);
-                 //   invInd.saveTFCompressedOnFile("Inverted_Index_number_", indexOfFile);
+                    lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile, indexOfFile);
+                    invInd.saveDocIdCompressedOnFile(invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex), "Inverted_Index_DocID_number_"+indexOfFile );
+                    invInd.saveTFCompressedOnFile(invInd.compressListOfTFs(), "Inverted_Index_TF_number_"+indexOfFile);
+
                     indexOfFile++;
                     lex.clearLexicon();
                     invInd.clearInvertedIndex();
                 }
             }
             //ultimo file da creare
-            lex.saveLexiconOnFile("Lexicon_number_", indexOfFile);
-            //   invInd.saveTFCompressedOnFile("Inverted_Index_number_", indexOfFile);
+            lex.updateAllOffsetsTF(invInd);
+            lex.sortLexicon();
+            lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile, indexOfFile);
+            invInd.saveDocIdCompressedOnFile(invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex), "Inverted_Index_DocID_number_"+indexOfFile );
+            invInd.saveTFCompressedOnFile(invInd.compressListOfTFs(), "Inverted_Index_TF_number_"+indexOfFile);
+
+            indexOfFile++;
             lex.clearLexicon();
             invInd.clearInvertedIndex();
         } catch (Exception e) {

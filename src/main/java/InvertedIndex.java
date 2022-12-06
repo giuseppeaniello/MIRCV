@@ -202,7 +202,28 @@ public class InvertedIndex {
                 fc.write(buffer);
             }
             buffer.clear();
-            fc.close();
+
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+
+    }
+
+    public void saveDocIdCompressedOnFile(byte [] compressedDocId,String filePath) throws FileNotFoundException {
+
+        RandomAccessFile fileDocId = new RandomAccessFile(filePath ,"rw");
+
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+
+        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
+
+            buffer = ByteBuffer.wrap(compressedDocId);
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
+            }
+            buffer.clear();
+
         } catch (IOException ex) {
             System.err.println("I/O Error: " + ex);
         }
