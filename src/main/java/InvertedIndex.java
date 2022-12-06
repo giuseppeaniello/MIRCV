@@ -179,6 +179,35 @@ public class InvertedIndex {
         return listOfTFs;
     }
 
+    public ArrayList<Integer> decompressionListOfDocIds(byte[] compression){ //// DA TESTARE
+        ArrayList<Integer> result = new ArrayList<>();
+        boolean[] boolArray = fromByteArrToBooleanArr(compression);
+        int count = 0; //tengo il conto della posizione a cui sono arrivato a guardare
+        while(count < boolArray.length) {
+            int rightPart = 0;
+            for (int i = 0; i < boolArray.length; i++) {
+                rightPart++;
+                count++;
+                if (boolArray[count] == false) {
+                    break;
+                }
+            } //arrivato qui ho la prima parte
+            // ora vogliamo decodificare la seconda parte
+            String str = "1";
+            for (int i=0; i<(rightPart - 1); i++) { //creo una stringa in cui ho la codifica binaria della seconda parte
+                if (boolArray[count + i] == true)
+                    str += '1';
+                else
+                    str += '0';
+            }
+            result.add(Integer.parseInt(str, 2));
+            //ora allineiamo a byte (se ho già trovato la codifica non serve che andiamo avanti a leggere fino al byte dopo
+            while( (count % 8) != 0 )
+                count++;
+        }
+        return result;
+    }
+
    /* public byte[] compressionListOfDocId(){
         //Use Gamma Compression
         //sx -> Unary della dim dei bit che ci vogliono per conversione in binario

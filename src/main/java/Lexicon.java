@@ -1,5 +1,4 @@
 import org.apache.hadoop.io.Text;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -245,10 +244,10 @@ public class Lexicon {
         lex.updateAllOffsetsTF(invInd);
         invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex);
         lex.sortLexicon();
-        lex.saveLexiconOnFile("LEX1",1);
-        System.out.println("---------------------------------");
-        lex.readLexicon("LEX1",58+58);
-       /* for(Text term : lex.lexicon.keySet()){
+        //lex.saveLexiconOnFile("LEX1",1);
+        //System.out.println("---------------------------------");
+        //lex.readLexicon("LEX1",58+58);
+        for(Text term : lex.lexicon.keySet()){
             //prova anche a scorrere i posting
             System.out.print(term + "  ");
             System.out.print("offsetTF: " + lex.lexicon.get(term).getOffsetTF() + "  ");
@@ -261,7 +260,7 @@ public class Lexicon {
                 System.out.print("TF: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList() + i).getTF() + "  ");
             }
             System.out.print("\n");
-        }*/
+        }
 
     }
 }
