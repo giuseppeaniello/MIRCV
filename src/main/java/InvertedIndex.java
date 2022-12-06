@@ -1,3 +1,5 @@
+import org.apache.hadoop.io.Text;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -80,6 +82,62 @@ public class InvertedIndex {
             j++;
         }
         return fromBooleanArrToByteArr(result);
+    }
+
+    public byte[] compressListOfDocIDsAndAssignOffsetsDocIDs(Lexicon lex){ //and assign offsetsDocIDs
+        List<Boolean> result = new ArrayList<>(); // lista in cui mettiamo tutto via via, non posso usare array perchè non conosco dimensione
+        int offsetDocIdCompressed = 0; // corrisponde all'offsetDocID
+        boolean first = true; // per impostare l'offset del primo a 0;
+        for (Text term : lex.lexicon.keySet()) { // prendo una parola
+            int bitForThisTerm = 0; // per tenere il conto di quanti bit per questa parola
+            long df = lex.lexicon.get(term).getDf(); // mi salvo la sua df
+            if(first){ // se siamo al primo term ci salviamo offsetDocID 0
+             lex.lexicon.get(term).setOffsetDocID(0);
+             first = false;
+            }
+            else // se non siamo al primo term salviamo offsetDocID pari al numero di byte usati fin ora per la lista di docID compressi
+                lex.lexicon.get(term).setOffsetDocID(offsetDocIdCompressed); // metto l'offsetDocID pari al numero di byte usato fin ora per la lista di docID compressi
+            for (int j = 0; j < df; j++) { // prima di cambiare parola scorro la posting list della parola e accumulo i byte che uso per i docID compressi di quella posting list
+                Posting post = allPostingLists.get((int) lex.lexicon.get(term).getOffsetInList() + j); // per scorrere tutta la posting list della parola
+                int bitUsed = 0; // tengo il conto via via di quanti bit uso ad ogni ciclo
+                String strRightPart = binaryWhitoutMostSignificant(post.getDocID()); //ottengo la parte destra
+                for (int i = 0; i < strRightPart.length(); i++) { // aggiungo a result la parte sinistra cioè l'unary della dimensione di (strRightPart+1)
+                    result.add(true); // qui vengono aggiunti gli 1 dell'unary
+                    bitUsed++;
+                    bitForThisTerm++;
+                }
+                result.add(false); // qui viene aggiunto lo 0 finale della compressione unary
+                bitUsed++;
+                bitForThisTerm++;
+                for (int i=0; i<strRightPart.length(); i++) { // ora aggiungo la parte a destra leggendo la stringa che contiene già esattamente la parte destra
+                    if (strRightPart.charAt(i) == '1') {
+                        result.add(true);
+                        bitUsed++;
+                        bitForThisTerm++;
+                    } else{
+                        result.add(false);
+                        bitUsed++;
+                        bitForThisTerm++;
+                    }
+                }
+                // now allign to the byte, add 0s until bitUsed % 8 == 0
+                while ((bitUsed % 8) != 0) {
+                    result.add(false);
+                    bitUsed++;
+                    bitForThisTerm++;
+                }
+                offsetDocIdCompressed += bitUsed / 8; //accumulo il numero di byte occupati per conoscere l'offset del termine successivo
+            } // passiamo al prossimo posting della posting list del termine
+            lex.lexicon.get(term).setLenOfDocID(bitForThisTerm/8); // save for this term the length of the compressed list of docIDs
+        } // se abbiamo gia' scorso tutta la posting list allora passa alla parola dopo e la prima cosa che fa è salvare l'offset
+        boolean[] arrBool = new boolean[result.size()]; //transform from list<bool> to bool[]
+        for(int i=0; i<arrBool.length; i++)
+            arrBool[i] = result.get(i);
+        return fromBooleanArrToByteArr(arrBool);
+    }
+
+    private String binaryWhitoutMostSignificant(long docID){
+        return Long.toBinaryString(docID).substring(1); // convert docID in binary and trash first element
     }
 
     private byte[] fromBooleanArrToByteArr(boolean[] boolArr){

@@ -122,22 +122,28 @@ public class Lexicon {
 
     public void updateAllOffsetsTF(InvertedIndex invInd){ // to be done just one time before the sorting before the saving on file
         boolean first = true;
-        long numOfBytes = 0;
+        long offsetTF = 0;
+        int lenOffTF  = 0;
         long df = 0; // df of the previous term
         for(Text term : lexicon.keySet()){
             if(first){ //the first time the offsetTF is already 0
                 df = lexicon.get(term).getDf();
                 for(int i=0; i<df; i++){ // df indicates the number of posting, for each posting we will need a certain number of bytes
-                    numOfBytes += (long) Math.floor(invInd.allPostingLists.get((int)lexicon.get(term).getOffsetInList() + i).getTF() / 8)+1;
+                    offsetTF += (long) Math.floor(invInd.allPostingLists.get((int)lexicon.get(term).getOffsetInList() + i).getTF() / 8)+1;
                 }
+                this.lexicon.get(term).setLenOfTF((int)offsetTF);
                 first = false;
             }
             else{
-                lexicon.get(term).setOffsetTF(numOfBytes);
+                lenOffTF = 0;
+                lexicon.get(term).setOffsetTF(offsetTF);
                 df = lexicon.get(term).getDf();
                 for(int i=0; i<df; i++){
-                    numOfBytes += (long) Math.floor(invInd.allPostingLists.get((int)lexicon.get(term).getOffsetInList() + i).getTF() / 8) + 1;
+                    lenOffTF += (long) Math.floor(invInd.allPostingLists.get((int)lexicon.get(term).getOffsetInList() + i).getTF() / 8) + 1;
+                    // offsetTF += (long) Math.floor(invInd.allPostingLists.get((int)lexicon.get(term).getOffsetInList() + i).getTF() / 8) + 1;
                 }
+                offsetTF += lenOffTF;
+                this.lexicon.get(term).setLenOfTF(lenOffTF);
             }
         }
     }
@@ -163,7 +169,7 @@ public class Lexicon {
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
-        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 3, invInd);
         lex.addElement(new Text("b                   "), 5 , invInd);
 
 
@@ -181,15 +187,21 @@ public class Lexicon {
         //lex.saveLexicon("prova", 0);
         lex.updateAllOffsetsInList();
         lex.updateAllOffsetsTF(invInd);
+        invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex);
         lex.sortLexicon();
         for(Text term : lex.lexicon.keySet()){
             //prova anche a scorrere i posting
             System.out.print(term + "  ");
             System.out.print("offsetTF: " + lex.lexicon.get(term).getOffsetTF() + "  ");
             System.out.print("offsetList: " + lex.lexicon.get(term).getOffsetInList() + "  ");
-            System.out.print("docID: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList()).getDocID() + "  ");
-            System.out.println("TF: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList()).getTF());
-
+            System.out.print("offsetDocID " + lex.lexicon.get(term).getOffsetDocID() + "  ");
+            System.out.print("length offsetDocID " + lex.lexicon.get(term).getLenOfDocID() + "  ");
+            System.out.print("length offsetTF " + lex.lexicon.get(term).getLenOfTF() + "  ");
+            for(int i=0; i<lex.lexicon.get(term).getDf(); i++){
+                System.out.print("docID: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList() + i).getDocID() + "  ");
+                System.out.print("TF: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList() + i).getTF() + "  ");
+            }
+            System.out.print("\n");
         }
 
 

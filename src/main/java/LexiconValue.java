@@ -6,14 +6,18 @@ public class LexiconValue {
     private long offsetDocID;
     private long offsetTF;
     private long lastDocument;
+    private int lenOfDocID;
+    private int lenOfTF;
 
     public LexiconValue (long currentOffset, long lastDocument){
 
-        this.cf             = 1;
-        this.df             = 1;
+        this.cf = 1;
+        this.df = 1;
         this.offsetInList = currentOffset;
-        this.lastDocument   = lastDocument;
+        this.lastDocument = lastDocument;
         this.offsetTF = 0;
+        this.lenOfTF = 0;
+        this.lenOfDocID = 0;
 
     }
 
@@ -61,5 +65,21 @@ public class LexiconValue {
 
     public void setOffsetTF(long offsetTF){
         this.offsetTF = offsetTF;
+    }
+
+    public void setLenOfDocID(int lenOfDocID){
+        this.lenOfDocID = lenOfDocID;
+    }
+
+    public void setLenOfTF(int lenOfTF){
+        this.lenOfTF = lenOfTF;
+    }
+
+    public int getLenOfDocID(){
+        return this.lenOfDocID;
+    }
+
+    public int getLenOfTF(){
+        return this.lenOfTF;
     }
 }
