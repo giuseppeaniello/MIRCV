@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class Lexicon {
@@ -82,7 +83,9 @@ public class Lexicon {
                 buffer.clear();
                 byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(),
                                                             lexicon.get(key).getOffsetInList(),
-                                                                lexicon.get(key).getOffsetTF());
+                                                                lexicon.get(key).getOffsetTF(),
+                                                                    lexicon.get(key).getLenOfDocID(),
+                                                                            lexicon.get(key).getLenOfTF());
                 buffer = ByteBuffer.wrap(valueByte);
                 while (buffer.hasRemaining()) {
                     fc.write(buffer);
@@ -94,13 +97,39 @@ public class Lexicon {
         }
     }
 
-    private byte[] transformValueToByte( int cF, long dF, long offsetDocId, long offsetTF ) {
-        ByteBuffer bb = ByteBuffer.allocate(28);
+    private byte[] transformValueToByte( int cF, long dF, long offsetDocId, long offsetTF, int lenOfDocID,int lenOfTF ) {
+
+        ByteBuffer bb = ByteBuffer.allocate(36);
         bb.putInt(cF);
         bb.putLong(dF);
         bb.putLong(offsetDocId);
         bb.putLong(offsetTF);
+        bb.putInt(lenOfDocID);
+        bb.putInt(lenOfTF);
+
         return bb.array();
+    }
+    public LexiconValue transformByteToValue(byte[] value){
+        LexiconValue lexValue = new LexiconValue(0,0);//Vedere che valori mettere
+
+        int count = 0;
+        for (byte b : value) {
+            if(count<4)
+                lexValue.setCf((lexValue.getCf() << 8) + (b & 0xFF));
+            else if(count <12 && count>=4)
+                lexValue.setDf((lexValue.getDf() << 8) + (b & 0xFF));
+            else if(count <20 && count>=12)
+                lexValue.setOffsetDocID((lexValue.getOffsetDocID() << 8) + (b & 0xFF));
+            else if(count<28 && count >= 20)
+                lexValue.setOffsetTF((lexValue.getOffsetTF() << 8) + (b & 0xFF));
+            else if(count<32 && count >= 28)
+                lexValue.setLenOfDocID((lexValue.getLenOfDocID() << 8) + (b & 0xFF));
+            else
+                lexValue.setLenOfTF((lexValue.getLenOfTF() << 8) + (b & 0xFF));
+            count ++;
+        }
+
+        return lexValue;
     }
 
     public void updateAllOffsetsInList(){ // questo non va chiamato, è già nel metodo che aggiunge gli elementi
@@ -157,7 +186,34 @@ public class Lexicon {
         System.gc();
     }
 
+    public void readLexicon(String filePath,int startReadingPosition){
 
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        try (FileChannel fc = FileChannel.open(fileP, READ))
+        {
+            fc.position(startReadingPosition);
+            buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            buffer.clear();
+            System.out.println("Term: " + new Text(buffer.array()));
+            fc.position(startReadingPosition+22);
+            buffer = ByteBuffer.allocate(36); //50 is the total number of bytes to read a complete term of the lexicon
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            buffer.clear();
+            LexiconValue lexVal = transformByteToValue(buffer.array());
+            System.out.println(lexVal.getCf()+" "+lexVal.getDf()+" "+lexVal.getOffsetDocID()+" "+lexVal.getOffsetTF()+
+                                " "+ lexVal.getLenOfDocID()+" "+lexVal.getLenOfTF());
+
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+
+    }
 
     public static void main (String[] arg) throws IOException {
         Lexicon lex = new Lexicon(0);
@@ -189,7 +245,10 @@ public class Lexicon {
         lex.updateAllOffsetsTF(invInd);
         invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex);
         lex.sortLexicon();
-        for(Text term : lex.lexicon.keySet()){
+        lex.saveLexiconOnFile("LEX1",1);
+        System.out.println("---------------------------------");
+        lex.readLexicon("LEX1",58+58);
+       /* for(Text term : lex.lexicon.keySet()){
             //prova anche a scorrere i posting
             System.out.print(term + "  ");
             System.out.print("offsetTF: " + lex.lexicon.get(term).getOffsetTF() + "  ");
@@ -202,8 +261,7 @@ public class Lexicon {
                 System.out.print("TF: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList() + i).getTF() + "  ");
             }
             System.out.print("\n");
-        }
-
+        }*/
 
     }
 }
