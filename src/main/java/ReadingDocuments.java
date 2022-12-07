@@ -22,12 +22,17 @@ public class ReadingDocuments {
             while ((line = TSVReader.readLine()) != null) {
                 freeMemory = Runtime.getRuntime().freeMemory();
                 totalMemory = Runtime.getRuntime().totalMemory();
-                if(freeMemory > totalMemory*0.25) {
+                //memoria occupata < 25% di memoria totale
+                if( (totalMemory-freeMemory) < 0.25*totalMemory  ){
+                    // if(freeMemory - (totalMemory*0.25) > 0) {
+                    freeMemory = Runtime.getRuntime().freeMemory();
                     String docId = line.split("\\t")[0];
                     String doc = new String(line.split("\\t")[1].getBytes(), "UTF-8");
                     ArrayList<Text> docPreproc = Preprocessing.preprocess(doc,1);
                     int i = -1;
                     for(Text term : docPreproc){
+                        // System.out.print(term + "     ");
+                        // System.out.println("memoria libera utilizzabile" + ((0.25*Runtime.getRuntime().totalMemory())-(Runtime.getRuntime().totalMemory() -Runtime.getRuntime().freeMemory() )));
                         i++;
                         lex.addElement(term, Long.parseLong(docId), invInd);
                         // here we should do a sorting to have a correspondance between Lexicon and InvertedIndex
@@ -37,36 +42,41 @@ public class ReadingDocuments {
                     }
                 }
                 else{
+                    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                     lex.updateAllOffsetsTF(invInd);
-                    lex.sortLexicon();
-                    lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile, indexOfFile);
+
                     invInd.saveDocIdCompressedOnFile(invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex), "Inverted_Index_DocID_number_"+indexOfFile );
                     invInd.saveTFCompressedOnFile(invInd.compressListOfTFs(), "Inverted_Index_TF_number_"+indexOfFile);
-
+                    lex.sortLexicon();
+                    lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile, indexOfFile);
                     indexOfFile++;
                     lex.clearLexicon();
                     invInd.clearInvertedIndex();
+                    System.gc();
+                    lex = new Lexicon(indexOfFile);
+                    invInd = new InvertedIndex(indexOfFile);
                 }
             }
             //ultimo file da creare
+            System.out.println("ULTIMOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
             lex.updateAllOffsetsTF(invInd);
-            lex.sortLexicon();
-            lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile, indexOfFile);
             invInd.saveDocIdCompressedOnFile(invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex), "Inverted_Index_DocID_number_"+indexOfFile );
             invInd.saveTFCompressedOnFile(invInd.compressListOfTFs(), "Inverted_Index_TF_number_"+indexOfFile);
-
+            lex.sortLexicon();
+            lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile, indexOfFile);
             indexOfFile++;
             lex.clearLexicon();
             invInd.clearInvertedIndex();
         } catch (Exception e) {
-            System.out.println("Something went wrong");
+            System.out.println("Something went wrong " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public static void main(String argv[]){
         readDoc();
 
-            //System.out.println( "\\u" + Integer.toHexString('÷' | 0x10000).substring(1) );
+        //System.out.println( "\\u" + Integer.toHexString('÷' | 0x10000).substring(1) );
     }
 }
 
