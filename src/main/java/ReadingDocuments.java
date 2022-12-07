@@ -20,10 +20,8 @@ public class ReadingDocuments {
             long freeMemory;
             long totalMemory;
             while ((line = TSVReader.readLine()) != null) {
-                freeMemory = Runtime.getRuntime().freeMemory();
-                totalMemory = Runtime.getRuntime().totalMemory();
                 //memoria occupata < 25% di memoria totale
-                if( (totalMemory-freeMemory) < 0.25*totalMemory  ){
+                if( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) < 0.10*Runtime.getRuntime().totalMemory()  ){
                     // if(freeMemory - (totalMemory*0.25) > 0) {
                     freeMemory = Runtime.getRuntime().freeMemory();
                     String docId = line.split("\\t")[0];
@@ -42,23 +40,25 @@ public class ReadingDocuments {
                     }
                 }
                 else{
-                    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                 //   System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                     lex.updateAllOffsetsTF(invInd);
-
                     invInd.saveDocIdCompressedOnFile(invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex), "Inverted_Index_DocID_number_"+indexOfFile );
                     invInd.saveTFCompressedOnFile(invInd.compressListOfTFs(), "Inverted_Index_TF_number_"+indexOfFile);
-                    lex.sortLexicon();
+                  //  lex.sortLexicon();
                     lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile, indexOfFile);
                     indexOfFile++;
-                    lex.clearLexicon();
-                    invInd.clearInvertedIndex();
+                   // System.out.println("BEFORE: " + Runtime.getRuntime().freeMemory());
+                  //  lex.clearLexicon();
+                   // invInd.clearInvertedIndex();
                     System.gc();
+                   // System.out.println("AFTER: " + Runtime.getRuntime().freeMemory());
+
                     lex = new Lexicon(indexOfFile);
                     invInd = new InvertedIndex(indexOfFile);
                 }
             }
             //ultimo file da creare
-            System.out.println("ULTIMOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+         //   System.out.println("ULTIMOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
             lex.updateAllOffsetsTF(invInd);
             invInd.saveDocIdCompressedOnFile(invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex), "Inverted_Index_DocID_number_"+indexOfFile );
             invInd.saveTFCompressedOnFile(invInd.compressListOfTFs(), "Inverted_Index_TF_number_"+indexOfFile);

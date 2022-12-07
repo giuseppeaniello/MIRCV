@@ -109,6 +109,7 @@ public class Lexicon {
 
         return bb.array();
     }
+
     public LexiconValue transformByteToValue(byte[] value){
         LexiconValue lexValue = new LexiconValue(0,0);//Vedere che valori mettere
 
