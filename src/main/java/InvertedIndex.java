@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
+import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class InvertedIndex {
@@ -135,6 +136,46 @@ public class InvertedIndex {
             arrBool[i] = result.get(i);
         return fromBooleanArrToByteArr(arrBool);
     }
+    public void readInvertedDocIds(String filePath,int startReadingPosition, int lenOffesetDocId){
+
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        ArrayList<Integer> decompressionValue = new ArrayList<>();
+        try (FileChannel fc = FileChannel.open(fileP, READ))
+        {
+            fc.position(startReadingPosition);
+            buffer = ByteBuffer.allocate(lenOffesetDocId);
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+
+           // decompressionValue = DocI(buffer.array()); ci vuole funzione decompressione docids
+            buffer.clear();
+            System.out.println(decompressionValue);
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+    }
+    public void readInvertedTF(String filePath,int startReadingPosition, int lenOffesetTF){
+
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        ArrayList<Integer> decompressionValue = new ArrayList<>();
+        try (FileChannel fc = FileChannel.open(fileP, READ))
+        {
+            fc.position(startReadingPosition);
+            buffer = ByteBuffer.allocate(lenOffesetTF);
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+
+            decompressionValue = decompressionListOfTfs(buffer.array());
+            buffer.clear();
+            System.out.println(decompressionValue);
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+    }
 
     private String binaryWhitoutMostSignificant(long docID){
         return Long.toBinaryString(docID).substring(1); // convert docID in binary and trash first element
@@ -179,14 +220,7 @@ public class InvertedIndex {
         return listOfTFs;
     }
 
-   /* public byte[] compressionListOfDocId(){
-        //Use Gamma Compression
-        //sx -> Unary della dim dei bit che ci vogliono per conversione in binario
-        //dx -> Concersione in binario meno cifra significativa
-        for(newPosting post : allPostingLists){
 
-        }
-    }*/
 
     public void saveTFCompressedOnFile(byte [] compressedTF,String filePath) throws FileNotFoundException {
 
@@ -273,7 +307,11 @@ public class InvertedIndex {
         boolean[] pippo = d.fromByteArrToBooleanArr(compress);*/
 
 
-
+        ArrayList<Integer> a = new ArrayList<>();
+        a.add(6);
+        a.add(5);
+        a.add(99);
+        System.out.println(a);
 
 
 
