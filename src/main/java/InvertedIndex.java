@@ -138,6 +138,7 @@ public class InvertedIndex {
     }
 
     public void readInvertedDocIds(String filePath,int startReadingPosition, int lenOffesetDocId){
+
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         ArrayList<Integer> decompressionValue = new ArrayList<>();
@@ -148,7 +149,8 @@ public class InvertedIndex {
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
-           // decompressionValue = DocI(buffer.array()); ci vuole funzione decompressione docids
+
+            decompressionValue = decompressionListOfDocIds(buffer.array());
             buffer.clear();
             System.out.println(decompressionValue);
         } catch (IOException ex) {
@@ -157,6 +159,7 @@ public class InvertedIndex {
     }
 
     public void readInvertedTF(String filePath,int startReadingPosition, int lenOffesetTF){
+
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         ArrayList<Integer> decompressionValue = new ArrayList<>();
@@ -195,7 +198,7 @@ public class InvertedIndex {
         }
     }
 
-     public boolean[] fromByteArrToBooleanArr(byte[] byteArray) {
+     private boolean[] fromByteArrToBooleanArr(byte[] byteArray) {
         BitSet bits = BitSet.valueOf(byteArray);
         boolean[] bools = new boolean[byteArray.length * 8];
         for (int i = bits.nextSetBit(0); i != -1; i = bits.nextSetBit(i+1)) {
@@ -226,6 +229,8 @@ public class InvertedIndex {
         while(count < boolArray.length) {
             int leftPart = 1; // leftPart incrementa di 1 finchè non incontro uno 0
             for (int i = 0; i < boolArray.length; i++) {
+                rightPart++;
+                count++;
                 if (boolArray[count] == false) {
                     count++; //salto lo zero finale della unary
                     break;
