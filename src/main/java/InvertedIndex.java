@@ -150,7 +150,7 @@ public class InvertedIndex {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
 
-           // decompressionValue = DocI(buffer.array()); ci vuole funzione decompressione docids
+            decompressionValue = decompressionListOfDocIds(buffer.array());
             buffer.clear();
             System.out.println(decompressionValue);
         } catch (IOException ex) {
