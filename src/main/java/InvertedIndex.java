@@ -198,7 +198,7 @@ public class InvertedIndex {
         }
     }
 
-     private boolean[] fromByteArrToBooleanArr(byte[] byteArray) {
+     public boolean[] fromByteArrToBooleanArr(byte[] byteArray) {
         BitSet bits = BitSet.valueOf(byteArray);
         boolean[] bools = new boolean[byteArray.length * 8];
         for (int i = bits.nextSetBit(0); i != -1; i = bits.nextSetBit(i+1)) {
@@ -229,8 +229,6 @@ public class InvertedIndex {
         while(count < boolArray.length) {
             int leftPart = 1; // leftPart incrementa di 1 finchè non incontro uno 0
             for (int i = 0; i < boolArray.length; i++) {
-                rightPart++;
-                count++;
                 if (boolArray[count] == false) {
                     count++; //salto lo zero finale della unary
                     break;
@@ -242,7 +240,7 @@ public class InvertedIndex {
             } //arrivato qui ho la prima parte
             // ora vogliamo decodificare la seconda parte
             String str = "1"; // nella compressione togliamo il bit più significativo quindi qua lo riaggiungo
-            for (int i=0; i<(leftPart - 1); i++) { //creo una stringa in cui ho la codifica binaria della seconda parte
+            for (int i=0; i<(leftPart -1); i++) { //creo una stringa in cui ho la codifica binaria della seconda parte
                 if (boolArray[count] == true) {
                     str += '1';
                     count++;
