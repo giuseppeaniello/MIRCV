@@ -136,6 +136,7 @@ public class InvertedIndex {
             arrBool[i] = result.get(i);
         return fromBooleanArrToByteArr(arrBool);
     }
+
     public void readInvertedDocIds(String filePath,int startReadingPosition, int lenOffesetDocId){
 
         Path fileP = Paths.get(filePath);
@@ -156,6 +157,7 @@ public class InvertedIndex {
             System.err.println("I/O Error: " + ex);
         }
     }
+
     public void readInvertedTF(String filePath,int startReadingPosition, int lenOffesetTF){
 
         Path fileP = Paths.get(filePath);
@@ -219,6 +221,23 @@ public class InvertedIndex {
         }
         return listOfTFs;
     }
+
+
+    /*
+    public ArrayList<Integer> decompressionListOfDocIDs(byte[] compression){
+        ArrayList<Integer> listOfDocIDs = new ArrayList<>();
+        boolean[] boolArray = fromByteArrToBooleanArr(compression);
+        int count = 0;
+        for(int i=0; i<boolArray.length; i++){
+            count++;
+            if(boolArray[i] == false){ // quando trova il primo 0 vuol dire che il numero è finito
+                listOfTFs.add(count); // lo aggiunge alla lista, adesso bisogna riprendere dal byte successivo
+                i = i + ( 8*(int)( Math.floor(count/8) +1 ) ) - count; // in questo modo si riparte dall'inizio del byte successivo (in realtà dal bit prima ma poi appena ricomincia in for fa i++)
+                count = 0;
+            }
+        }
+        return listOfTFs;
+    } */
 
 
 

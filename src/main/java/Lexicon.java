@@ -214,16 +214,54 @@ public class Lexicon {
         }
     }
 
+
+
+    /*
     public void mergeBlocks(String path){
-        // apri blocco 0
-        // apri blocco 1
-        // apri nuovo file
-        // leggi prima parola blocco 0 e blocco 1
-        // confronta le parole e scrivi la minore in nuovo file
-
-
+        // Step base:
+        // apri blocco Lex0
+        // apri blocco Lex1
+        // apri blocco TF0
+        // apri blocco TF1
+        // apri blocco DocID0
+        // apri blocco DocID1
+        // apri nuovo file NewLex0
+        // apri nuovo file NewTF0
+        // apri nuovo file NewDocID0
+        // leggi prima parola Lex0 e Lex1
+        // inizializzati currentOffsetTF = 0
+        // inizializzati currentOffsetDocID = 0
+        // fino all'ultima riga di entrambi i file:
+            // confronta le parole
+            // se le parole sono diverse:
+                    // scrivi la minore in NewLex0
+                    // mantieni stesse CF e DF
+                    // scrivi il posting in NewTF0 in posizione currentOffsetTF
+                    // scrivi il posting in NewDocID0 in posizione currentOffsetDocID
+                    // lenOffsetTF e lenOffsetDocID rimangono le stesse
+                    // incrementa currentOffsetTF di una quantità pari a lenOffsetTF della parola scritta
+                    // incrementa currentOffsetDocID di una quantità pari a lenOffsetDocID della parola scritta
+                    // nel file che conteneva la parola minore avanza l'iteratore alla parola successiva
+            // se le due parole sono uguali:
+                    // scrivi la parola in NewLex0
+                    // le CF si sommano
+                    // le DF si sommano
+                    // scrivi il posting in NewTF0 in posizione currentOffsetTF
+                    // scrivi il posting in NewDocID0 in posizione currentOffsetDocID
+                    // le lenOffsetTF e lenOffsetDocID si sommano
+                    // incrementa currentOffsetTF di una quantità pari a lenOffsetTF della parola scritta (cioè la somma delle 2)
+                    // incrementa currentOffsetDocID di una quantità pari a lenOffsetDocID della parola scritta (cioè la somma delle 2)
+                    // incrementa iteratore sia di Lex0 che di Lex1
+            // Step iterativo
+            // ripeti tutti gli step prima prendendo sta volta NewLex0 e Lex2 e quindi creando NewLex1
+            // ripeti prendendo NewLex1 e Lex3 e quindi creando NewLex2
+            // e così via
+            // cioè dopo aver fatto il passo base avrai:
+            // for(K=0; K<numOfBlocks; K++){
+            //      fai tutti gli step con NewLexK e Lex(K+2)
+            // }
     }
-
+        */
     public static void main (String[] arg) throws IOException {
         Lexicon lex = new Lexicon(0);
         InvertedIndex invInd = new InvertedIndex(0);
