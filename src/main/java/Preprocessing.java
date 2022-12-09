@@ -43,7 +43,7 @@ public class Preprocessing {
 
 
     public static String getStopwords(){ //ritorna il dizionario di stopwords
-        String file=("stopwords.txt");
+        String file=("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\stopwords.txt");
         String stopwords="";
         String temp;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));) {
