@@ -209,10 +209,18 @@ public class Lexicon {
             LexiconValue lexVal = transformByteToValue(buffer.array());
             System.out.println(lexVal.getCf()+" "+lexVal.getDf()+" "+lexVal.getOffsetDocID()+" "+lexVal.getOffsetTF()+
                                 " "+ lexVal.getLenOfDocID()+" "+lexVal.getLenOfTF());
-
         } catch (IOException ex) {
             System.err.println("I/O Error: " + ex);
         }
+    }
+
+    public void mergeBlocks(String path){
+        // apri blocco 0
+        // apri blocco 1
+        // apri nuovo file
+        // leggi prima parola blocco 0 e blocco 1
+        // confronta le parole e scrivi la minore in nuovo file
+
 
     }
 
@@ -220,6 +228,7 @@ public class Lexicon {
         Lexicon lex = new Lexicon(0);
         InvertedIndex invInd = new InvertedIndex(0);
         // 0,2,4
+
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
@@ -248,8 +257,7 @@ public class Lexicon {
         lex.sortLexicon();
         lex.saveLexiconOnFile("LEX1",1);
         System.out.println("---------------------------------");
-        lex.readLexicon("LEX1",58+58);
-       /* for(Text term : lex.lexicon.keySet()){
+        for(Text term : lex.lexicon.keySet()){
             //prova anche a scorrere i posting
             System.out.print(term + "  ");
             System.out.print("offsetTF: " + lex.lexicon.get(term).getOffsetTF() + "  ");
@@ -257,12 +265,20 @@ public class Lexicon {
             System.out.print("offsetDocID " + lex.lexicon.get(term).getOffsetDocID() + "  ");
             System.out.print("length offsetDocID " + lex.lexicon.get(term).getLenOfDocID() + "  ");
             System.out.print("length offsetTF " + lex.lexicon.get(term).getLenOfTF() + "  ");
+            System.out.print("CF: " + lex.lexicon.get(term).getCf() + "  ");
+            System.out.print("DF: " + lex.lexicon.get(term).getDf() + "  ");
+
             for(int i=0; i<lex.lexicon.get(term).getDf(); i++){
                 System.out.print("docID: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList() + i).getDocID() + "  ");
                 System.out.print("TF: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList() + i).getTF() + "  ");
             }
             System.out.print("\n");
-        }*/
+        }
+        System.out.print("\n");
+        System.out.print("\n");
+        System.out.print("\n");
+        lex.saveLexiconOnFile("Lexicon_number_1", 0);
+        lex.readLexicon("Lexicon_number_1", 58);
 
     }
 }

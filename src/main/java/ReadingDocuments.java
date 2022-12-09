@@ -13,8 +13,8 @@ public class ReadingDocuments {
 
 
     public static void readDoc() throws IOException {
-        File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collection1million.tsv");
-        //File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
+        //File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collection1million.tsv");
+        File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
         ; //initializing a new ArrayList out of String[]'s
         int indexOfFile = 1;
 
@@ -25,7 +25,7 @@ public class ReadingDocuments {
             Lexicon lex = new Lexicon(indexOfFile);
             InvertedIndex invInd = new InvertedIndex(indexOfFile);
 
-            while (it.hasNext() && (Runtime.getRuntime().totalMemory() * 0.90 <= Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())) {
+            while ( it.hasNext() && ( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) < (0.01*Runtime.getRuntime().maxMemory()) ) ) {
                 String docCurrent = it.nextLine();
                 String docText = new String (docCurrent.split("\\t")[1].getBytes(StandardCharsets.UTF_8));
                 String docId = docCurrent.split("\\t")[0];
@@ -33,7 +33,9 @@ public class ReadingDocuments {
                 for(Text term : docPreprocessed){
                     lex.addElement(term, Long.parseLong(docId), invInd);
                 }
-                System.out.println(docId);
+                //System.out.println(docId);
+                if(Long.parseLong(docId) % 1000 == 0)
+                    System.out.println(docId);
             }
             System.out.println("BLOCCO COSRUITO");
             lex.updateAllOffsetsTF(invInd);
