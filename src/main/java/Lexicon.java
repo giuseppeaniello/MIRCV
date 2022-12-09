@@ -272,9 +272,9 @@ public class Lexicon {
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
-        lex.addElement(new Text("b                   "), 1, invInd);
-        lex.addElement(new Text("b                   "), 3, invInd);
-        lex.addElement(new Text("b                   "), 5 , invInd);
+        lex.addElement(new Text("b                   "), 22, invInd);
+        lex.addElement(new Text("b                   "), 25, invInd);
+        lex.addElement(new Text("b                   "), 36 , invInd);
 
 
         lex.addElement(new Text("c                   "), 1, invInd);
@@ -293,8 +293,8 @@ public class Lexicon {
         lex.updateAllOffsetsTF(invInd);
         invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex);
         lex.sortLexicon();
-        lex.saveLexiconOnFile("LEX1",1);
-        System.out.println("---------------------------------");
+       // lex.saveLexiconOnFile("LEX1",1);
+      //  System.out.println("---------------------------------");
         for(Text term : lex.lexicon.keySet()){
             //prova anche a scorrere i posting
             System.out.print(term + "  ");
@@ -312,11 +312,20 @@ public class Lexicon {
             }
             System.out.print("\n");
         }
-        System.out.print("\n");
-        System.out.print("\n");
-        System.out.print("\n");
-        lex.saveLexiconOnFile("Lexicon_number_1", 0);
-        lex.readLexicon("Lexicon_number_1", 58);
 
+
+        byte[] compressedListOfDocID = invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex);
+        ArrayList<Integer> listDecompressed = invInd.decompressionListOfDocIds(compressedListOfDocID);
+        for(Integer docID:listDecompressed)
+            System.out.println(docID);
+        //lex.saveLexiconOnFile("Lexicon_number_1", 0);
+       // lex.readLexicon("Lexicon_number_1", 58);
+        boolean[] boolArr = invInd.fromByteArrToBooleanArr(compressedListOfDocID);
+      /*  for(boolean b:boolArr){
+            if(b)
+                System.out.print("1 ");
+            else
+                System.out.print("0 ");
+        } */
     }
 }

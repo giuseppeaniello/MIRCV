@@ -138,7 +138,6 @@ public class InvertedIndex {
     }
 
     public void readInvertedDocIds(String filePath,int startReadingPosition, int lenOffesetDocId){
-
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         ArrayList<Integer> decompressionValue = new ArrayList<>();
@@ -149,7 +148,6 @@ public class InvertedIndex {
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
-
            // decompressionValue = DocI(buffer.array()); ci vuole funzione decompressione docids
             buffer.clear();
             System.out.println(decompressionValue);
@@ -159,7 +157,6 @@ public class InvertedIndex {
     }
 
     public void readInvertedTF(String filePath,int startReadingPosition, int lenOffesetTF){
-
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         ArrayList<Integer> decompressionValue = new ArrayList<>();
@@ -198,7 +195,7 @@ public class InvertedIndex {
         }
     }
 
-     private boolean[] fromByteArrToBooleanArr(byte[] byteArray) {
+     public boolean[] fromByteArrToBooleanArr(byte[] byteArray) {
         BitSet bits = BitSet.valueOf(byteArray);
         boolean[] bools = new boolean[byteArray.length * 8];
         for (int i = bits.nextSetBit(0); i != -1; i = bits.nextSetBit(i+1)) {
@@ -227,21 +224,28 @@ public class InvertedIndex {
         boolean[] boolArray = fromByteArrToBooleanArr(compression);
         int count = 0; //tengo il conto della posizione a cui sono arrivato a guardare
         while(count < boolArray.length) {
-            int rightPart = 0;
+            int leftPart = 1; // leftPart incrementa di 1 finchè non incontro uno 0
             for (int i = 0; i < boolArray.length; i++) {
-                rightPart++;
-                count++;
                 if (boolArray[count] == false) {
+                    count++; //salto lo zero finale della unary
                     break;
+                }
+                else{
+                    leftPart++;
+                    count++;
                 }
             } //arrivato qui ho la prima parte
             // ora vogliamo decodificare la seconda parte
-            String str = "1";
-            for (int i=0; i<(rightPart - 1); i++) { //creo una stringa in cui ho la codifica binaria della seconda parte
-                if (boolArray[count + i] == true)
+            String str = "1"; // nella compressione togliamo il bit più significativo quindi qua lo riaggiungo
+            for (int i=0; i<(leftPart - 1); i++) { //creo una stringa in cui ho la codifica binaria della seconda parte
+                if (boolArray[count] == true) {
                     str += '1';
-                else
+                    count++;
+                }
+                else {
                     str += '0';
+                    count++;
+                }
             }
             result.add(Integer.parseInt(str, 2));
             //ora allineiamo a byte (se ho già trovato la codifica non serve che andiamo avanti a leggere fino al byte dopo
