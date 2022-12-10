@@ -137,7 +137,7 @@ public class InvertedIndex {
         return fromBooleanArrToByteArr(arrBool);
     }
 
-    public void readInvertedDocIds(String filePath,int startReadingPosition, int lenOffesetDocId){
+    public void readInvertedDocIds(String filePath,long startReadingPosition, int lenOffesetDocId){
 
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
@@ -158,7 +158,7 @@ public class InvertedIndex {
         }
     }
 
-    public void readInvertedTF(String filePath,int startReadingPosition, int lenOffesetTF){
+    public void readInvertedTF(String filePath,long startReadingPosition, int lenOffesetTF){
 
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
