@@ -188,7 +188,6 @@ public class Lexicon {
     }
 
     public void readLexicon(String filePath,int startReadingPosition){
-
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         try (FileChannel fc = FileChannel.open(fileP, READ))
