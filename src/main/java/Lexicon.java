@@ -110,7 +110,7 @@ public class Lexicon {
         return bb.array();
     }
 
-    public LexiconValue transformByteToValue(byte[] value){
+    public static LexiconValue transformByteToValue(byte[] value){
         LexiconValue lexValue = new LexiconValue(0,0);//Vedere che valori mettere
 
         int count = 0;
@@ -187,9 +187,11 @@ public class Lexicon {
         System.gc();
     }
 
-    public void readLexicon(String filePath,int startReadingPosition){
+    public static LexiconLine readLexiconLine(String filePath,int startReadingPosition){
+
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
+        LexiconLine lexVal = new LexiconLine();
         try (FileChannel fc = FileChannel.open(fileP, READ))
         {
             fc.position(startReadingPosition);
@@ -197,20 +199,27 @@ public class Lexicon {
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
+            lexVal.setTerm(new Text(buffer.array()));
             buffer.clear();
-            System.out.println("Term: " + new Text(buffer.array()));
+
             fc.position(startReadingPosition+22);
             buffer = ByteBuffer.allocate(36); //50 is the total number of bytes to read a complete term of the lexicon
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
+            LexiconValue values = transformByteToValue(buffer.array());
             buffer.clear();
-            LexiconValue lexVal = transformByteToValue(buffer.array());
-            System.out.println(lexVal.getCf()+" "+lexVal.getDf()+" "+lexVal.getOffsetDocID()+" "+lexVal.getOffsetTF()+
-                                " "+ lexVal.getLenOfDocID()+" "+lexVal.getLenOfTF());
+            lexVal.setCf(values.getCf());
+            lexVal.setDf(values.getDf());
+            lexVal.setOffsetTF(values.getOffsetTF());
+            lexVal.setOffsetDocID(values.getOffsetDocID());
+            lexVal.setLenOfDocID(values.getLenOfDocID());
+            lexVal.setLenOfTF(values.getLenOfTF());
+
         } catch (IOException ex) {
             System.err.println("I/O Error: " + ex);
         }
+        return lexVal;
     }
 
 
@@ -262,8 +271,11 @@ public class Lexicon {
     }
         */
     public static void main (String[] arg) throws IOException {
-        Lexicon lex = new Lexicon(0);
-        InvertedIndex invInd = new InvertedIndex(0);
+
+        LexiconLine l = new LexiconLine();
+        l = readLexiconLine("Lexicon_number_1",0);
+        l.printLexiconLine();
+        /*InvertedIndex invInd = new InvertedIndex(0);
         // 0,2,4
 
         lex.addElement(new Text("b                   "), 1, invInd);
@@ -271,9 +283,9 @@ public class Lexicon {
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
-        lex.addElement(new Text("b                   "), 22, invInd);
-        lex.addElement(new Text("b                   "), 25, invInd);
-        lex.addElement(new Text("b                   "), 36 , invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 3, invInd);
+        lex.addElement(new Text("b                   "), 5 , invInd);
 
 
         lex.addElement(new Text("c                   "), 1, invInd);
@@ -292,8 +304,8 @@ public class Lexicon {
         lex.updateAllOffsetsTF(invInd);
         invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex);
         lex.sortLexicon();
-       // lex.saveLexiconOnFile("LEX1",1);
-      //  System.out.println("---------------------------------");
+        lex.saveLexiconOnFile("LEX1",1);
+        System.out.println("---------------------------------");
         for(Text term : lex.lexicon.keySet()){
             //prova anche a scorrere i posting
             System.out.print(term + "  ");
@@ -311,6 +323,11 @@ public class Lexicon {
             }
             System.out.print("\n");
         }
+        System.out.print("\n");
+        System.out.print("\n");
+        System.out.print("\n");
+        lex.saveLexiconOnFile("Lexicon_number_1", 0);
+        lex.readLexicon("Lexicon_number_1", 58);
 
 
         byte[] compressedListOfDocID = invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex);

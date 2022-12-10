@@ -44,7 +44,7 @@ public class Preprocessing {
 
     public static String getStopwords(){ //ritorna il dizionario di stopwords
         //String file=("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\stopwords.txt");
-        String file=("stopwords.txt");
+        String file=("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\stopwords.txt");
 
         String stopwords="";
         String temp;

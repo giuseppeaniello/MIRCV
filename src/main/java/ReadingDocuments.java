@@ -13,8 +13,8 @@ public class ReadingDocuments {
 
 
     public static void readDoc() throws IOException {
-        //File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collection1million.tsv");
-        File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
+        File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collect40.txt");
+        //File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
         ; //initializing a new ArrayList out of String[]'s
         int indexOfFile = 1;
 
