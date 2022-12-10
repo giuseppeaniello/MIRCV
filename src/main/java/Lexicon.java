@@ -188,7 +188,6 @@ public class Lexicon {
     }
 
     public static LexiconLine readLexiconLine(String filePath,int startReadingPosition){
-
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         LexiconLine lexVal = new LexiconLine();
@@ -222,23 +221,45 @@ public class Lexicon {
         return lexVal;
     }
 
+    public Text readTermFromBlock(String filePath,int startReadingPosition){
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        Text term = null;
+        try (FileChannel fc = FileChannel.open(fileP, READ))
+        {
+            fc.position(startReadingPosition);
+            buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            term = new Text(buffer.array());
+            buffer.clear();
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+        return term;
+    }
 
 
-    /*
-    public void mergeBlocks(String path){
+
+
+    public void mergeBlocks(){
         // Step base:
-        // apri blocco Lex0
-        // apri blocco Lex1
-        // apri blocco TF0
-        // apri blocco TF1
-        // apri blocco DocID0
-        // apri blocco DocID1
-        // apri nuovo file NewLex0
-        // apri nuovo file NewTF0
-        // apri nuovo file NewDocID0
+        int readingPosition = 0;
         // leggi prima parola Lex0 e Lex1
-        // inizializzati currentOffsetTF = 0
-        // inizializzati currentOffsetDocID = 0
+        while(true) { // giusè inventati qualcosa
+            Text t1 = readTermFromBlock("Lexicon_number_1", readingPosition);
+            Text t2 = readTermFromBlock("Lexicon_number_2", readingPosition);
+            if (t1.compareTo(t2) == 0) { // caso parole uguali
+
+            } else if (t1.compareTo(t2) > 0) { // caso t1>t2
+
+            } else { // caso t2>t1
+
+            }
+            readingPosition += 58;
+        }
+
         // fino all'ultima riga di entrambi i file:
             // confronta le parole
             // se le parole sono diverse:
@@ -254,6 +275,7 @@ public class Lexicon {
                     // scrivi la parola in NewLex0
                     // le CF si sommano
                     // le DF si sommano
+                    // bisogna aggiustare i d-gap
                     // scrivi il posting in NewTF0 in posizione currentOffsetTF
                     // scrivi il posting in NewDocID0 in posizione currentOffsetDocID
                     // le lenOffsetTF e lenOffsetDocID si sommano
@@ -269,7 +291,7 @@ public class Lexicon {
             //      fai tutti gli step con NewLexK e Lex(K+2)
             // }
     }
-        */
+
     public static void main (String[] arg) throws IOException {
 
         Lexicon lex = new Lexicon(0);
@@ -278,10 +300,12 @@ public class Lexicon {
         // l.printLexiconLine();
         InvertedIndex invInd = new InvertedIndex(0);
 
-        l = readLexiconLine("Lexicon_number_1",58*74);
+        l = readLexiconLine("Lexicon_number_1",0);
         l.printLexiconLine();
         invInd.readInvertedDocIds("Inverted_Index_DocID_number_1",l.getOffsetDocID(),l.getLenOfDocID());
         invInd.readInvertedTF("Inverted_Index_TF_number_1",l.getOffsetTF(),l.getLenOfTF());
+        Text pippo = lex.readTermFromBlock("Lexicon_number_1", 0);
+        System.out.println(pippo);
 
     }
 }
