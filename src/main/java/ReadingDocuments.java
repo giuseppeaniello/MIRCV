@@ -2,9 +2,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.hadoop.io.Text;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -39,8 +37,8 @@ public class ReadingDocuments {
             }
             System.out.println("BLOCCO COSRUITO");
             lex.updateAllOffsetsTF(invInd);
-            invInd.saveDocIdCompressedOnFile(invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex), "Inverted_Index_DocID_number_"+indexOfFile );
-            invInd.saveTFCompressedOnFile(invInd.compressListOfTFs(), "Inverted_Index_TF_number_"+indexOfFile);
+            invInd.saveTForDocIDsCompressedOnFile(invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex), "Inverted_Index_DocID_number_"+indexOfFile, 0 );
+            invInd.saveTForDocIDsCompressedOnFile(invInd.compressListOfTFs(), "Inverted_Index_TF_number_"+indexOfFile, 0);
             lex.sortLexicon();
             lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile, indexOfFile);
             lex.clearLexicon();

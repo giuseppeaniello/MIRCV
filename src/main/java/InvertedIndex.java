@@ -138,7 +138,6 @@ public class InvertedIndex {
     }
 
     public void readInvertedDocIds(String filePath,long startReadingPosition, int lenOffesetDocId){
-
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         ArrayList<Integer> decompressionValue = new ArrayList<>();
@@ -158,8 +157,27 @@ public class InvertedIndex {
         }
     }
 
-    public void readInvertedTF(String filePath,long startReadingPosition, int lenOffesetTF){
+    public static byte[] readDocIDsOrTFsPostingListCompressed(String filePath,long startReadingPosition, int lenOffeset){ //NON TESTATA
+        byte[] result = new byte[lenOffeset];
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        try (FileChannel fc = FileChannel.open(fileP, READ)) {
+            fc.position(startReadingPosition);
+            buffer = ByteBuffer.allocate(lenOffeset);
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            result = buffer.array();
+            buffer.clear();
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+        return result;
+    }
 
+
+
+    public void readInvertedTF(String filePath,long startReadingPosition, int lenOffesetTF){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         ArrayList<Integer> decompressionValue = new ArrayList<>();
@@ -261,7 +279,7 @@ public class InvertedIndex {
 
 
 
-    public void saveTFCompressedOnFile(byte [] compressedTF,String filePath) throws FileNotFoundException {
+    public static void saveTForDocIDsCompressedOnFile(byte [] compressedTF, String filePath, long startingPoint) throws FileNotFoundException {
 
         RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
 
@@ -269,7 +287,7 @@ public class InvertedIndex {
         ByteBuffer buffer = null;
 
         try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-
+            fc.position(startingPoint);
             buffer = ByteBuffer.wrap(compressedTF);
             while (buffer.hasRemaining()) {
                 fc.write(buffer);
@@ -282,26 +300,7 @@ public class InvertedIndex {
 
     }
 
-    public void saveDocIdCompressedOnFile(byte [] compressedDocId,String filePath) throws FileNotFoundException {
 
-        RandomAccessFile fileDocId = new RandomAccessFile(filePath ,"rw");
-
-        Path fileP = Paths.get(filePath);
-        ByteBuffer buffer = null;
-
-        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-
-            buffer = ByteBuffer.wrap(compressedDocId);
-            while (buffer.hasRemaining()) {
-                fc.write(buffer);
-            }
-            buffer.clear();
-
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
-
-    }
 
     public static void main(String[] argv ) throws IOException {
 
