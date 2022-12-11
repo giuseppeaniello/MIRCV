@@ -243,27 +243,24 @@ public class Lexicon {
 
 
 
-    public void mergeBlocks() throws IOException {
+    public void mergeBlocks(String path1, String path2, String pathMerge) throws IOException {
         // Step base:
         int readingPositionFile1 = 0;
         int readingPositionFile2 = 0;
         long offsetFileMerge = 0;
         long offsetDocIdMerge = 0;
         long offsetTFMerge = 0;
-        Path file1 = Paths.get("Lexicon_number_1");
-        Path file2 = Paths.get("Lexicon_number_2");
+        Path file1 = Paths.get(path1);
+        Path file2 = Paths.get(path2);
         // leggi prima parola Lex0 e Lex1
         FileChannel fc1 = FileChannel.open(file1, READ);
         FileChannel fc2 = FileChannel.open(file2, READ);
-
-
-        while(readingPositionFile1 < fc1.size() && readingPositionFile2 < fc2.size()) { // giusè inventati qualcosa
-
-            Text t1 = readTermFromBlock("Lexicon_number_1", readingPositionFile1);
-            Text t2 = readTermFromBlock("Lexicon_number_2", readingPositionFile2);
+        while(readingPositionFile1 < fc1.size() && readingPositionFile2 < fc2.size()) {
+            Text t1 = readTermFromBlock(path1, readingPositionFile1);
+            Text t2 = readTermFromBlock(path2, readingPositionFile2);
             if (t1.compareTo(t2) == 0) { // caso parole uguali
-                LexiconLine lineLex1 = readLexiconLine("Lexicon_number_1",readingPositionFile1);
-                LexiconLine lineLex2 = readLexiconLine("Lexicon_number_2",readingPositionFile2);
+                LexiconLine lineLex1 = readLexiconLine(path1, readingPositionFile1);
+                LexiconLine lineLex2 = readLexiconLine(path2, readingPositionFile2);
                 LexiconLine lineLexMerge = new LexiconLine();
                 lineLexMerge.setTerm(t1);
                 lineLexMerge.setCf(lineLex1.getCf() + lineLex2.getCf());
@@ -272,47 +269,51 @@ public class Lexicon {
                 lineLexMerge.setOffsetTF(offsetTFMerge);
                 lineLexMerge.setLenOfDocID(lineLex1.getLenOfDocID()+lineLex2.getLenOfDocID());
                 lineLexMerge.setOffsetTF(lineLex1.getLenOfTF()+lineLex2.getLenOfTF());
-                lineLexMerge.saveLexiconLineOnFile("Lexicon_Merge_1",lineLexMerge,1,offsetFileMerge);
+                lineLexMerge.saveLexiconLineOnFile(pathMerge, lineLexMerge, 1, offsetFileMerge);
                 offsetDocIdMerge += lineLexMerge.getLenOfDocID();
                 offsetTFMerge += lineLexMerge.getLenOfTF();
                 readingPositionFile1 += 58;
                 readingPositionFile2 += 58;
+                offsetFileMerge += 58;
             } else if (t1.compareTo(t2) > 0) { // caso t1>t2
-                LexiconLine lineLex = readLexiconLine("Lexicon_number_2",readingPositionFile2);
+                LexiconLine lineLex = readLexiconLine(path2,readingPositionFile2);
                 lineLex.setOffsetDocID(offsetDocIdMerge);
                 lineLex.setOffsetTF(offsetTFMerge);
-                lineLex.saveLexiconLineOnFile("Lexicon_Merge_1",lineLex,1,offsetFileMerge);
+                lineLex.saveLexiconLineOnFile(pathMerge,lineLex,1,offsetFileMerge);
                 offsetDocIdMerge += lineLex.getLenOfDocID();
                 offsetTFMerge += lineLex.getLenOfTF();
                 readingPositionFile2 +=58;
+                offsetFileMerge += 58;
             } else { // caso t2>t1
-                LexiconLine lineLex = readLexiconLine("Lexicon_number_1",readingPositionFile1);
+                LexiconLine lineLex = readLexiconLine(path1, readingPositionFile1);
                 lineLex.setOffsetDocID(offsetDocIdMerge);
                 lineLex.setOffsetTF(offsetTFMerge);
-                lineLex.saveLexiconLineOnFile("Lexicon_Merge_1",lineLex,1,offsetFileMerge);
+                lineLex.saveLexiconLineOnFile(pathMerge,lineLex,1,offsetFileMerge);
                 offsetDocIdMerge += lineLex.getLenOfDocID();
                 offsetTFMerge += lineLex.getLenOfTF();
                 readingPositionFile1 +=58;
+                offsetFileMerge += 58;
             }
-            offsetFileMerge += 58;
         }
-        while( readingPositionFile1 < fc1.size()){
-            LexiconLine lineLex = readLexiconLine("Lexicon_number_1",readingPositionFile1);
+        while(readingPositionFile1 < fc1.size()){
+            LexiconLine lineLex = readLexiconLine(path1,readingPositionFile1);
             lineLex.setOffsetDocID(offsetDocIdMerge);
             lineLex.setOffsetTF(offsetTFMerge);
-            lineLex.saveLexiconLineOnFile("Lexicon_Merge_1",lineLex,1,offsetFileMerge);
+            lineLex.saveLexiconLineOnFile(pathMerge,lineLex,1,offsetFileMerge);
             offsetDocIdMerge += lineLex.getLenOfDocID();
             offsetTFMerge += lineLex.getLenOfTF();
             readingPositionFile1 +=58;
+            offsetFileMerge += 58;
         }
         while(readingPositionFile2 < fc2.size()){
-            LexiconLine lineLex = readLexiconLine("Lexicon_number_2",readingPositionFile2);
+            LexiconLine lineLex = readLexiconLine(path2,readingPositionFile2);
             lineLex.setOffsetDocID(offsetDocIdMerge);
             lineLex.setOffsetTF(offsetTFMerge);
-            lineLex.saveLexiconLineOnFile("Lexicon_Merge_1",lineLex,1,offsetFileMerge);
+            lineLex.saveLexiconLineOnFile(pathMerge,lineLex,1,offsetFileMerge);
             offsetDocIdMerge += lineLex.getLenOfDocID();
             offsetTFMerge += lineLex.getLenOfTF();
             readingPositionFile2 +=58;
+            offsetFileMerge += 58;
         }
 
 
@@ -350,18 +351,88 @@ public class Lexicon {
 
     public static void main (String[] arg) throws IOException {
 
-       /* Lexicon lex = new Lexicon(0);
+        Lexicon lex = new Lexicon(0);
         LexiconLine l = new LexiconLine();
         // l = readLexiconLine("Lexicon_number_1",0);
         // l.printLexiconLine();
         InvertedIndex invInd = new InvertedIndex(0);
 
-        l = readLexiconLine("Lexicon_number_1",0);
-        l.printLexiconLine();
-        invInd.readInvertedDocIds("Inverted_Index_DocID_number_1",l.getOffsetDocID(),l.getLenOfDocID());
-        invInd.readInvertedTF("Inverted_Index_TF_number_1",l.getOffsetTF(),l.getLenOfTF());*/
-        Text t1 = null;
-        Text t2 = new Text("b");
+        // 0,2,4
+        lex.addElement(new Text("a                   "), 1, invInd);
+
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 3, invInd);
+        lex.addElement(new Text("b                   "), 500 , invInd);
+
+
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+        lex.addElement(new Text("c                   "), 1, invInd);
+
+        //lex.saveLexicon("prova", 0);
+        lex.updateAllOffsetsInList();
+        lex.updateAllOffsetsTF(invInd);
+        invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex);
+        lex.sortLexicon();
+       // lex.saveLexiconOnFile("LEX1",1);
+        System.out.println("---------------------------------");
+        for(Text term : lex.lexicon.keySet()){
+            //prova anche a scorrere i posting
+            System.out.print(term + "  ");
+            System.out.print("offsetTF: " + lex.lexicon.get(term).getOffsetTF() + "  ");
+            System.out.print("offsetList: " + lex.lexicon.get(term).getOffsetInList() + "  ");
+            System.out.print("offsetDocID " + lex.lexicon.get(term).getOffsetDocID() + "  ");
+            System.out.print("length offsetDocID " + lex.lexicon.get(term).getLenOfDocID() + "  ");
+            System.out.print("length offsetTF " + lex.lexicon.get(term).getLenOfTF() + "  ");
+            System.out.print("CF: " + lex.lexicon.get(term).getCf() + "  ");
+            System.out.print("DF: " + lex.lexicon.get(term).getDf() + "  ");
+
+            for(int i=0; i<lex.lexicon.get(term).getDf(); i++){
+                System.out.print("docID: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList() + i).getDocID() + "  ");
+                System.out.print("TF: " + invInd.allPostingLists.get((int)lex.lexicon.get(term).getOffsetInList() + i).getTF() + "  ");
+            }
+            System.out.print("\n");
+        }
+        System.out.print("\n");
+        System.out.print("\n");
+        System.out.print("\n");
+
+        Lexicon lex2 = new Lexicon(0);
+        InvertedIndex invInd2 = new InvertedIndex(0);
+
+        lex2.addElement(new Text("b                   "), 501, invInd2);
+        lex2.addElement(new Text("b                   "), 502, invInd2);
+        lex2.addElement(new Text("b                   "), 502, invInd2);
+        lex2.addElement(new Text("b                   "), 502, invInd2);
+        lex2.addElement(new Text("b                   "), 502, invInd2);
+        lex2.addElement(new Text("f                   "), 503, invInd2);
+        lex2.addElement(new Text("b                   "), 505, invInd2);
+        lex2.addElement(new Text("b                   "), 505 , invInd2);
+
+        lex2.updateAllOffsetsInList();
+        lex2.updateAllOffsetsTF(invInd2);
+        invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex2);
+        lex2.sortLexicon();
+
+        lex.saveLexiconOnFile("LEX1", 1);
+        lex2.saveLexiconOnFile("LEX2", 1);
+        lex.mergeBlocks("LEX1", "LEX2", "MERGED");
+
+
+        LexiconLine line = new LexiconLine();
+        line = readLexiconLine("MERGED", 58);
+        line.printLexiconLine();
 
 
 
@@ -370,4 +441,6 @@ public class Lexicon {
 
 
     }
+
+
 }
