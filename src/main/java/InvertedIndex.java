@@ -18,7 +18,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 public class InvertedIndex {
 
     int indexOfFile;
-    List<Posting> allPostingLists; //list in which we have all the posting lists of the terms in this blocks
+    static List<Posting> allPostingLists; //list in which we have all the posting lists of the terms in this blocks
 
 
     public InvertedIndex(int indexOfFile){
@@ -85,7 +85,7 @@ public class InvertedIndex {
         return fromBooleanArrToByteArr(result);
     }
 
-    public byte[] compressListOfDocIDsAndAssignOffsetsDocIDs(Lexicon lex){ //and assign offsetsDocIDs
+    public static byte[] compressListOfDocIDsAndAssignOffsetsDocIDs(Lexicon lex){ //and assign offsetsDocIDs
         List<Boolean> result = new ArrayList<>(); // lista in cui mettiamo tutto via via, non posso usare array perchè non conosco dimensione
         int offsetDocIdCompressed = 0; // corrisponde all'offsetDocID
         boolean first = true; // per impostare l'offset del primo a 0;
@@ -137,10 +137,42 @@ public class InvertedIndex {
         return fromBooleanArrToByteArr(arrBool);
     }
 
+    public static byte[] compressListOfDocIDs(ArrayList<Long> list){
+        List<Boolean> result = new ArrayList<>(); // lista in cui mettiamo tutto via via, non posso usare array perchè non conosco dimensione
+        for(long elem : list) {
+            int bitUsed = 0;
+            String rightPart = binaryWhitoutMostSignificant(elem);
+            for (int i = 0; i < rightPart.length(); i++) {
+                result.add(true);
+                bitUsed++;
+            }
+            result.add(false);
+            bitUsed++;
+            for (int i = 0; i < rightPart.length(); i++) { // ora aggiungo la parte a destra leggendo la stringa che contiene già esattamente la parte destra
+                if (rightPart.charAt(i) == '1') {
+                    result.add(true);
+                    bitUsed++;
+                }
+                else {
+                    result.add(false);
+                    bitUsed++;
+                }
+            }
+            while(bitUsed % 8 != 0){
+                result.add(false);
+                bitUsed++;
+            }
+        }
+        boolean[] arrBool = new boolean[result.size()]; //transform from list<bool> to bool[]
+        for(int i=0; i<arrBool.length; i++)
+            arrBool[i] = result.get(i);
+        return fromBooleanArrToByteArr(arrBool);
+    }
+
     public void readInvertedDocIds(String filePath,long startReadingPosition, int lenOffesetDocId){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
-        ArrayList<Integer> decompressionValue = new ArrayList<>();
+        ArrayList<Long> decompressionValue = new ArrayList<>();
         try (FileChannel fc = FileChannel.open(fileP, READ))
         {
             fc.position(startReadingPosition);
@@ -197,11 +229,11 @@ public class InvertedIndex {
         }
     }
 
-    private String binaryWhitoutMostSignificant(long docID){
+    private static String binaryWhitoutMostSignificant(long docID){
         return Long.toBinaryString(docID).substring(1); // convert docID in binary and trash first element
     }
 
-    private byte[] fromBooleanArrToByteArr(boolean[] boolArr){
+    private static byte[] fromBooleanArrToByteArr(boolean[] boolArr){
         BitSet bits = new BitSet(boolArr.length);
         for (int i = 0; i < boolArr.length; i++) {
             if (boolArr[i]) {
@@ -216,7 +248,7 @@ public class InvertedIndex {
         }
     }
 
-     public boolean[] fromByteArrToBooleanArr(byte[] byteArray) {
+     public static boolean[] fromByteArrToBooleanArr(byte[] byteArray) {
         BitSet bits = BitSet.valueOf(byteArray);
         boolean[] bools = new boolean[byteArray.length * 8];
         for (int i = bits.nextSetBit(0); i != -1; i = bits.nextSetBit(i+1)) {
@@ -225,7 +257,7 @@ public class InvertedIndex {
         return bools;
     }
 
-    public ArrayList<Integer> decompressionListOfTfs(byte[] compression){
+    public static ArrayList<Integer> decompressionListOfTfs(byte[] compression){
         ArrayList<Integer> listOfTFs = new ArrayList<>();
         boolean[] boolArray = fromByteArrToBooleanArr(compression);
         int count = 0;
@@ -240,8 +272,8 @@ public class InvertedIndex {
         return listOfTFs;
     }
 
-    public ArrayList<Integer> decompressionListOfDocIds(byte[] compression){ //// DA TESTARE
-        ArrayList<Integer> result = new ArrayList<>();
+    public static ArrayList<Long> decompressionListOfDocIds(byte[] compression){ //// DA TESTARE
+        ArrayList<Long> result = new ArrayList<>();
         boolean[] boolArray = fromByteArrToBooleanArr(compression);
         int count = 0; //tengo il conto della posizione a cui sono arrivato a guardare
         while(count < boolArray.length) {
@@ -268,7 +300,7 @@ public class InvertedIndex {
                     count++;
                 }
             }
-            result.add(Integer.parseInt(str, 2));
+            result.add(Long.parseLong(str, 2));
             //ora allineiamo a byte (se ho già trovato la codifica non serve che andiamo avanti a leggere fino al byte dopo
             while( (count % 8) != 0 )
                 count++;
@@ -280,12 +312,9 @@ public class InvertedIndex {
 
 
     public static void saveTForDocIDsCompressedOnFile(byte [] compressedTF, String filePath, long startingPoint) throws FileNotFoundException {
-
         RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
-
         Path fileP = Paths.get(filePath );
         ByteBuffer buffer = null;
-
         try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
             fc.position(startingPoint);
             buffer = ByteBuffer.wrap(compressedTF);
@@ -293,12 +322,20 @@ public class InvertedIndex {
                 fc.write(buffer);
             }
             buffer.clear();
-
         } catch (IOException ex) {
             System.err.println("I/O Error: " + ex);
         }
-
     }
+
+    public static long sumDGap(ArrayList<Long> list){
+        long sum = 0;
+        for(long tmp : list)
+            sum += tmp;
+        return sum;
+    }
+
+
+
 
 
 

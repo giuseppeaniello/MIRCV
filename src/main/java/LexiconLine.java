@@ -8,7 +8,6 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class LexiconLine {
@@ -33,11 +32,11 @@ public class LexiconLine {
         return cf;
     }
 
-    public int getLenOfDocID() {
+    public int getLenOffDocID() {
         return lenOfDocID;
     }
 
-    public int getLenOfTF() {
+    public int getLenOffTF() {
         return lenOfTF;
     }
 
@@ -102,8 +101,8 @@ public class LexiconLine {
             buffer.clear();
             byte[] valueByte =Lexicon.transformValueToByte(line.getCf(), line.getDf(),
                     line.getOffsetDocID(), line.getOffsetTF(),
-                    line.getLenOfDocID(),
-                    line.getLenOfTF()) ;
+                    line.getLenOffDocID(),
+                    line.getLenOffTF()) ;
 
                 buffer = ByteBuffer.wrap(valueByte);
                 while (buffer.hasRemaining()) {
