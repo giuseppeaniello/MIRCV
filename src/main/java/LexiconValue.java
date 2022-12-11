@@ -82,4 +82,5 @@ public class LexiconValue {
     public int getLenOfTF(){
         return this.lenOfTF;
     }
+
 }

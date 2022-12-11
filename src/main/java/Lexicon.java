@@ -97,7 +97,7 @@ public class Lexicon {
         }
     }
 
-    private byte[] transformValueToByte( int cF, long dF, long offsetDocId, long offsetTF, int lenOfDocID,int lenOfTF ) {
+    public static byte[] transformValueToByte( int cF, long dF, long offsetDocId, long offsetTF, int lenOfDocID,int lenOfTF ) {
 
         ByteBuffer bb = ByteBuffer.allocate(36);
         bb.putInt(cF);
@@ -243,22 +243,78 @@ public class Lexicon {
 
 
 
-    public void mergeBlocks(){
+    public void mergeBlocks() throws IOException {
         // Step base:
-        int readingPosition = 0;
+        int readingPositionFile1 = 0;
+        int readingPositionFile2 = 0;
+        long offsetFileMerge = 0;
+        long offsetDocIdMerge = 0;
+        long offsetTFMerge = 0;
+        Path file1 = Paths.get("Lexicon_number_1");
+        Path file2 = Paths.get("Lexicon_number_2");
         // leggi prima parola Lex0 e Lex1
-        while(true) { // giusè inventati qualcosa
-            Text t1 = readTermFromBlock("Lexicon_number_1", readingPosition);
-            Text t2 = readTermFromBlock("Lexicon_number_2", readingPosition);
+        FileChannel fc1 = FileChannel.open(file1, READ);
+        FileChannel fc2 = FileChannel.open(file2, READ);
+
+
+        while(readingPositionFile1 < fc1.size() && readingPositionFile2 < fc2.size()) { // giusè inventati qualcosa
+
+            Text t1 = readTermFromBlock("Lexicon_number_1", readingPositionFile1);
+            Text t2 = readTermFromBlock("Lexicon_number_2", readingPositionFile2);
             if (t1.compareTo(t2) == 0) { // caso parole uguali
-
+                LexiconLine lineLex1 = readLexiconLine("Lexicon_number_1",readingPositionFile1);
+                LexiconLine lineLex2 = readLexiconLine("Lexicon_number_2",readingPositionFile2);
+                LexiconLine lineLexMerge = new LexiconLine();
+                lineLexMerge.setTerm(t1);
+                lineLexMerge.setCf(lineLex1.getCf() + lineLex2.getCf());
+                lineLexMerge.setDf(lineLex1.getDf() + lineLex2.getDf());
+                lineLexMerge.setOffsetDocID(offsetDocIdMerge);
+                lineLexMerge.setOffsetTF(offsetTFMerge);
+                lineLexMerge.setLenOfDocID(lineLex1.getLenOfDocID()+lineLex2.getLenOfDocID());
+                lineLexMerge.setOffsetTF(lineLex1.getLenOfTF()+lineLex2.getLenOfTF());
+                lineLexMerge.saveLexiconLineOnFile("Lexicon_Merge_1",lineLexMerge,1,offsetFileMerge);
+                offsetDocIdMerge += lineLexMerge.getLenOfDocID();
+                offsetTFMerge += lineLexMerge.getLenOfTF();
+                readingPositionFile1 += 58;
+                readingPositionFile2 += 58;
             } else if (t1.compareTo(t2) > 0) { // caso t1>t2
-
+                LexiconLine lineLex = readLexiconLine("Lexicon_number_2",readingPositionFile2);
+                lineLex.setOffsetDocID(offsetDocIdMerge);
+                lineLex.setOffsetTF(offsetTFMerge);
+                lineLex.saveLexiconLineOnFile("Lexicon_Merge_1",lineLex,1,offsetFileMerge);
+                offsetDocIdMerge += lineLex.getLenOfDocID();
+                offsetTFMerge += lineLex.getLenOfTF();
+                readingPositionFile2 +=58;
             } else { // caso t2>t1
-
+                LexiconLine lineLex = readLexiconLine("Lexicon_number_1",readingPositionFile1);
+                lineLex.setOffsetDocID(offsetDocIdMerge);
+                lineLex.setOffsetTF(offsetTFMerge);
+                lineLex.saveLexiconLineOnFile("Lexicon_Merge_1",lineLex,1,offsetFileMerge);
+                offsetDocIdMerge += lineLex.getLenOfDocID();
+                offsetTFMerge += lineLex.getLenOfTF();
+                readingPositionFile1 +=58;
             }
-            readingPosition += 58;
+            offsetFileMerge += 58;
         }
+        while( readingPositionFile1 < fc1.size()){
+            LexiconLine lineLex = readLexiconLine("Lexicon_number_1",readingPositionFile1);
+            lineLex.setOffsetDocID(offsetDocIdMerge);
+            lineLex.setOffsetTF(offsetTFMerge);
+            lineLex.saveLexiconLineOnFile("Lexicon_Merge_1",lineLex,1,offsetFileMerge);
+            offsetDocIdMerge += lineLex.getLenOfDocID();
+            offsetTFMerge += lineLex.getLenOfTF();
+            readingPositionFile1 +=58;
+        }
+        while(readingPositionFile2 < fc2.size()){
+            LexiconLine lineLex = readLexiconLine("Lexicon_number_2",readingPositionFile2);
+            lineLex.setOffsetDocID(offsetDocIdMerge);
+            lineLex.setOffsetTF(offsetTFMerge);
+            lineLex.saveLexiconLineOnFile("Lexicon_Merge_1",lineLex,1,offsetFileMerge);
+            offsetDocIdMerge += lineLex.getLenOfDocID();
+            offsetTFMerge += lineLex.getLenOfTF();
+            readingPositionFile2 +=58;
+        }
+
 
         // fino all'ultima riga di entrambi i file:
             // confronta le parole
@@ -294,7 +350,7 @@ public class Lexicon {
 
     public static void main (String[] arg) throws IOException {
 
-        Lexicon lex = new Lexicon(0);
+       /* Lexicon lex = new Lexicon(0);
         LexiconLine l = new LexiconLine();
         // l = readLexiconLine("Lexicon_number_1",0);
         // l.printLexiconLine();
@@ -303,9 +359,15 @@ public class Lexicon {
         l = readLexiconLine("Lexicon_number_1",0);
         l.printLexiconLine();
         invInd.readInvertedDocIds("Inverted_Index_DocID_number_1",l.getOffsetDocID(),l.getLenOfDocID());
-        invInd.readInvertedTF("Inverted_Index_TF_number_1",l.getOffsetTF(),l.getLenOfTF());
-        Text pippo = lex.readTermFromBlock("Lexicon_number_1", 0);
-        System.out.println(pippo);
+        invInd.readInvertedTF("Inverted_Index_TF_number_1",l.getOffsetTF(),l.getLenOfTF());*/
+        Text t1 = null;
+        Text t2 = new Text("b");
+
+
+
+
+
+
 
     }
 }
