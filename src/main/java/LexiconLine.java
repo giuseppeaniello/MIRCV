@@ -94,7 +94,7 @@ public class LexiconLine {
         Path fileP = Paths.get(filePath );
         ByteBuffer buffer = null;
         try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-
+            fc.position(offset);
             buffer = ByteBuffer.wrap(line.getTerm().getBytes());
             while (buffer.hasRemaining()) {
                     fc.write(buffer);

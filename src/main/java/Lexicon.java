@@ -265,10 +265,12 @@ public class Lexicon {
                 lineLexMerge.setTerm(t1);
                 lineLexMerge.setCf(lineLex1.getCf() + lineLex2.getCf());
                 lineLexMerge.setDf(lineLex1.getDf() + lineLex2.getDf());
+                // Da qui vanno modificate in base a inverted index
                 lineLexMerge.setOffsetDocID(offsetDocIdMerge);
                 lineLexMerge.setOffsetTF(offsetTFMerge);
                 lineLexMerge.setLenOfDocID(lineLex1.getLenOfDocID()+lineLex2.getLenOfDocID());
                 lineLexMerge.setOffsetTF(lineLex1.getLenOfTF()+lineLex2.getLenOfTF());
+                // Fino a qui
                 lineLexMerge.saveLexiconLineOnFile(pathMerge, lineLexMerge, 1, offsetFileMerge);
                 offsetDocIdMerge += lineLexMerge.getLenOfDocID();
                 offsetTFMerge += lineLexMerge.getLenOfTF();
@@ -408,6 +410,8 @@ public class Lexicon {
         System.out.print("\n");
         System.out.print("\n");
 
+
+
         Lexicon lex2 = new Lexicon(0);
         InvertedIndex invInd2 = new InvertedIndex(0);
 
@@ -424,6 +428,24 @@ public class Lexicon {
         lex2.updateAllOffsetsTF(invInd2);
         invInd.compressListOfDocIDsAndAssignOffsetsDocIDs(lex2);
         lex2.sortLexicon();
+
+        for(Text term : lex2.lexicon.keySet()){
+            //prova anche a scorrere i posting
+            System.out.print(term + "  ");
+            System.out.print("offsetTF: " + lex2.lexicon.get(term).getOffsetTF() + "  ");
+            System.out.print("offsetList: " + lex2.lexicon.get(term).getOffsetInList() + "  ");
+            System.out.print("offsetDocID " + lex2.lexicon.get(term).getOffsetDocID() + "  ");
+            System.out.print("length offsetDocID " + lex2.lexicon.get(term).getLenOfDocID() + "  ");
+            System.out.print("length offsetTF " + lex2.lexicon.get(term).getLenOfTF() + "  ");
+            System.out.print("CF: " + lex2.lexicon.get(term).getCf() + "  ");
+            System.out.print("DF: " + lex2.lexicon.get(term).getDf() + "  ");
+
+            for(int i=0; i<lex2.lexicon.get(term).getDf(); i++){
+                System.out.print("docID: " + invInd.allPostingLists.get((int)lex2.lexicon.get(term).getOffsetInList() + i).getDocID() + "  ");
+                System.out.print("TF: " + invInd.allPostingLists.get((int)lex2.lexicon.get(term).getOffsetInList() + i).getTF() + "  ");
+            }
+            System.out.print("\n");
+        }
 
         lex.saveLexiconOnFile("LEX1", 1);
         lex2.saveLexiconOnFile("LEX2", 1);
