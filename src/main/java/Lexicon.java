@@ -257,7 +257,8 @@ public class Lexicon {
         while(readingPositionFileLex1 < fcLex1.size() && readingPositionFileLex2 < fcLex2.size()) {
             Text t1 = readTermFromBlock(pathLex1, readingPositionFileLex1);
             Text t2 = readTermFromBlock(pathLex2, readingPositionFileLex2);
-            if (t1.compareTo(t2) == 0) { // caso parole uguali   MANCA AGGIUNGERE INVERTED INDEX IN QUESTO CASO
+            System.out.println("");
+            if (t1.compareTo(t2) == 0) {
                 LexiconLine lineLex1 = readLexiconLine(pathLex1, readingPositionFileLex1);
                 LexiconLine lineLex2 = readLexiconLine(pathLex2, readingPositionFileLex2);
                 LexiconLine lineLexMerge = new LexiconLine();
@@ -281,11 +282,13 @@ public class Lexicon {
                 ArrayList<Long> list1 = InvertedIndex.decompressionListOfDocIds(byteArray1);
                 ArrayList<Long> list2 = InvertedIndex.decompressionListOfDocIds(byteArray2);
 
+
                 long sumAllDGap = InvertedIndex.sumDGap(list1);
                 long firstValueSecondInvInd = list2.get(0);
                 long newValue = firstValueSecondInvInd - sumAllDGap;
                 list2.set(0, newValue);
                 list1.addAll(list2);
+
 
                 byte[] compressionDocID = InvertedIndex.compressListOfDocIDs(list1);
                 InvertedIndex.saveTForDocIDsCompressedOnFile(compressionDocID, pathDocIDMerge, offsetDocIdMerge);
@@ -298,18 +301,21 @@ public class Lexicon {
                 offsetFileLexMerge += 58;
 
             } else if (t1.compareTo(t2) > 0) { // caso t1>t2
-                LexiconLine lineLex = readLexiconLine(pathLex2,readingPositionFileLex2);
-                lineLex.setOffsetDocID(offsetDocIdMerge);
-                lineLex.setOffsetTF(offsetTFMerge);
-                lineLex.saveLexiconLineOnFile(pathLexMerge,lineLex,1,offsetFileLexMerge);
-
+                LexiconLine lineLex = readLexiconLine(pathLex2,readingPositionFileLex2); //leggi lexiconLine
+//da qui
                 InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocID2,
-                        lineLex.getOffsetDocID(), lineLex.getLenOffDocID()), pathDocIDMerge, offsetDocIdMerge);
-                offsetDocIdMerge += lineLex.getLenOffDocID();
+                        lineLex.getOffsetDocID(), lineLex.getLenOffDocID()), pathDocIDMerge, offsetDocIdMerge); // salvi i DocID
+                // a qui
+                lineLex.setOffsetDocID(offsetDocIdMerge);
+
 
                 InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathTF2,
                         lineLex.getOffsetTF(), lineLex.getLenOffTF()), pathTFMerge, offsetTFMerge);
-                offsetTFMerge += lineLex.getLenOffTF();
+                lineLex.setOffsetTF(offsetTFMerge);
+
+
+                lineLex.saveLexiconLineOnFile(pathLexMerge,lineLex,1,offsetFileLexMerge);
+
 
                 offsetDocIdMerge += lineLex.getLenOffDocID();
                 offsetTFMerge += lineLex.getLenOffTF();
@@ -318,17 +324,20 @@ public class Lexicon {
 
             } else { // caso t2>t1
                 LexiconLine lineLex = readLexiconLine(pathLex1, readingPositionFileLex1);
-                lineLex.setOffsetDocID(offsetDocIdMerge);
-                lineLex.setOffsetTF(offsetTFMerge);
-                lineLex.saveLexiconLineOnFile(pathLexMerge,lineLex,1,offsetFileLexMerge);
+
 
                 InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocID1,
                         lineLex.getOffsetDocID(), lineLex.getLenOffDocID()), pathDocIDMerge, offsetDocIdMerge);
-                offsetDocIdMerge += lineLex.getLenOffDocID();
+                lineLex.setOffsetDocID(offsetDocIdMerge);
+
 
                 InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathTF1,
                         lineLex.getOffsetTF(), lineLex.getLenOffTF()), pathTFMerge, offsetTFMerge);
-                offsetTFMerge += lineLex.getLenOffTF();
+                lineLex.setOffsetTF(offsetTFMerge);
+
+
+                lineLex.saveLexiconLineOnFile(pathLexMerge,lineLex,1,offsetFileLexMerge);
+
 
                 offsetDocIdMerge += lineLex.getLenOffDocID();
                 offsetTFMerge += lineLex.getLenOffTF();
@@ -338,17 +347,16 @@ public class Lexicon {
         }
         while(readingPositionFileLex1 < fcLex1.size()){
             LexiconLine lineLex = readLexiconLine(pathLex1,readingPositionFileLex1);
-            lineLex.setOffsetDocID(offsetDocIdMerge);
-            lineLex.setOffsetTF(offsetTFMerge);
-            lineLex.saveLexiconLineOnFile(pathLexMerge,lineLex,1,offsetFileLexMerge);
 
             InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocID1,
                     lineLex.getOffsetDocID(), lineLex.getLenOffDocID()), pathDocIDMerge, offsetDocIdMerge);
-            offsetDocIdMerge += lineLex.getLenOffDocID();
 
             InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathTF1,
                     lineLex.getOffsetTF(), lineLex.getLenOffTF()), pathTFMerge, offsetTFMerge);
-            offsetTFMerge += lineLex.getLenOffTF();
+
+            lineLex.setOffsetDocID(offsetDocIdMerge);
+            lineLex.setOffsetTF(offsetTFMerge);
+            lineLex.saveLexiconLineOnFile(pathLexMerge,lineLex,1,offsetFileLexMerge);
 
             offsetDocIdMerge += lineLex.getLenOffDocID();
             offsetTFMerge += lineLex.getLenOffTF();
@@ -357,21 +365,20 @@ public class Lexicon {
         }
         while(readingPositionFileLex2 < fcLex2.size()){
             LexiconLine lineLex = readLexiconLine(pathLex2,readingPositionFileLex2);
+
+            InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocID2,
+                    lineLex.getOffsetDocID(), lineLex.getLenOffDocID()), pathDocIDMerge, offsetDocIdMerge);
+
+            InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathTF2,
+                    lineLex.getOffsetTF(), lineLex.getLenOffTF()), pathTFMerge, offsetTFMerge);
+
             lineLex.setOffsetDocID(offsetDocIdMerge);
             lineLex.setOffsetTF(offsetTFMerge);
             lineLex.saveLexiconLineOnFile(pathLexMerge,lineLex,1,offsetFileLexMerge);
 
-            InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocID2,
-                    lineLex.getOffsetDocID(), lineLex.getLenOffDocID()), pathDocIDMerge, offsetDocIdMerge);
-            offsetDocIdMerge += lineLex.getLenOffDocID();
-
-            InvertedIndex.saveTForDocIDsCompressedOnFile(InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathTF2,
-                    lineLex.getOffsetTF(), lineLex.getLenOffTF()), pathTFMerge, offsetTFMerge);
-            offsetTFMerge += lineLex.getLenOffTF();
-
             offsetDocIdMerge += lineLex.getLenOffDocID();
             offsetTFMerge += lineLex.getLenOffTF();
-            readingPositionFileLex2 +=58;
+            readingPositionFileLex2 += 58;
             offsetFileLexMerge += 58;
         }
 
@@ -514,14 +521,16 @@ public class Lexicon {
         line.printLexiconLine();
         */
 
-/*
+
         Lexicon lex0 = new Lexicon(0);
         InvertedIndex invInd0 = new InvertedIndex(0);
 
         lex0.addElement(new Text("ciao                "), 1, invInd0);
-        lex0.addElement(new Text("ciao                "), 1, invInd0);
-        lex0.addElement(new Text("ciao                "), 2, invInd0);
-        lex0.addElement(new Text("de Santis           "), 2, invInd0);
+        lex0.addElement(new Text("miao                "), 1, invInd0);
+       // lex0.addElement(new Text("a                   "), 5, invInd0);
+        lex0.addElement(new Text("ciao                "), 56, invInd0);
+        lex0.addElement(new Text("miao                "), 70, invInd0);
+
         lex0.updateAllOffsetsInList();
         lex0.updateAllOffsetsTF(invInd0);
         InvertedIndex.compressListOfDocIDsAndAssignOffsetsDocIDs(lex0);
@@ -529,14 +538,15 @@ public class Lexicon {
         invInd0.saveTForDocIDsCompressedOnFile(invInd0.compressListOfTFs(), "TF"+0, 0);
         lex0.sortLexicon();
         lex0.saveLexiconOnFile("LEX"+0, 0);
-*/
-/*
+
+
         Lexicon lex1 = new Lexicon(1);
         InvertedIndex invInd1 = new InvertedIndex(1);
-        lex1.addElement(new Text("de Santis           "), 3, invInd1);
-        lex1.addElement(new Text("ciao                "), 5, invInd1);
-        lex1.addElement(new Text("de Santis           "), 8, invInd1);
-        lex1.addElement(new Text("a                   "), 15, invInd1);
+        lex1.addElement(new Text("ciao                "), 78, invInd1);
+      //  lex1.addElement(new Text("miao                "), 75, invInd1);
+        lex1.addElement(new Text("ciao                "), 80, invInd1);
+        lex1.addElement(new Text("miao                "), 81, invInd1);
+        lex1.addElement(new Text("miao                "), 99, invInd1);
         lex1.updateAllOffsetsInList();
         lex1.updateAllOffsetsTF(invInd1);
         InvertedIndex.compressListOfDocIDsAndAssignOffsetsDocIDs(lex1);
@@ -544,23 +554,23 @@ public class Lexicon {
         invInd1.saveTForDocIDsCompressedOnFile(invInd1.compressListOfTFs(), "TF"+1, 0);
         lex1.sortLexicon();
         lex1.saveLexiconOnFile("LEX"+1, 0);
-*/
-/*
+
+
         Lexicon lex = new Lexicon(0);
 
         lex.mergeBlocks("LEX0", "LEX1", "LEXMERGE",
                 "DOCID0", "DOCID1", "DOCIDMERGE",
                 "TF0", "TF1", "TFMERGE");
 
-*/
+
 
         LexiconLine lexLine = new LexiconLine();
-        lexLine = Lexicon.readLexiconLine("LEXMERGE", 58*2);
+        lexLine = Lexicon.readLexiconLine("LEXMERGE", 0);
         lexLine.printLexiconLine();
 
-        byte[] bytes = InvertedIndex.readDocIDsOrTFsPostingListCompressed("DOCIDMERGE", lexLine.getOffsetTF(), lexLine.getLenOffTF());
-        ArrayList<Integer> list = InvertedIndex.decompressionListOfTfs(bytes);
-        System.out.println(list);
+        byte[]bytes = InvertedIndex.readDocIDsOrTFsPostingListCompressed("DOCIDMERGE", lexLine.getOffsetDocID(), lexLine.getLenOffDocID());
+        System.out.println(InvertedIndex.decompressionListOfDocIds(bytes));
+
 
 
 
