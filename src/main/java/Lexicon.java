@@ -1,6 +1,7 @@
 import com.google.common.primitives.Bytes;
 import org.apache.commons.collections.ListUtils;
 import org.apache.hadoop.io.Text;
+import org.mortbay.log.Log;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -249,8 +250,6 @@ public class Lexicon {
         long offsetFileLexMerge = 0;
         long offsetDocIdMerge = 0;
         long offsetTFMerge = 0;
-
-
         Path fileLex1 = Paths.get(pathLex1);
         Path fileLex2 = Paths.get(pathLex2);
         FileChannel fcLex1 = FileChannel.open(fileLex1, READ);
@@ -514,15 +513,54 @@ public class Lexicon {
         line = readLexiconLine("MERGED", 58);
         line.printLexiconLine();
         */
-        ArrayList<Long> pippo = new ArrayList<>();
-        pippo.add((long)120);
-        pippo.add((long)1);
-        pippo.add((long)22);
 
-        byte[] arr = InvertedIndex.compressListOfDocIDs(pippo);
+/*
+        Lexicon lex0 = new Lexicon(0);
+        InvertedIndex invInd0 = new InvertedIndex(0);
 
-        ArrayList<Long> pluto = InvertedIndex.decompressionListOfDocIds(arr);
-        System.out.println(pluto);
+        lex0.addElement(new Text("ciao                "), 1, invInd0);
+        lex0.addElement(new Text("ciao                "), 1, invInd0);
+        lex0.addElement(new Text("ciao                "), 2, invInd0);
+        lex0.addElement(new Text("de Santis           "), 2, invInd0);
+        lex0.updateAllOffsetsInList();
+        lex0.updateAllOffsetsTF(invInd0);
+        InvertedIndex.compressListOfDocIDsAndAssignOffsetsDocIDs(lex0);
+        invInd0.saveTForDocIDsCompressedOnFile(invInd0.compressListOfDocIDsAndAssignOffsetsDocIDs(lex0), "DOCID"+0, 0 );
+        invInd0.saveTForDocIDsCompressedOnFile(invInd0.compressListOfTFs(), "TF"+0, 0);
+        lex0.sortLexicon();
+        lex0.saveLexiconOnFile("LEX"+0, 0);
+*/
+/*
+        Lexicon lex1 = new Lexicon(1);
+        InvertedIndex invInd1 = new InvertedIndex(1);
+        lex1.addElement(new Text("de Santis           "), 3, invInd1);
+        lex1.addElement(new Text("ciao                "), 5, invInd1);
+        lex1.addElement(new Text("de Santis           "), 8, invInd1);
+        lex1.addElement(new Text("a                   "), 15, invInd1);
+        lex1.updateAllOffsetsInList();
+        lex1.updateAllOffsetsTF(invInd1);
+        InvertedIndex.compressListOfDocIDsAndAssignOffsetsDocIDs(lex1);
+        invInd1.saveTForDocIDsCompressedOnFile(invInd1.compressListOfDocIDsAndAssignOffsetsDocIDs(lex1), "DOCID"+1, 0 );
+        invInd1.saveTForDocIDsCompressedOnFile(invInd1.compressListOfTFs(), "TF"+1, 0);
+        lex1.sortLexicon();
+        lex1.saveLexiconOnFile("LEX"+1, 0);
+*/
+/*
+        Lexicon lex = new Lexicon(0);
+
+        lex.mergeBlocks("LEX0", "LEX1", "LEXMERGE",
+                "DOCID0", "DOCID1", "DOCIDMERGE",
+                "TF0", "TF1", "TFMERGE");
+
+*/
+
+        LexiconLine lexLine = new LexiconLine();
+        lexLine = Lexicon.readLexiconLine("LEXMERGE", 58*2);
+        lexLine.printLexiconLine();
+
+        byte[] bytes = InvertedIndex.readDocIDsOrTFsPostingListCompressed("DOCIDMERGE", lexLine.getOffsetTF(), lexLine.getLenOffTF());
+        ArrayList<Integer> list = InvertedIndex.decompressionListOfTfs(bytes);
+        System.out.println(list);
 
 
 

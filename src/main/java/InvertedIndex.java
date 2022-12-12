@@ -44,14 +44,6 @@ public class InvertedIndex {
         this.allPostingLists.get((int)(offset + df - 1) ).incrementTermFrequency(); //increment the TF of the posting of that document (the last of the posting list)
     }
 
-    public void saveInvertedIndexOnFile(){
-        // prendi lista di docID
-        // prendi lista TF
-        // comprimi lista docID
-        // salva lista docID compressi in un file
-        // comprimi lista TF
-        // salva lista TF compressa in un altro file
-    }
 
     public void clearInvertedIndex(){
         this.allPostingLists.clear();
