@@ -219,7 +219,7 @@ public class Lexicon {
         return lexVal;
     }
 
-    public Text readTermFromBlock(String filePath,int startReadingPosition){
+    public static Text readTermFromBlock(String filePath, int startReadingPosition){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         Text term = null;
@@ -241,7 +241,7 @@ public class Lexicon {
 
 
 
-    public void mergeBlocks(String pathLex1, String pathLex2, String pathLexMerge, String pathDocID1, String pathDocID2, String pathDocIDMerge, String pathTF1, String pathTF2, String pathTFMerge) throws IOException {
+    public static void mergeBlocks(String pathLex1, String pathLex2, String pathLexMerge, String pathDocID1, String pathDocID2, String pathDocIDMerge, String pathTF1, String pathTF2, String pathTFMerge) throws IOException {
         int readingPositionFileLex1 = 0;
         int readingPositionFileLex2 = 0;
         long offsetFileLexMerge = 0;
@@ -254,7 +254,7 @@ public class Lexicon {
         while(readingPositionFileLex1 < fcLex1.size() && readingPositionFileLex2 < fcLex2.size()) {
             Text t1 = readTermFromBlock(pathLex1, readingPositionFileLex1);
             Text t2 = readTermFromBlock(pathLex2, readingPositionFileLex2);
-            System.out.println("");
+
             if (t1.compareTo(t2) == 0) {
                 LexiconLine lineLex1 = readLexiconLine(pathLex1, readingPositionFileLex1);
                 LexiconLine lineLex2 = readLexiconLine(pathLex2, readingPositionFileLex2);
@@ -389,7 +389,7 @@ public class Lexicon {
         deleteFile(pathTF2);
     }
 
-    public void deleteFile(String path) {
+    public static void deleteFile(String path) {
         try {
             Files.deleteIfExists(Paths.get(path));
         } catch (NoSuchFileException e) {
@@ -399,6 +399,18 @@ public class Lexicon {
         } catch (IOException e) {
             System.out.println("Invalid permissions.");
             e.printStackTrace();
+        }
+    }
+    public static  void mergeAllBlocks() throws IOException {
+
+        mergeBlocks("Lexicon_number_1","Lexicon_number_2","Lexicon_Merge_number_1",
+                "Inverted_Index_DocId_number_1","Inverted_Index_DocId_number_2","Inverted_Index_Merge_DocId_number_1",
+                "Inverted_Index_TF_number_1","Inverted_Index_TF_number_2","Inverted_Index_Merge_TF_number_1");
+        for (int i = 3; i<=ReadingDocuments.nFileUsed;i++){
+
+            mergeBlocks("Lexicon_Merge_number_"+(i-2),"Lexicon_number_"+i,"Lexicon_Merge_number_"+(i-1),
+                    "Inverted_Index_Merge_DocId_number_"+(i-2),"Inverted_Index_DocId_number_"+i,"Inverted_Index_Merge_DocId_number_"+(i-1),
+                    "Inverted_Index_Merge_TF_number_"+(i-2),"Inverted_Index_TF_number_"+i,"Inverted_Index_Merge_TF_number_"+(i-1));
         }
     }
 
@@ -508,7 +520,7 @@ public class Lexicon {
         line.printLexiconLine();
         */
 
-
+/*
         Lexicon lex0 = new Lexicon(0);
         InvertedIndex invInd0 = new InvertedIndex(0);
 
@@ -517,6 +529,8 @@ public class Lexicon {
        // lex0.addElement(new Text("a                   "), 5, invInd0);
         lex0.addElement(new Text("miao                "), 2, invInd0);
         lex0.addElement(new Text("miao                "), 70, invInd0);
+        lex0.addElement(new Text("z                "), 70, invInd0);
+
 
 
         lex0.updateAllOffsetsInList();
@@ -547,13 +561,19 @@ public class Lexicon {
 
 
         Lexicon lex = new Lexicon(0);
+*/
+        /*Lexicon lex = new Lexicon(0);
+        lex.mergeBlocks("Lexicon_number_1", "Lexicon_number_2", "LEXMERGE",
+                "Inverted_Index_DocID_number_1", "Inverted_Index_DocID_number_2", "DOCIDMERGE",
+                "Inverted_Index_TF_number_1", "Inverted_Index_TF_number_2", "TFMERGE");
 
-        lex.mergeBlocks("LEX0", "LEX1", "LEXMERGE",
-                "DOCID0", "DOCID1", "DOCIDMERGE",
-                "TF0", "TF1", "TFMERGE");
-
-
-
+        Lexicon.deleteFile("Inverted_Index_DocID_number_1");
+        Lexicon.deleteFile("Inverted_Index_DocID_number_2");
+        Lexicon.deleteFile("Inverted_Index_TF_number_1");
+        Lexicon.deleteFile("Inverted_Index_TF_number_2");
+        Lexicon.deleteFile("Lexicon_number_1");
+        Lexicon.deleteFile("Lexicon_number_2");
+/*
         LexiconLine lexLine = new LexiconLine();
         lexLine = Lexicon.readLexiconLine("LEXMERGE", 58);
         lexLine.printLexiconLine();
@@ -563,7 +583,16 @@ public class Lexicon {
 
 
 
+*/
+        mergeBlocks("Lexicon_number_1","Lexicon_number_2","Lexicon_Merge_number_1",
+                "Inverted_Index_DocId_number_1","Inverted_Index_DocId_number_2","Inverted_Index_Merge_DocId_number_1",
+                "Inverted_Index_TF_number_1","Inverted_Index_TF_number_2","Inverted_Index_Merge_TF_number_1");
+        for (int i = 3; i<=3;i++){
 
+            mergeBlocks("Lexicon_Merge_number_"+(i-2),"Lexicon_number_"+i,"Lexicon_Merge_number_"+(i-1),
+                    "Inverted_Index_Merge_DocId_number_"+(i-2),"Inverted_Index_DocId_number_"+i,"Inverted_Index_Merge_DocId_number_"+(i-1),
+                    "Inverted_Index_Merge_TF_number_"+(i-2),"Inverted_Index_TF_number_"+i,"Inverted_Index_Merge_TF_number_"+(i-1));
+        }
     }
 
 
