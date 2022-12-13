@@ -44,7 +44,9 @@ public class Preprocessing {
 
     public static String getStopwords(){ //ritorna il dizionario di stopwords
         //String file=("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\stopwords.txt");
-        String file=("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\stopwords.txt");
+        //String file=("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\stopwords.txt");
+        String file=("C:\\Users\\Rauro\\OneDrive\\Desktop\\Uni\\Information Retrivial\\stopwords.txt");
+
 
         String stopwords="";
         String temp;
@@ -105,11 +107,22 @@ public class Preprocessing {
         // removes non-printable characters from Unicode
         document_in = document_in.replaceAll("\\p{C}", "");
         document_in= document_in.replaceAll("'s","");
+        document_in= document_in.replaceAll("(([a-zA-Z]+)([0-9]+)([a-zA-Z]+))"," ");
+        document_in= document_in.replaceAll("(([a-zA-Z]+)([-_.,#@+*£$%&]+)([a-zA-Z]+))"," ");
         document_in= document_in.replaceAll("([\\[\\_\\(\\)\\{\\}\\]]+)([0-9]+)","$2");
         document_in= document_in.replaceAll("([0-9]+)([\\[\\_\\(\\)\\{\\}\\]]+)","$1");
         document_in= document_in.replaceAll("([\\W])([a-zA-Z]+)"," $2");
         document_in= document_in.replaceAll("([a-zA-Z]+)([\\W])+","$1 ");
-        document_in= document_in.replaceAll("[!._'?\"£#$%&=\\{\\}\\[\\]\\(\\)]","");
+        document_in= document_in.replaceAll("[!._'?\"£#$,;%&=\\{\\}\\[\\]\\(\\)]","");
+        //new part
+        document_in= document_in.replaceAll("(^[a-zA-Z]+)([0-9]+$)","$1 ");
+        document_in= document_in.replaceAll("(^[0-9]+)([a-zA-Z]+$)"," $2");
+        document_in= document_in.replaceAll("(^[\\W])([a-zA-Z]+$)"," $2");
+        document_in= document_in.replaceAll("(^[a-zA-Z]+)([\\W])+$","$1 ");
+        //test2=test2.replaceAll("[^a-zA-Z ]","");
+        document_in= document_in.replaceAll("[^a-zA-Z ]","");
+        document_in= document_in.replaceAll("[  ]{2,}"," ");
+        document_in= document_in.replaceAll("^[ ]","");
         //document_in= document_in.replaceAll("[!._'?]\\{{]][[}\\+\\*_^'!£$%()=%&]","");
         //document_in= document_in.replaceAll("[!-._'?\[["]]{{}}}]","");
         //document_in= document_in.replaceAll("[!-._'?\"]","");
@@ -172,18 +185,59 @@ public class Preprocessing {
         public static void main(String[] args){
         String text= "0	The presence of communication amid scientific minds was equally important to the success of the Manhattan Project as scientific intellect was. The only cloud hanging over the impressive achievement of the atomic researchers and engineers is what their success truly meant; hundreds of thousands of innocent lives obliterated.";
         String text2= "8841817\tThat's chemistry  123 too! Fireworks get their color from metal compounds (also known as metal salts) packed inside. You probably know that if you burn metals in a hot flame (such as a Bunsen burner in a school laboratory), they glow with very intense colorsâ\u0080\u0094 that's exactly what's happening in fireworks. AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-        String test="[1123] (123) {123} [[123]] (3[2{1]})12-13-14 12/45/56 12\\?12\\?12 ciao/ [ciao ciao\\ /ciao \\ciao ";
+        String test="[1123] (123) {123} [[123]] (3[2{1]})12-13-14 12/45/56 12\\?12\\?12 ciao/ [ciao ciao\\ /ciao \\ciao asd#asd asdas@asd asd12asd @Gianni Gianni@ Mario69 69Mario ";
         String test2= test;
 
 
         //REGEX TEST
-        test2=test2.replaceAll("([\\[\\_\\(\\)\\{\\}\\]]+)([0-9]+)","$2");
-        test2=test2.replaceAll("([0-9]+)([\\[\\_\\(\\)\\{\\}\\]]+)","$1");
-        test2=test2.replaceAll("([\\W])([a-zA-Z]+)"," $2");
-        test2=test2.replaceAll("([a-zA-Z]+)([\\W])+","$1 ");
-        test2=test2.replaceAll("[!._'?\"£$%&=]","");
-        System.out.println(test);
-        System.out.println(test2);
+/*
+        test2=test2.replaceAll("(([a-zA-Z]+)([0-9]+)([a-zA-Z]+))"," ");
+        test2=test2.replaceAll("(([a-zA-Z]+)([-_.,#@+*£$%&]+)([a-zA-Z]+))"," ");
+
+        test2=test2.replaceAll("([\\[\\_\\(\\)\\{\\}\\]]+)([0-9]+)"," $2");
+
+        test2=test2.replaceAll("([0-9]+)([\\[\\_\\(\\)\\{\\}\\]]+)","$1 ");
+        //QUI
+        //test2=test2.replaceAll("[a-zA-Z]+[\\W]+[a-zA-Z]+","");
+        test2=test2.replaceAll("[0-9]+","");
+        //
+        test2=test2.replaceAll("(^[a-zA-Z]+)([0-9]+$)","$1 ");
+        test2=test2.replaceAll("(^[0-9]+)([a-zA-Z]+$)"," $2");
+        test2=test2.replaceAll("(^[\\W])([a-zA-Z]+$)"," $2");
+        test2=test2.replaceAll("(^[a-zA-Z]+)([\\W])+$","$1 ");
+        //test2=test2.replaceAll("[^a-zA-Z ]","");
+        test2=test2.replaceAll("[^a-zA-Z ]","");
+        test2=test2.replaceAll("[  ]{2,}"," ");
+        test2=test2.replaceAll("^[ ]","");
+*/test2=test2.replaceAll("\\p{C}", "");
+            test2=test2.replaceAll("'s","");
+            test2=test2.replaceAll("(([a-zA-Z]+)([0-9]+)([a-zA-Z]+))"," ");
+            test2=test2.replaceAll("(([a-zA-Z]+)([-_.,#@+*£$%&]+)([a-zA-Z]+))"," ");
+            test2=test2.replaceAll("([\\[\\_\\(\\)\\{\\}\\]]+)([0-9]+)","$2");
+            test2=test2.replaceAll("([0-9]+)([\\[\\_\\(\\)\\{\\}\\]]+)","$1");
+            test2=test2.replaceAll("([\\W])([a-zA-Z]+)"," $2");
+            test2=test2.replaceAll("([a-zA-Z]+)([\\W])+","$1 ");
+            test2=test2.replaceAll("[!._'?\"£#$,;%&=\\{\\}\\[\\]\\(\\)]","");
+            //new part
+            test2=test2.replaceAll("(^[a-zA-Z]+)([0-9]+$)","$1 ");
+            test2=test2.replaceAll("(^[0-9]+)([a-zA-Z]+$)"," $2");
+            test2=test2.replaceAll("(^[\\W])([a-zA-Z]+$)"," $2");
+            test2=test2.replaceAll("(^[a-zA-Z]+)([\\W])+$","$1 ");
+            //test2=test2.replaceAll("[^a-zA-Z ]","");
+            test2=test2.replaceAll("[^a-zA-Z ]","");
+            test2=test2.replaceAll("[  ]{2,}"," ");
+            test2=test2.replaceAll("^[ ]","");
+            //document_in= document_in.replaceAll("[!._'?]\\{{]][[}\\+\\*_^'!£$%()=%&]","");
+            //document_in= document_in.replaceAll("[!-._'?\[["]]{{}}}]","");
+            //document_in= document_in.replaceAll("[!-._'?\"]","");
+
+
+            //test2=test2.replaceAll(".+[0-9].*","");
+        //test2=test2.replaceAll(".+[^A-Za-z].*","");
+        //test2=test2.replaceAll("[0-9]","");
+
+        System.out.println("Prima\n"+test);
+        System.out.println("Dopo\n"+test2);
         System.out.println("CHECK 1");
         Preprocessing.preprocess(text2,1);
         System.out.println("\n------------------------\nCHECK 0");
