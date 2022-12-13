@@ -46,8 +46,8 @@ public class Lexicon {
             }
             else{ // case term already appeared but in different document
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
-                lexicon.get(term).setDf(lexicon.get(term).getDf() + 1);
                 invInd.addPostingOfExistingTerm(lexicon.get(term).getOffsetInList(), docId-lexicon.get(term).getLastDocument(), lexicon.get(term).getDf());
+                lexicon.get(term).setDf(lexicon.get(term).getDf() + 1);
                 lexicon.get(term).setLastDocument(docId);
                 currentOffset += 1;
                 updateAllOffsetsInList();
@@ -526,14 +526,16 @@ public class Lexicon {
         InvertedIndex invInd0 = new InvertedIndex(0);
 
         lex0.addElement(new Text("ciao                "), 1, invInd0);
-        lex0.addElement(new Text("miao                "), 1, invInd0);
+        lex0.addElement(new Text("miao                "), 2, invInd0);
        // lex0.addElement(new Text("a                   "), 5, invInd0);
-        lex0.addElement(new Text("ciao                "), 56, invInd0);
+        lex0.addElement(new Text("miao                "), 2, invInd0);
         lex0.addElement(new Text("miao                "), 70, invInd0);
+
 
         lex0.updateAllOffsetsInList();
         lex0.updateAllOffsetsTF(invInd0);
         InvertedIndex.compressListOfDocIDsAndAssignOffsetsDocIDs(lex0);
+
         invInd0.saveTForDocIDsCompressedOnFile(invInd0.compressListOfDocIDsAndAssignOffsetsDocIDs(lex0), "DOCID"+0, 0 );
         invInd0.saveTForDocIDsCompressedOnFile(invInd0.compressListOfTFs(), "TF"+0, 0);
         lex0.sortLexicon();
@@ -565,10 +567,10 @@ public class Lexicon {
 
 
         LexiconLine lexLine = new LexiconLine();
-        lexLine = Lexicon.readLexiconLine("LEXMERGE", 0);
+        lexLine = Lexicon.readLexiconLine("LEXMERGE", 58);
         lexLine.printLexiconLine();
 
-        byte[]bytes = InvertedIndex.readDocIDsOrTFsPostingListCompressed("DOCIDMERGE", lexLine.getOffsetDocID(), lexLine.getLenOffDocID());
+        byte[]bytes = InvertedIndex.readDocIDsOrTFsPostingListCompressed("TFMERGE", lexLine.getOffsetTF(), lexLine.getLenOffTF());
         System.out.println(InvertedIndex.decompressionListOfDocIds(bytes));
 
 
