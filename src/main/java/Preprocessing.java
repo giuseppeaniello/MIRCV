@@ -209,7 +209,8 @@ public class Preprocessing {
         test2=test2.replaceAll("[^a-zA-Z ]","");
         test2=test2.replaceAll("[  ]{2,}"," ");
         test2=test2.replaceAll("^[ ]","");
-*/test2=test2.replaceAll("\\p{C}", "");
+*/
+            test2=test2.replaceAll("\\p{C}", "");
             test2=test2.replaceAll("'s","");
             test2=test2.replaceAll("(([a-zA-Z]+)([0-9]+)([a-zA-Z]+))"," ");
             test2=test2.replaceAll("(([a-zA-Z]+)([-_.,#@+*£$%&]+)([a-zA-Z]+))"," ");
