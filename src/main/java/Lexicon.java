@@ -1,8 +1,6 @@
 import com.google.common.primitives.Bytes;
 import org.apache.commons.collections.ListUtils;
 import org.apache.hadoop.io.Text;
-import org.mortbay.log.Log;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
