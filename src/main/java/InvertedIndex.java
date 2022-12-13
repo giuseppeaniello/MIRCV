@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -324,6 +323,7 @@ public class InvertedIndex {
             sum += tmp;
         return sum;
     }
+
 
 
 

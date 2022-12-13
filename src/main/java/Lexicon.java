@@ -6,8 +6,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -380,37 +379,27 @@ public class Lexicon {
             offsetFileLexMerge += 58;
         }
 
+        fcLex2.close();
+        fcLex1.close();
+        deleteFile(pathLex2);
+        deleteFile(pathLex1);
+        deleteFile(pathDocID1);
+        deleteFile(pathDocID2);
+        deleteFile(pathTF1);
+        deleteFile(pathTF2);
+    }
 
-        // fino all'ultima riga di entrambi i file:
-            // confronta le parole
-            // se le parole sono diverse:
-                    // scrivi la minore in NewLex0
-                    // mantieni stesse CF e DF
-                    // scrivi il posting in NewTF0 in posizione currentOffsetTF
-                    // scrivi il posting in NewDocID0 in posizione currentOffsetDocID
-                    // lenOffsetTF e lenOffsetDocID rimangono le stesse
-                    // incrementa currentOffsetTF di una quantità pari a lenOffsetTF della parola scritta
-                    // incrementa currentOffsetDocID di una quantità pari a lenOffsetDocID della parola scritta
-                    // nel file che conteneva la parola minore avanza l'iteratore alla parola successiva
-            // se le due parole sono uguali:
-                    // scrivi la parola in NewLex0
-                    // le CF si sommano
-                    // le DF si sommano
-                    // bisogna aggiustare i d-gap
-                    // scrivi il posting in NewTF0 in posizione currentOffsetTF
-                    // scrivi il posting in NewDocID0 in posizione currentOffsetDocID
-                    // le lenOffsetTF e lenOffsetDocID si sommano
-                    // incrementa currentOffsetTF di una quantità pari a lenOffsetTF della parola scritta (cioè la somma delle 2)
-                    // incrementa currentOffsetDocID di una quantità pari a lenOffsetDocID della parola scritta (cioè la somma delle 2)
-                    // incrementa iteratore sia di Lex0 che di Lex1
-            // Step iterativo
-            // ripeti tutti gli step prima prendendo sta volta NewLex0 e Lex2 e quindi creando NewLex1
-            // ripeti prendendo NewLex1 e Lex3 e quindi creando NewLex2
-            // e così via
-            // cioè dopo aver fatto il passo base avrai:
-            // for(K=0; K<numOfBlocks; K++){
-            //      fai tutti gli step con NewLexK e Lex(K+2)
-            // }
+    public void deleteFile(String path) {
+        try {
+            Files.deleteIfExists(Paths.get(path));
+        } catch (NoSuchFileException e) {
+            System.out.println("No such file/directory exists");
+        } catch (DirectoryNotEmptyException e) {
+            System.out.println("Directory is not empty.");
+        } catch (IOException e) {
+            System.out.println("Invalid permissions.");
+            e.printStackTrace();
+        }
     }
 
     public static void main (String[] arg) throws IOException {
@@ -547,6 +536,7 @@ public class Lexicon {
         lex1.addElement(new Text("ciao                "), 80, invInd1);
         lex1.addElement(new Text("miao                "), 81, invInd1);
         lex1.addElement(new Text("miao                "), 99, invInd1);
+
         lex1.updateAllOffsetsInList();
         lex1.updateAllOffsetsTF(invInd1);
         InvertedIndex.compressListOfDocIDsAndAssignOffsetsDocIDs(lex1);
