@@ -413,6 +413,45 @@ public class Lexicon {
                     "Inverted_Index_Merge_TF_number_"+(i-2),"Inverted_Index_TF_number_"+i,"Inverted_Index_Merge_TF_number_"+(i-1));
         }
     }
+    public static Lexicon readAllLexicon(String filePath){
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        Lexicon lex = new Lexicon(0);
+
+        try (FileChannel fc = FileChannel.open(fileP, READ))
+        {
+
+            for(int i = 0; i<fc.size(); i=i+58) {
+                fc.position(i);
+                buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
+                do {
+                    fc.read(buffer);
+                } while (buffer.hasRemaining());
+                Text term = new Text(buffer.array());
+                buffer.clear();
+
+                fc.position( i+ 22);
+                buffer = ByteBuffer.allocate(36); //50 is the total number of bytes to read a complete term of the lexicon
+                do {
+                    fc.read(buffer);
+                } while (buffer.hasRemaining());
+                LexiconValue value = transformByteToValue(buffer.array());
+                buffer.clear();
+                value.setCf(value.getCf());
+                value.setDf(value.getDf());
+                value.setOffsetTF(value.getOffsetTF());
+                value.setOffsetDocID(value.getOffsetDocID());
+                value.setLenOfDocID(value.getLenOfDocID());
+                value.setLenOfTF(value.getLenOfTF());
+                lex.lexicon.put(term,value);
+            }
+
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+        return lex;
+
+    }
 
     public static void main (String[] arg) throws IOException {
 /*
@@ -584,7 +623,7 @@ public class Lexicon {
 
 
 */
-        mergeBlocks("Lexicon_number_1","Lexicon_number_2","Lexicon_Merge_number_1",
+  /*      mergeBlocks("Lexicon_number_1","Lexicon_number_2","Lexicon_Merge_number_1",
                 "Inverted_Index_DocId_number_1","Inverted_Index_DocId_number_2","Inverted_Index_Merge_DocId_number_1",
                 "Inverted_Index_TF_number_1","Inverted_Index_TF_number_2","Inverted_Index_Merge_TF_number_1");
         for (int i = 3; i<=3;i++){
@@ -592,7 +631,7 @@ public class Lexicon {
             mergeBlocks("Lexicon_Merge_number_"+(i-2),"Lexicon_number_"+i,"Lexicon_Merge_number_"+(i-1),
                     "Inverted_Index_Merge_DocId_number_"+(i-2),"Inverted_Index_DocId_number_"+i,"Inverted_Index_Merge_DocId_number_"+(i-1),
                     "Inverted_Index_Merge_TF_number_"+(i-2),"Inverted_Index_TF_number_"+i,"Inverted_Index_Merge_TF_number_"+(i-1));
-        }
+        }*/
     }
 
 

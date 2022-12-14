@@ -11,7 +11,7 @@ public class ReadingDocuments {
     public static  int nFileUsed = 0;
 
     public static void readDoc() throws IOException {
-        File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collectionReduction.tsv");
+        File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\100k.tsv");
         //File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
         ; //initializing a new ArrayList out of String[]'s
         int indexOfFile = 1;
@@ -23,7 +23,7 @@ public class ReadingDocuments {
             InvertedIndex invInd = new InvertedIndex(indexOfFile);
             nFileUsed++;
 
-            while ( it.hasNext() && ( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) < (0.0225*Runtime.getRuntime().maxMemory()) ) ) {
+            while ( it.hasNext() && ( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) < (0.3*Runtime.getRuntime().maxMemory()) ) ) {
                 String docCurrent = it.nextLine();
                 String docText = new String (docCurrent.split("\\t")[1].getBytes(StandardCharsets.UTF_8));
                 String docId = docCurrent.split("\\t")[0];
