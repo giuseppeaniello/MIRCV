@@ -1,7 +1,7 @@
 public class Posting {
 
     private final long docID; // gamma compression da usare
-    private long TF; //CONTROLLA CHE QUESTO SIA DAVVERO LONG // unary compression da usare
+    private int TF; //CONTROLLA CHE QUESTO SIA DAVVERO LONG // unary compression da usare
     // TF è la Term Frequency di un term all'interno del document
 
     public Posting(long docID){
