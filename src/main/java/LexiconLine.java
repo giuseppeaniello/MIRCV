@@ -18,7 +18,7 @@ public class LexiconLine {
     private long offsetTF;
     private int lenOfDocID;
     private int lenOfTF;
-
+/*
     LexiconLine(){
         this.term = null;
         this.cf = 0;
@@ -114,5 +114,7 @@ public class LexiconLine {
             System.err.println("I/O Error: " + ex);
         }
     }
+
+*/
 
 }

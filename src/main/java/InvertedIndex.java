@@ -16,39 +16,38 @@ import static java.nio.file.StandardOpenOption.WRITE;
 
 public class InvertedIndex {
 
-    int indexOfFile;
-    static List<Posting> allPostingLists; //list in which we have all the posting lists of the terms in this blocks
+    static List<PostingList> allPostingLists;
 
 
-    public InvertedIndex(int indexOfFile){
-        this.indexOfFile = indexOfFile;
-        this.allPostingLists = new ArrayList<Posting>();
+
+    public InvertedIndex(){
+        allPostingLists = new ArrayList<PostingList>();
     }
 
     // case term appeared for the first time
-    public void addPostingOfNewTerm(long currentOffset, long docID){ //add the first posting of a new posting list
-        this.allPostingLists.add((int) currentOffset, new Posting(docID));
+    public void addPostingOfNewTerm(long docID){ //add the first posting of a new posting list
+        PostingList ps = new PostingList(docID);
+        allPostingLists.add(ps);
     }
 
     // case term already appeared but in different document
-    public void addPostingOfExistingTerm(long offset, long docID, long df){ //add a new posting in existing posting list
-            this.allPostingLists.add((int) (offset+df) ,new Posting(docID) ); //we have offset+df to add the new posting at the end of the posting list
+    public void addPostingOfExistingTerm(long index, long docID){ //add a new posting in existing posting list
+        allPostingLists.get((int) index).postingList.put(docID, 1);
     }
 
     // case term already appeared in the same document
-    public void incrementPostingTF(long offset, long docID, long df){
-        this.allPostingLists.get((int)(offset + df - 1) ).incrementTermFrequency(); //increment the TF of the posting of that document (the last of the posting list)
+    public void incrementPostingTF(long index, long docID){
+        allPostingLists.get((int) index).incrementTF(docID); //increment the TF of the posting of that document
     }
 
 
     public void clearInvertedIndex(){
         this.allPostingLists.clear();
         this.allPostingLists = null;
-        this.indexOfFile = 0;
         System.gc();
     }
 
-
+/*
     public byte[] compressListOfTFs(){
         // use unary compression
         int numOfBitsNecessary = 0;
@@ -72,59 +71,8 @@ public class InvertedIndex {
         }
         return fromBooleanArrToByteArr(result);
     }
-
-    public static byte[] compressListOfDocIDsAndAssignOffsetsDocIDs(Lexicon lex){ //and assign offsetsDocIDs
-        List<Boolean> result = new ArrayList<>(); // lista in cui mettiamo tutto via via, non posso usare array perchè non conosco dimensione
-        int offsetDocIdCompressed = 0; // corrisponde all'offsetDocID
-        boolean first = true; // per impostare l'offset del primo a 0;
-        for (Text term : lex.lexicon.keySet()) { // prendo una parola
-            int bitForThisTerm = 0; // per tenere il conto di quanti bit per questa parola
-            long df = lex.lexicon.get(term).getDf(); // mi salvo la sua df
-            if(first){ // se siamo al primo term ci salviamo offsetDocID 0
-             lex.lexicon.get(term).setOffsetDocID(0);
-             first = false;
-            }
-            else // se non siamo al primo term salviamo offsetDocID pari al numero di byte usati fin ora per la lista di docID compressi
-                lex.lexicon.get(term).setOffsetDocID(offsetDocIdCompressed); // metto l'offsetDocID pari al numero di byte usato fin ora per la lista di docID compressi
-            for (int j = 0; j < df; j++) { // prima di cambiare parola scorro la posting list della parola e accumulo i byte che uso per i docID compressi di quella posting list
-                Posting post = allPostingLists.get((int) lex.lexicon.get(term).getOffsetInList() + j); // per scorrere tutta la posting list della parola
-                int bitUsed = 0; // tengo il conto via via di quanti bit uso ad ogni ciclo
-                String strRightPart = binaryWhitoutMostSignificant(post.getDocID()); //ottengo la parte destra
-                for (int i = 0; i < strRightPart.length(); i++) { // aggiungo a result la parte sinistra cioè l'unary della dimensione di (strRightPart+1)
-                    result.add(true); // qui vengono aggiunti gli 1 dell'unary
-                    bitUsed++;
-                    bitForThisTerm++;
-                }
-                result.add(false); // qui viene aggiunto lo 0 finale della compressione unary
-                bitUsed++;
-                bitForThisTerm++;
-                for (int i=0; i<strRightPart.length(); i++) { // ora aggiungo la parte a destra leggendo la stringa che contiene già esattamente la parte destra
-                    if (strRightPart.charAt(i) == '1') {
-                        result.add(true);
-                        bitUsed++;
-                        bitForThisTerm++;
-                    } else{
-                        result.add(false);
-                        bitUsed++;
-                        bitForThisTerm++;
-                    }
-                }
-                // now allign to the byte, add 0s until bitUsed % 8 == 0
-                while ((bitUsed % 8) != 0) {
-                    result.add(false);
-                    bitUsed++;
-                    bitForThisTerm++;
-                }
-                offsetDocIdCompressed += bitUsed / 8; //accumulo il numero di byte occupati per conoscere l'offset del termine successivo
-            } // passiamo al prossimo posting della posting list del termine
-            lex.lexicon.get(term).setLenOfDocID(bitForThisTerm/8); // save for this term the length of the compressed list of docIDs
-        } // se abbiamo gia' scorso tutta la posting list allora passa alla parola dopo e la prima cosa che fa è salvare l'offset
-        boolean[] arrBool = new boolean[result.size()]; //transform from list<bool> to bool[]
-        for(int i=0; i<arrBool.length; i++)
-            arrBool[i] = result.get(i);
-        return fromBooleanArrToByteArr(arrBool);
-    }
-
+*/
+    /*
     public static byte[] compressListOfDocIDs(ArrayList<Long> list){
         List<Boolean> result = new ArrayList<>(); // lista in cui mettiamo tutto via via, non posso usare array perchè non conosco dimensione
         for(long elem : list) {
@@ -157,27 +105,10 @@ public class InvertedIndex {
         return fromBooleanArrToByteArr(arrBool);
     }
 
-    public void readInvertedDocIds(String filePath,long startReadingPosition, int lenOffesetDocId){
-        Path fileP = Paths.get(filePath);
-        ByteBuffer buffer = null;
-        ArrayList<Long> decompressionValue = new ArrayList<>();
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
-            fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(lenOffesetDocId);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
+     */
 
-            decompressionValue = decompressionListOfDocIds(buffer.array());
-            buffer.clear();
-            System.out.println(decompressionValue);
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
-    }
 
-    public static byte[] readDocIDsOrTFsPostingListCompressed(String filePath,long startReadingPosition, int lenOffeset){ //NON TESTATA
+    public static byte[] readDocIDsOrTFsPostingListCompressed(String filePath,long startReadingPosition, int lenOffeset){
         byte[] result = new byte[lenOffeset];
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
@@ -195,27 +126,6 @@ public class InvertedIndex {
         return result;
     }
 
-
-
-    public void readInvertedTF(String filePath,long startReadingPosition, int lenOffesetTF){
-        Path fileP = Paths.get(filePath);
-        ByteBuffer buffer = null;
-        ArrayList<Integer> decompressionValue = new ArrayList<>();
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
-            fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(lenOffesetTF);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-
-            decompressionValue = decompressionListOfTfs(buffer.array());
-            buffer.clear();
-            System.out.println(decompressionValue);
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
-    }
 
     private static String binaryWhitoutMostSignificant(long docID){
         return Long.toBinaryString(docID).substring(1); // convert docID in binary and trash first element
@@ -298,8 +208,8 @@ public class InvertedIndex {
 
 
 
-
-    public static void saveTForDocIDsCompressedOnFile(byte [] compressedTF, String filePath, long startingPoint) throws FileNotFoundException {
+/*
+    public static void saveTForDocIDsCompressedOnFile(byte[] compressedTF, String filePath, long startingPoint) throws FileNotFoundException {
         RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
         Path fileP = Paths.get(filePath );
         ByteBuffer buffer = null;
@@ -314,14 +224,61 @@ public class InvertedIndex {
             System.err.println("I/O Error: " + ex);
         }
     }
-
+*/
+    /*
     public static long sumDGap(ArrayList<Long> list){
         long sum = 0;
         for(long tmp : list)
             sum += tmp;
         return sum;
     }
+*/
 
+    public static void saveDocIDsOnFile(String filePath, Lexicon lex) throws FileNotFoundException {
+        int offset = 0;
+        RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        for(Text term:lex.lexicon.keySet()){
+            lex.lexicon.get(term).setOffsetDocID(offset);
+            lex.lexicon.get(term).setLenOfDocID(lex.lexicon.get(term).getDf()*8);
+            byte[] listOfDocIDs = allPostingLists.get( lex.lexicon.get(term).getIndex() ).convertDocIDsToByteArray();
+            try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
+                fc.position(offset);
+                buffer = ByteBuffer.wrap(listOfDocIDs);
+                while (buffer.hasRemaining()) {
+                    fc.write(buffer);
+                }
+                buffer.clear();
+                offset += lex.lexicon.get(term).getLenOfDocID();
+            } catch (IOException ex) {
+                System.err.println("I/O Error: " + ex);
+            }
+        }
+    }
+
+    public static void saveTFsOnFile(String filePath, Lexicon lex) throws FileNotFoundException {
+        int offset = 0;
+        RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        for(Text term:lex.lexicon.keySet()){
+            lex.lexicon.get(term).setOffsetTF(offset);
+            lex.lexicon.get(term).setLenOfTF(lex.lexicon.get(term).getDf()*4);
+            byte[] listOfTFs = allPostingLists.get( lex.lexicon.get(term).getIndex() ).convertTFsToByteArray();
+            try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
+                fc.position(offset);
+                buffer = ByteBuffer.wrap(listOfTFs);
+                while (buffer.hasRemaining()) {
+                    fc.write(buffer);
+                }
+                buffer.clear();
+                offset += lex.lexicon.get(term).getLenOfTF();
+            } catch (IOException ex) {
+                System.err.println("I/O Error: " + ex);
+            }
+        }
+    }
 
 
 

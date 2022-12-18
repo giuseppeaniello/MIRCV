@@ -22,7 +22,8 @@ public class Preprocessing {
             ArrayList<String> doc_no_sw=removeStopwords(doc_out,stopwords); //Remove the stopwords
             ArrayList<Text> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
 
-            return doc_stemmed;}
+            return doc_stemmed;
+    }
     else{
             String doc_out=doc_in;
             //int id=getDocID(doc_in);
