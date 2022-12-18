@@ -1,5 +1,6 @@
 import org.apache.hadoop.io.Text;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -24,7 +25,6 @@ public class Ranking {
         return null;
     } */
     public void updateScoreTFIDF(long docId,int tf,long df, int nDocs){
-
         float tfidfWeight = 0;
         //calcolare tf del term in quel docId
         tfidfWeight = (float) ((1 + log(tf))*idf(df,nDocs));
@@ -33,10 +33,44 @@ public class Ranking {
         else
             this.docScores.replace(docId, this.docScores.get(docId), this.docScores.get(docId)+tfidfWeight);
     }
+
     public void calculateTFIDFScoreQueryTerm( ArrayList<Long> docIds, ArrayList<Integer> tfs,long df, int nDocs){
-        for (int i = 0; i< docIds.size(); i++){
+        for (int i = 0; i<docIds.size(); i++){
             updateScoreTFIDF(docIds.get(i),tfs.get(i),df, nDocs);
         }
+    }
+
+
+    public static void main(String[] args) throws FileNotFoundException {
+        /*
+
+        Lexicon lex0 = new Lexicon(0);
+        InvertedIndex invInd0 = new InvertedIndex(0);
+
+        lex0.addElement(new Text("ciao                "), 1, invInd0);
+        lex0.addElement(new Text("miao                "), 1, invInd0);
+        lex0.addElement(new Text("miao                "), 2, invInd0);
+        lex0.addElement(new Text("a                   "), 2, invInd0);
+        lex0.addElement(new Text("miao                "), 2, invInd0);
+        lex0.addElement(new Text("miao                "), 2, invInd0);
+        lex0.addElement(new Text("z                   "), 2, invInd0);
+
+        lex0.updateAllOffsetsInList();
+        lex0.updateAllOffsetsTF(invInd0);
+        InvertedIndex.compressListOfDocIDsAndAssignOffsetsDocIDs(lex0);
+
+        invInd0.saveTForDocIDsCompressedOnFile(invInd0.compressListOfDocIDsAndAssignOffsetsDocIDs(lex0), "DOCID"+0, 0 );
+        invInd0.saveTForDocIDsCompressedOnFile(invInd0.compressListOfTFs(), "TF"+0, 0);
+        lex0.sortLexicon();
+        lex0.saveLexiconOnFile("LEX"+0, 0);
+
+        Text query = new Text("miao a");
+
+
+         */
+
+
+
     }
 
 

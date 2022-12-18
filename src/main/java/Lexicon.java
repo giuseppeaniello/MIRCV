@@ -34,7 +34,7 @@ public class Lexicon {
             lexicon.put(term,lexiconValue);
             currentOffset += 1;
             lexiconValue.setLastDocument(docId);
-            updateAllOffsetsInList();
+            updateAllOffsetsInList(term);
         }
         else{ // case term already appeared in the same document
             if(lexicon.get(term).getLastDocument() == docId){
@@ -47,7 +47,7 @@ public class Lexicon {
                 lexicon.get(term).setDf(lexicon.get(term).getDf() + 1);
                 lexicon.get(term).setLastDocument(docId);
                 currentOffset += 1;
-                updateAllOffsetsInList();
+                updateAllOffsetsInList(term);
             }
         }
     }
@@ -131,6 +131,7 @@ public class Lexicon {
         return lexValue;
     }
 
+    /*
     public void updateAllOffsetsInList(){ // questo non va chiamato, è già nel metodo che aggiunge gli elementi
         boolean first = true;  // non lo faccio private perchè magari dopo il merging ci serve anche chiamarlo a parte
         long offset = 0;
@@ -144,6 +145,20 @@ public class Lexicon {
                 lexicon.get(term).setOffsetInList(offset + df);
                 df = lexicon.get(term).getDf();
                 offset = lexicon.get(term).getOffsetInList();
+            }
+        }
+    }
+    */
+
+    public void updateAllOffsetsInList(Text wordUpdated){
+        boolean found = false;
+        for(Text term : lexicon.keySet()){
+            if(found == false) {
+                if (wordUpdated == term)
+                    found = true;
+            }
+            else{
+                lexicon.get(term).setOffsetInList(lexicon.get(term).getOffsetInList()+1);
             }
         }
     }
@@ -379,14 +394,19 @@ public class Lexicon {
             offsetFileLexMerge += 58;
         }
 
+
         fcLex2.close();
         fcLex1.close();
+        /*
+
         deleteFile(pathLex2);
         deleteFile(pathLex1);
         deleteFile(pathDocID1);
         deleteFile(pathDocID2);
         deleteFile(pathTF1);
         deleteFile(pathTF2);
+
+         */
     }
 
     public static void deleteFile(String path) {
@@ -450,8 +470,8 @@ public class Lexicon {
             System.err.println("I/O Error: " + ex);
         }
         return lex;
-
     }
+
 
     public static void main (String[] arg) throws IOException {
 /*
@@ -623,15 +643,31 @@ public class Lexicon {
 
 
 */
-  /*      mergeBlocks("Lexicon_number_1","Lexicon_number_2","Lexicon_Merge_number_1",
-                "Inverted_Index_DocId_number_1","Inverted_Index_DocId_number_2","Inverted_Index_Merge_DocId_number_1",
-                "Inverted_Index_TF_number_1","Inverted_Index_TF_number_2","Inverted_Index_Merge_TF_number_1");
-        for (int i = 3; i<=3;i++){
+        LexiconLine lineLex = new LexiconLine();
+        System.out.println("LEX1");
+        for(int i=0; i<58*20; i+=58) {
+            lineLex = Lexicon.readLexiconLine("Lexicon_number_1", i);
+            lineLex.printLexiconLine();
+        }
 
-            mergeBlocks("Lexicon_Merge_number_"+(i-2),"Lexicon_number_"+i,"Lexicon_Merge_number_"+(i-1),
-                    "Inverted_Index_Merge_DocId_number_"+(i-2),"Inverted_Index_DocId_number_"+i,"Inverted_Index_Merge_DocId_number_"+(i-1),
-                    "Inverted_Index_Merge_TF_number_"+(i-2),"Inverted_Index_TF_number_"+i,"Inverted_Index_Merge_TF_number_"+(i-1));
-        }*/
+        System.out.println("LEX2");
+        for(int i=0; i<58*20; i+=58) {
+            lineLex = Lexicon.readLexiconLine("Lexicon_number_2", i);
+            lineLex.printLexiconLine();
+        }
+
+        System.out.println("LEX3");
+        for(int i=0; i<58*20; i+=58) {
+            lineLex = Lexicon.readLexiconLine("Lexicon_number_3", i);
+            lineLex.printLexiconLine();
+        }
+
+
+        System.out.println("LEXMERGE");
+        for(int i=0; i<58*20; i+=58) {
+            lineLex = Lexicon.readLexiconLine("Lexicon_Merge_number_2", i);
+            lineLex.printLexiconLine();
+        }
     }
 
 
