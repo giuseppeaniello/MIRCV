@@ -278,10 +278,8 @@ public class InvertedIndex {
                 System.err.println("I/O Error: " + ex);
             }
         }
-
-
-
     }
+
     public static void saveDocIdsOrTfsPostingLists(String filePath, byte[] listPosting,long startingPoint) throws FileNotFoundException {
 
         RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
@@ -295,12 +293,11 @@ public class InvertedIndex {
                 fc.write(buffer);
             }
             buffer.clear();
-
         } catch (IOException ex) {
             System.err.println("I/O Error: " + ex);
         }
-
     }
+
     public static byte[] readOneDocIdPostingList(long startReadingPosition, String filePath, int df) {
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
@@ -320,6 +317,7 @@ public class InvertedIndex {
         }
         return resultByte;
     }
+
     public static byte[] readOneTfsPostingList(long startReadingPosition, String filePath, int df) {
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
