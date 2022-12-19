@@ -11,8 +11,8 @@ public class ReadingDocuments {
     public static  int nFileUsed = 0;
 
     public static void readDoc() throws IOException {
-        //File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collectionReduction.tsv");
-        File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collection.tsv");
+        File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\100k.tsv");
+        //File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
         ; //initializing a new ArrayList out of String[]'s
         int indexOfFile = 1;
 
@@ -22,17 +22,22 @@ public class ReadingDocuments {
             Lexicon lex = new Lexicon();
             InvertedIndex invInd = new InvertedIndex();
             nFileUsed++;
+            int count = 0;
 
             while ( it.hasNext() && ( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) < (0.2*Runtime.getRuntime().maxMemory()) ) ) {
                 String docCurrent = it.nextLine();
                 String docText = new String (docCurrent.split("\\t")[1].getBytes(StandardCharsets.UTF_8));
                 String docId = docCurrent.split("\\t")[0];
-                ArrayList<Text> docPreprocessed = Preprocessing.preprocess(docText,0);
+                ArrayList<Text> docPreprocessed = Preprocessing.preprocess(docText,1);
                 for(Text term : docPreprocessed){
                     lex.addElement(term, Long.parseLong(docId), invInd);
                 }
-                if (Long.parseLong(docId) % 1000 == 0)
-                    System.out.println(docId);
+                count ++;
+                if ( count % 10000 == 0)
+                    System.out.println(count);
+
+
+
             }
             System.out.println("BLOCCO CREATO");
 
