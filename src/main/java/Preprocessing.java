@@ -12,8 +12,12 @@ import org.apache.hadoop.io.Text;
 
 
 public class Preprocessing {
-
-    public static ArrayList<Text> preprocess (String doc_in,int check) throws IOException {  //applies the preprocessing
+    HashSet<String> stopwords ; //Get the list of stopwords
+    public Preprocessing() throws IOException {
+        this.stopwords=new HashSet<>();
+        this.stopwords=getStopwords();
+    }
+    public ArrayList<Text> preprocess(String doc_in, int check) throws IOException {  //applies the preprocessing
         if(check==1){ //If check==1 the stemming and stopwords removal are applied
             String doc_out=doc_in;
             //int id=getDocID(doc_in);
@@ -22,8 +26,8 @@ public class Preprocessing {
             doc_out=doc_out.toLowerCase(); //Text to lower case
             //System.out.println("DOC IN"+doc_in);
             //System.out.println("DOC OUT"+doc_out);
-            HashSet<String> stopwords = getStopwords(); //Get the list of stopwords
-            ArrayList<String> doc_no_sw = removeStopwords(doc_out,stopwords); //Remove the stopwords
+
+            ArrayList<String> doc_no_sw = removeStopwords(doc_out,this.stopwords); //Remove the stopwords
             ArrayList<Text> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
             return doc_stemmed;
         }

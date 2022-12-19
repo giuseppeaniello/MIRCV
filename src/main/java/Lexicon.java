@@ -201,6 +201,7 @@ public class Lexicon {
                 byte[] byteArrayMergeDocId = Bytes.concat(InvertedIndex.readOneDocIdPostingList(lineLex1.getOffsetDocID(), pathDocID1, lineLex1.getDf()),
                         InvertedIndex.readOneDocIdPostingList(lineLex2.getOffsetDocID(), pathDocID2, lineLex2.getDf()));
                 InvertedIndex.saveDocIdsOrTfsPostingLists(pathDocIDMerge,byteArrayMergeDocId,offsetDocIdMerge);
+
                 lineLexMerge.setOffsetDocID(offsetDocIdMerge);
 
                 //Fusione delle due Posting con tf
@@ -299,14 +300,13 @@ public class Lexicon {
         fcLex2.close();
         fcLex1.close();
 
-/*
         deleteFile(pathLex2);
         deleteFile(pathLex1);
         deleteFile(pathDocID1);
         deleteFile(pathDocID2);
         deleteFile(pathTF1);
         deleteFile(pathTF2);
-*/
+
 
     }
 
