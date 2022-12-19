@@ -24,16 +24,16 @@ public class ReadingDocuments {
             nFileUsed++;
             int count = 0;
 
-            while ( it.hasNext() && ( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) < (0.2*Runtime.getRuntime().maxMemory()) ) ) {
+            while ( it.hasNext() && ( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) < (0.1*Runtime.getRuntime().maxMemory()) ) ) {
                 String docCurrent = it.nextLine();
                 String docText = new String (docCurrent.split("\\t")[1].getBytes(StandardCharsets.UTF_8));
                 String docId = docCurrent.split("\\t")[0];
-                ArrayList<Text> docPreprocessed = Preprocessing.preprocess(docText,1);
+                ArrayList<Text> docPreprocessed = Preprocessing.preprocess(docText,0);
                 for(Text term : docPreprocessed){
                     lex.addElement(term, Long.parseLong(docId), invInd);
                 }
                 count ++;
-                if ( count % 10000 == 0)
+                if ( count % 1000 == 0)
                     System.out.println(count);
 
 
@@ -41,15 +41,15 @@ public class ReadingDocuments {
             }
             System.out.println("BLOCCO CREATO");
 
-            InvertedIndex.saveDocIDsOnFile("DocIDsNumber " + indexOfFile, lex);
-            InvertedIndex.saveTFsOnFile("TFsNumber " + indexOfFile, lex);
+            InvertedIndex.saveDocIDsOnFile("Inverted_Index_TF_number_" + indexOfFile, lex);
+            InvertedIndex.saveTFsOnFile("Inverted_Index_TF_number_" + indexOfFile, lex);
             lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile);
             lex.clearLexicon();
             invInd.clearInvertedIndex();
             indexOfFile++;
         }
-        //if(nFileUsed!=1)
-            //Lexicon.mergeAllBlocks();
+        if(nFileUsed!=1)
+            Lexicon.mergeAllBlocks();
 
     }
 

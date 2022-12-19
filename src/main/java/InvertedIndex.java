@@ -278,10 +278,67 @@ public class InvertedIndex {
                 System.err.println("I/O Error: " + ex);
             }
         }
+
+
+
     }
+    public static void saveDocIdsOrTfsPostingLists(String filePath, byte[] listPosting,long startingPoint) throws FileNotFoundException {
 
+        RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
 
+        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
+            fc.position(startingPoint);
+            buffer = ByteBuffer.wrap(listPosting);
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
+            }
+            buffer.clear();
 
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+
+    }
+    public static byte[] readOneDocIdPostingList(long startReadingPosition, String filePath, int df) {
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        byte[] resultByte = new byte[df*8];
+        try (FileChannel fc = FileChannel.open(fileP, READ))
+        {
+            fc.position(startReadingPosition);
+            buffer = ByteBuffer.allocate(df*8); //50 is the total number of bytes to read a complete term of the lexicon
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            resultByte = buffer.array();
+
+            buffer.clear();
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+        return resultByte;
+    }
+    public static byte[] readOneTfsPostingList(long startReadingPosition, String filePath, int df) {
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        byte[] resultByte = new byte[df*4];
+        try (FileChannel fc = FileChannel.open(fileP, READ))
+        {
+            fc.position(startReadingPosition);
+            buffer = ByteBuffer.allocate(df*4);
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            resultByte = buffer.array();
+
+            buffer.clear();
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+        return resultByte;
+    }
 
 
 

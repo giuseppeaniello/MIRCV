@@ -65,16 +65,11 @@ public class Preprocessing {
         }
         ArrayList<String> doc_final= new ArrayList<String>();
         String doc_w[]=document_in.split("\\s+"); //split the string by space separator
-
         for(String i:doc_w){
-
             if(!stopwords.contains(i)){
                 doc_final.add(i);
             }
-
         }
-
-
         return doc_final;
     }
 

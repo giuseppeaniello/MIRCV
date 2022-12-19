@@ -13,12 +13,12 @@ import static java.nio.file.StandardOpenOption.WRITE;
 public class LexiconLine {
     private Text term;
     private int  cf;
-    private long df;
+    private int df;
     private long offsetDocID;
     private long offsetTF;
     private int lenOfDocID;
     private int lenOfTF;
-/*
+
     LexiconLine(){
         this.term = null;
         this.cf = 0;
@@ -40,7 +40,7 @@ public class LexiconLine {
         return lenOfTF;
     }
 
-    public long getDf() {
+    public int getDf() {
         return df;
     }
 
@@ -60,7 +60,7 @@ public class LexiconLine {
         this.cf = cf;
     }
 
-    public void setDf(long df) {
+    public void setDf(int df) {
         this.df = df;
     }
 
@@ -88,7 +88,7 @@ public class LexiconLine {
         System.out.println(this.term +" "+this.cf+" "+this.df+" "+this.offsetDocID+" "+
                 this.offsetTF+ " "+ this.lenOfDocID+" "+this.lenOfTF);
     }
-    public void saveLexiconLineOnFile(String filePath,LexiconLine line, int indexOfFile, long offset) throws FileNotFoundException {
+    public void saveLexiconLineOnFile(String filePath,LexiconLine line,long offset) throws FileNotFoundException {
         RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
         Path fileP = Paths.get(filePath );
         ByteBuffer buffer = null;
@@ -115,6 +115,6 @@ public class LexiconLine {
         }
     }
 
-*/
+
 
 }
