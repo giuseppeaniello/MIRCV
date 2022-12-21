@@ -383,14 +383,14 @@ public class Lexicon {
         InvertedIndex invInd = new InvertedIndex();
         Lexicon lex = new Lexicon();
 
-        lex.addElement(new Text("b                   "), 1, invInd);
-        lex.addElement(new Text("b                   "), 1, invInd);
-        lex.addElement(new Text("b                   "), 1, invInd);
-
-        lex.addElement(new Text("a                   "), 1, invInd);
-
-        lex.addElement(new Text("b                   "), 1, invInd);
-        lex.addElement(new Text("b                   "), 1, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 3, invInd);
         lex.addElement(new Text("b                   "), 500 , invInd);
@@ -506,11 +506,7 @@ public class Lexicon {
         }
 
         LexiconLine lexLine = readLexiconLine("LEXMERGE1", 54*1);
-        SkipInfo skipInf = SkipInfo.readSkipInfoFromFile("SkipInfo", lexLine.getOffsetSkipBlocks());
-        byte[] compression = InvertedIndex.readDocIDsOrTFsPostingListCompressed( "InvertedDocId", skipInf.getoffsetDocId() , skipInf.getLenBlockDocId());
-        ArrayList listDocIDs = InvertedIndex.decompressionListOfDocIds(compression);
-        System.out.println(lexLine.getTerm()+ " " );
-        System.out.println(listDocIDs);
+
 
 
 

@@ -133,7 +133,6 @@ public class InvertedIndex {
     }
 
     public static ArrayList<Long> transformByteToLongArray(byte[] value){
-
         ArrayList<Long> convertArray= new ArrayList<>();
         byte[] tmp = new byte[8];
         int j=0;
@@ -147,8 +146,10 @@ public class InvertedIndex {
         }
         return convertArray;
     }
-    public static ArrayList<Integer> transformByteToIntegerArray(byte[] value){
 
+
+
+    public static ArrayList<Integer> transformByteToIntegerArray(byte[] value){
         ArrayList<Integer> convertArray= new ArrayList<>();
         byte[] tmp = new byte[4];
         int j=0;
@@ -372,13 +373,17 @@ public class InvertedIndex {
         ArrayList<Long> postingDocIds;
         ArrayList<Integer> postingTfs;
 
+        // queste liste se vedi gli elementi dentro non coincidono con quelli che dovrebbero essere, sono in ordine *********************************************
+        // sbagliato e quindi ti sminchia tutti i d-gap forse è un problema delle funzioni transformByteToLongArray
+        // e transformByteToIntegerArray
         postingDocIds =transformByteToLongArray(readOneDocIdPostingList(line.getOffsetDocID(),pathInvDocIds,line.getDf()));
         postingTfs = transformByteToIntegerArray(readOneTfsPostingList(line.getOffsetTF(),pathInvTfs,line.getDf()));
 
         //Calculate numbers of block for the skipInfo
         int nBlocks = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
         line.setnBlock(nBlocks);
-        int sizeBlock = (int) Math.floor(postingDocIds.size()/nBlocks) +1;
+        // questa mi sa che deve essere così perchè facendo floor + 1 nel caso in cui il numero viene tondo conta un blocco di troppo ***************************************
+        int sizeBlock = (int) Math.floor(Math.sqrt(postingDocIds.size()));
         ArrayList<Long> dGapArray = new ArrayList<>();
         ArrayList<Integer> tfArray = new ArrayList<>();
         int sum=0; //Used to calculate dGap
@@ -389,7 +394,6 @@ public class InvertedIndex {
 
         //Compression of posting List
         for(int i =0 ; i<postingDocIds.size();i++){
-
             if (i< currentBlock*sizeBlock) {
                 //Build of a single block
                 tfArray.add(postingTfs.get(i));
@@ -397,7 +401,6 @@ public class InvertedIndex {
                 sum += postingDocIds.get(i);
             }
             else{   //Saving of the single block
-
                 //Compression Tfs Array
                 byte[] compressedTfArray = compressListOfTFs(tfArray);
                 InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTF",compressedTfArray,offsetInvTFs);
@@ -438,7 +441,8 @@ public class InvertedIndex {
                 dGapArray.add(postingDocIds.get(i) - sum);
                 tfArray.add(postingTfs.get(i));
             }
-
+            // questa non capisco perchè sia qui, è dentro ad un for quindi viene salvata la lexicon line tante **********************************************
+            // volte quanti sono i blocchi e invece dovrebbe essere una sola credo.
             line.saveLexiconLineWithSkip("Lexicon",startLexiconLine);
         }
         ArrayList<Long> offsets = new ArrayList<>();
@@ -487,6 +491,14 @@ public class InvertedIndex {
         lex.addElement(new Text("b                   "),14,invInd);
         lex.addElement(new Text("b                   "),14,invInd);
 
+        lex.addElement(new Text("b                   "),15,invInd);
+
+        lex.addElement(new Text("b                   "),16,invInd);
+
+        lex.addElement(new Text("b                   "),17,invInd);
+
+        lex.addElement(new Text("b                   "),18,invInd);
+
 
         saveDocIDsOnFile("INVDOC",lex);
         saveTFsOnFile("INVTF",lex);
@@ -500,7 +512,7 @@ public class InvertedIndex {
         l = LexiconLine.readLexiconLineSkip("Lexicon",0);
         l.printLexiconLineWithSkip();
 
-        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",32);
+        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",32*2);
         info.printSkipInfo();
 
     }
