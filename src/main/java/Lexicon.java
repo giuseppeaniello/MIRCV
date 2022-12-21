@@ -505,6 +505,12 @@ public class Lexicon {
             offsetFileInvertedTf = offsets.get(2);
         }
 
+        LexiconLine lexLine = readLexiconLine("LEXMERGE1", 54*1);
+        SkipInfo skipInf = SkipInfo.readSkipInfoFromFile("SkipInfo", lexLine.getOffsetSkipBlocks());
+        byte[] compression = InvertedIndex.readDocIDsOrTFsPostingListCompressed( "InvertedDocId", skipInf.getoffsetDocId() , skipInf.getLenBlockDocId());
+        ArrayList listDocIDs = InvertedIndex.decompressionListOfDocIds(compression);
+        System.out.println(lexLine.getTerm()+ " " );
+        System.out.println(listDocIDs);
 
 
 
