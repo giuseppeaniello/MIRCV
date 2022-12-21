@@ -9,6 +9,10 @@ public class LexiconValue {
     private int lenOfTF;
     private int index;
 
+    private int nBlock;
+
+    private long offsetSkipBlocks;
+
     public LexiconValue (long lastDocument, int index){
 
         this.cf = 1;
@@ -18,7 +22,28 @@ public class LexiconValue {
         this.lenOfTF = 0;
         this.lenOfDocID = 0;
         this.index = index;
+        this.nBlock = 0;
+        this.offsetSkipBlocks=0;
 
+    }
+
+    public int getnBlock() {
+        return nBlock;
+    }
+
+    public long getOffsetSkipBlocks() {
+        return offsetSkipBlocks;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public void setOffsetSkipBlocks(long offsetSkipBlocks) {
+        this.offsetSkipBlocks = offsetSkipBlocks;
+    }
+    public void setnBlock(int nBlock) {
+        this.nBlock = nBlock;
     }
 
     public int getCf() {

@@ -3,6 +3,7 @@ import org.apache.hadoop.io.Text;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
@@ -47,19 +48,19 @@ public class InvertedIndex {
         System.gc();
     }
 
-/*
-    public byte[] compressListOfTFs(){
+
+    public static byte[] compressListOfTFs(ArrayList<Integer> array){
         // use unary compression
         int numOfBitsNecessary = 0;
-        for (Posting post : allPostingLists) { // Here we are looking for the number of bytes we will need for our compressed numbers
-            int numOfByteNecessary = (int) (Math.floor(post.getTF()/8) + 1); // qui si può anche fare tutto con una variabile sola
+        for (int tf : array) { // Here we are looking for the number of bytes we will need for our compressed numbers
+            int numOfByteNecessary = (int) (Math.floor(tf/8) + 1); // qui si può anche fare tutto con una variabile sola
             numOfBitsNecessary += (numOfByteNecessary * 8); // però diventa illeggibile quindi facciamolo alla fine
         }
         boolean[] result = new boolean[numOfBitsNecessary];
         int j = 0;
-        for(Posting post : allPostingLists){
-           long zerosToAdd = 8 - (post.getTF() % 8); //number of zeros to be added to allign to byte each TF
-            for(int i=0; i<post.getTF()-1; i++){
+        for(int tf : array){
+           long zerosToAdd = 8 - (tf % 8); //number of zeros to be added to allign to byte each TF
+            for(int i=0; i<tf -1; i++){
                 result[j] = true;
                 j++;
             }
@@ -71,8 +72,8 @@ public class InvertedIndex {
         }
         return fromBooleanArrToByteArr(result);
     }
-*/
-    /*
+
+
     public static byte[] compressListOfDocIDs(ArrayList<Long> list){
         List<Boolean> result = new ArrayList<>(); // lista in cui mettiamo tutto via via, non posso usare array perchè non conosco dimensione
         for(long elem : list) {
@@ -105,7 +106,7 @@ public class InvertedIndex {
         return fromBooleanArrToByteArr(arrBool);
     }
 
-     */
+
 
 
     public static byte[] readDocIDsOrTFsPostingListCompressed(String filePath,long startReadingPosition, int lenOffeset){
@@ -129,6 +130,37 @@ public class InvertedIndex {
 
     private static String binaryWhitoutMostSignificant(long docID){
         return Long.toBinaryString(docID).substring(1); // convert docID in binary and trash first element
+    }
+
+    public static ArrayList<Long> transformByteToLongArray(byte[] value){
+
+        ArrayList<Long> convertArray= new ArrayList<>();
+        byte[] tmp = new byte[8];
+        int j=0;
+        for (int i = 0 ; i<value.length;i++) {
+            tmp[j] = value[i];
+            j++;
+            if(j%8==0) {
+                j=0;
+                convertArray.add(new BigInteger(tmp).longValue());
+            }
+        }
+        return convertArray;
+    }
+    public static ArrayList<Integer> transformByteToIntegerArray(byte[] value){
+
+        ArrayList<Integer> convertArray= new ArrayList<>();
+        byte[] tmp = new byte[4];
+        int j=0;
+        for (int i = 0 ; i<value.length;i++) {
+            tmp[j] = value[i];
+            j++;
+            if(j%4==0) {
+                j=0;
+                convertArray.add(new BigInteger(tmp).intValue());
+            }
+        }
+        return convertArray;
     }
 
     private static byte[] fromBooleanArrToByteArr(boolean[] boolArr){
@@ -318,6 +350,24 @@ public class InvertedIndex {
         return resultByte;
     }
 
+    public static byte[] transformArrayLongToByteArray(ArrayList<Long> array){
+        byte[] converted;
+        ByteBuffer bb = ByteBuffer.allocate(array.size()*8);
+        for (Long tmp : array)
+            bb.putLong(tmp);
+
+        converted=bb.array();
+        return converted;
+    }
+    public static byte[] transformArrayIntToByteArray(ArrayList<Integer> array){
+        byte[] converted;
+        ByteBuffer bb = ByteBuffer.allocate(array.size()*4);
+        for (Integer tmp : array)
+            bb.putLong(tmp);
+
+        converted=bb.array();
+        return converted;
+    }
     public static byte[] readOneTfsPostingList(long startReadingPosition, String filePath, int df) {
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
@@ -337,11 +387,99 @@ public class InvertedIndex {
         }
         return resultByte;
     }
+    public static ArrayList<Long> compression(long startLexiconLine,String pathLexMerge,String pathInvDocIds,String pathInvTfs,
+                                   long offsetInvDocids, long offsetInvTFs, long offssetSkipInfo) throws FileNotFoundException {
+        //Open Lexicon to retrieve offset where is saved the PostingList
+        LexiconLine line = new LexiconLine();
+        line = Lexicon.readLexiconLine(pathLexMerge,startLexiconLine);
 
+        //Save in Array elements that need to be compressed
+        ArrayList<Long> postingDocIds;
+        ArrayList<Integer> postingTfs;
+
+        postingDocIds =transformByteToLongArray(readOneDocIdPostingList(line.getOffsetDocID(),pathInvDocIds,line.getDf()));
+        postingTfs = transformByteToIntegerArray(readOneTfsPostingList(line.getOffsetTF(),pathInvTfs,line.getDf()));
+
+        //Calculate numbers of block for the skipInfo
+        int nBlocks = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
+        line.setnBlock(nBlocks);
+        int sizeBlock = (int) Math.floor(postingDocIds.size()/nBlocks);
+        ArrayList<Long> dGapArray = new ArrayList<>();
+        ArrayList<Integer> tfArray = new ArrayList<>();
+        int sum=0; //Used to calculate dGap
+        int currentBlock = 1;
+        int totalCompressionDocIdsLength=0;
+        int totalCompressionTfsLength = 0;
+        int lastCompressionLengthDocIds = 0;
+        int lastCompressionLengthTfs = 0;
+
+        //Compression of posting List
+        for(int i =0 ; i<postingDocIds.size();i++){
+
+            if (i< currentBlock*sizeBlock) {
+                //Build of a single block
+                tfArray.add(postingTfs.get(i));
+                dGapArray.add(postingDocIds.get(i) - sum);
+                sum += postingDocIds.get(i);
+            }
+            else{   //Saving of the single block
+
+                //Compression Tfs Array
+                byte[] compressedTfArray = compressListOfTFs(tfArray);
+                InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTF",compressedTfArray,offsetInvTFs);
+                totalCompressionTfsLength += compressedTfArray.length;
+                //Compression DGap Array
+                byte[] compressedDGap = compressListOfDocIDs(dGapArray);
+
+                InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocId",compressedDGap,offsetInvDocids);
+                totalCompressionDocIdsLength += compressedDGap.length;
+
+                //Insert all the values of the skip and procede with the saving
+                SkipInfo infoBlock = new SkipInfo();
+                infoBlock.setFinalDocId(postingDocIds.get(i-1));
+                infoBlock.setLenBlockTf(compressedTfArray.length);
+                infoBlock.setLenBlockDocId(compressedDGap.length);
+                if(currentBlock == 1) {
+                    line.setOffsetSkipBlocks(offssetSkipInfo);
+                    infoBlock.setOffsetDocId(offsetInvDocids); //Offset inserito punta al valore all'interno dell'InvertedIndex
+                    infoBlock.setOffsetTf(offsetInvTFs);
+                }else {
+                    infoBlock.setOffsetDocId(offsetInvDocids + lastCompressionLengthDocIds );
+                    infoBlock.setOffsetTf(offsetInvTFs + lastCompressionLengthTfs);
+                }
+                infoBlock.saveSkipInfoBlock("SkipInfo",offssetSkipInfo, infoBlock.trasformInfoToByte());
+
+                //Update all variables
+                currentBlock++;
+                offssetSkipInfo += 32; // 32 = vedi in classe skipinfo
+                offsetInvDocids += compressedDGap.length;
+                offsetInvTFs += compressedTfArray.length;
+                lastCompressionLengthDocIds = compressedDGap.length;
+                lastCompressionLengthTfs = compressedTfArray.length;
+
+                dGapArray.clear();
+                tfArray.clear();
+
+                sum = 0;
+                dGapArray.add(postingDocIds.get(i) - sum);
+                tfArray.add(postingTfs.get(i));
+            }
+            line.saveLexiconLineWithSkip(pathLexMerge,startLexiconLine);
+        }
+        ArrayList<Long> offsets = new ArrayList<>();
+        offsets.add(offssetSkipInfo);
+        offsets.add(offsetInvDocids);
+        offsets.add(offsetInvTFs);
+
+        return offsets;
+    }
 
 
     public static void main(String[] argv ) throws IOException {
+        Lexicon lex = new Lexicon();
+        Integer tf = 5;
 
+        System.out.println(tf);
         //a=1/3 b=2/2 c=3/4 e=4/2 f=5/1 g=6/11
        /* newPosting a = new newPosting(1);
         a.incrementTermFrequency();
@@ -383,11 +521,7 @@ public class InvertedIndex {
         boolean[] pippo = d.fromByteArrToBooleanArr(compress);*/
 
 
-        ArrayList<Integer> a = new ArrayList<>();
-        a.add(6);
-        a.add(5);
-        a.add(99);
-        System.out.println(a);
+
 
 
 

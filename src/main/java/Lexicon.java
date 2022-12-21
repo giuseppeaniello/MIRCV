@@ -118,7 +118,7 @@ public class Lexicon {
         System.gc();
     }
 
-    public static LexiconLine readLexiconLine(String filePath,int startReadingPosition){
+    public static LexiconLine readLexiconLine(String filePath,long startReadingPosition){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         LexiconLine lexVal = new LexiconLine();
@@ -216,7 +216,7 @@ public class Lexicon {
                 lineLexMerge.setLenOfDocID(byteArrayMergeDocId.length);
                 lineLexMerge.setLenOfTF(byteArrayMergeTf.length);
 
-                lineLexMerge.saveLexiconLineOnFile(pathLexMerge, lineLexMerge, offsetFileLexMerge);
+                lineLexMerge.saveLexiconLineOnFile(pathLexMerge,offsetFileLexMerge);
                 readingPositionFileLex1 += 54;
                 readingPositionFileLex2 += 54;
                 offsetFileLexMerge += 54;
@@ -234,7 +234,7 @@ public class Lexicon {
                         InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), pathTF2, lineLex.getDf()),offsetTFMerge);
                 lineLex.setOffsetTF(offsetTFMerge);
 
-                lineLex.saveLexiconLineOnFile(pathLexMerge, lineLex,  offsetFileLexMerge);
+                lineLex.saveLexiconLineOnFile(pathLexMerge, offsetFileLexMerge);
 
                 //Set degli elementi aggiornati
                 offsetDocIdMerge += lineLex.getLenOffDocID();
@@ -253,7 +253,7 @@ public class Lexicon {
                         InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), pathTF1, lineLex.getDf()),offsetTFMerge);
                 lineLex.setOffsetTF(offsetTFMerge);
 
-                lineLex.saveLexiconLineOnFile(pathLexMerge, lineLex,  offsetFileLexMerge);
+                lineLex.saveLexiconLineOnFile(pathLexMerge, offsetFileLexMerge);
 
                 offsetDocIdMerge += lineLex.getLenOffDocID();
                 offsetTFMerge += lineLex.getLenOffTF();
@@ -272,7 +272,7 @@ public class Lexicon {
                     InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), pathTF1, lineLex.getDf()),offsetTFMerge);
             lineLex.setOffsetTF(offsetTFMerge);
 
-            lineLex.saveLexiconLineOnFile(pathLexMerge, lineLex, offsetFileLexMerge);
+            lineLex.saveLexiconLineOnFile(pathLexMerge, offsetFileLexMerge);
 
             offsetDocIdMerge += lineLex.getLenOffDocID();
             offsetTFMerge += lineLex.getLenOffTF();
@@ -290,7 +290,7 @@ public class Lexicon {
                     InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), pathTF2, lineLex.getDf()), offsetTFMerge);
             lineLex.setOffsetTF(offsetTFMerge);
 
-            lineLex.saveLexiconLineOnFile(pathLexMerge, lineLex, offsetFileLexMerge);
+            lineLex.saveLexiconLineOnFile(pathLexMerge, offsetFileLexMerge);
 
             offsetDocIdMerge += lineLex.getLenOffDocID();
             offsetTFMerge += lineLex.getLenOffTF();
@@ -299,14 +299,14 @@ public class Lexicon {
         }
         fcLex2.close();
         fcLex1.close();
-
+/*
         deleteFile(pathLex2);
         deleteFile(pathLex1);
         deleteFile(pathDocID1);
         deleteFile(pathDocID2);
         deleteFile(pathTF1);
         deleteFile(pathTF2);
-
+*/
 
     }
 
@@ -379,8 +379,9 @@ public class Lexicon {
 
 
     public static void main (String[] arg) throws IOException {
-        Lexicon lex = new Lexicon();
+
         InvertedIndex invInd = new InvertedIndex();
+        Lexicon lex = new Lexicon();
 
         lex.addElement(new Text("b                   "), 1, invInd);
         lex.addElement(new Text("b                   "), 1, invInd);
@@ -434,28 +435,28 @@ public class Lexicon {
         Lexicon lex2 = new Lexicon();
         InvertedIndex invInd2 = new InvertedIndex();
 
-        lex2.addElement(new Text("b                   "), 1, invInd2);
-        lex2.addElement(new Text("b                   "), 1, invInd2);
-        lex2.addElement(new Text("b                   "), 1, invInd2);
+        lex2.addElement(new Text("d                   "), 1, invInd2);
+        lex2.addElement(new Text("d                   "), 1, invInd2);
+        lex2.addElement(new Text("d                   "), 1, invInd2);
 
-        lex2.addElement(new Text("a                   "), 1, invInd2);
+        lex2.addElement(new Text("e                   "), 1, invInd2);
 
-        lex2.addElement(new Text("b                   "), 1, invInd2);
-        lex2.addElement(new Text("b                   "), 1, invInd2);
-        lex2.addElement(new Text("b                   "), 1, invInd2);
-        lex2.addElement(new Text("b                   "), 3, invInd2);
-        lex2.addElement(new Text("b                   "), 500 , invInd2);
+        lex2.addElement(new Text("f                   "), 1, invInd2);
+        lex2.addElement(new Text("f                   "), 1, invInd2);
+        lex2.addElement(new Text("f                   "), 1, invInd2);
+        lex2.addElement(new Text("f                   "), 3, invInd2);
+        lex2.addElement(new Text("f                   "), 500 , invInd2);
 
 
-        lex2.addElement(new Text("c                   "), 1, invInd2);
-        lex2.addElement(new Text("c                   "), 1, invInd2);
-        lex2.addElement(new Text("c                   "), 1, invInd2);
-        lex2.addElement(new Text("c                   "), 1, invInd2);
-        lex2.addElement(new Text("c                   "), 1, invInd2);
-        lex2.addElement(new Text("c                   "), 1, invInd2);
-        lex2.addElement(new Text("c                   "), 1, invInd2);
-        lex2.addElement(new Text("c                   "), 1, invInd2);
-        lex2.addElement(new Text("c                   "), 1, invInd2);
+        lex2.addElement(new Text("g                   "), 1, invInd2);
+        lex2.addElement(new Text("g                   "), 1, invInd2);
+        lex2.addElement(new Text("g                   "), 1, invInd2);
+        lex2.addElement(new Text("g                   "), 1, invInd2);
+        lex2.addElement(new Text("g                   "), 1, invInd2);
+        lex2.addElement(new Text("g                   "), 1, invInd2);
+        lex2.addElement(new Text("g                   "), 1, invInd2);
+        lex2.addElement(new Text("g                   "), 1, invInd2);
+        lex2.addElement(new Text("g                   "), 1, invInd2);
 
 
         InvertedIndex.saveDocIDsOnFile("DOCID2", lex2);
@@ -472,7 +473,7 @@ public class Lexicon {
             System.out.print("CF: " + lex2.lexicon.get(term).getCf() + "  ");
             System.out.print("DF: " + lex2.lexicon.get(term).getDf() + "  ");
 
-            for(int i=0; i<lex.lexicon.get(term).getDf(); i++){
+            for(int i=0; i<lex2.lexicon.get(term).getDf(); i++){
                 System.out.print("TF: " + invInd2.allPostingLists.get(lex2.lexicon.get(term).getIndex()).postingList + "  ");
             }
             System.out.print("\n");
@@ -484,9 +485,29 @@ public class Lexicon {
         Lexicon.mergeBlocks("LEX1", "LEX2", "LEXMERGE1",
                 "DOCID1", "DOCID2", "DOCIDMERGE1",
                 "TF1", "TF2", "TFMERGE1");
-        LexiconLine line = new LexiconLine();
-        line = Lexicon.readLexiconLine("LEX1",54);
-        line.printLexiconLine();
+
+        long offsetFileLexicon = 0;
+        long offsetFileInvertedDocId = 0;
+        long offsetFileInvertedTf = 0;
+        long offsetFileSkipInfo = 0;
+        Path fileLex = Paths.get("LEXMERGE1");
+        FileChannel fcLex = FileChannel.open(fileLex, READ);
+        for( int i = 0; i< fcLex.size();i= i+54) {
+
+            ArrayList<Long> offsets = InvertedIndex.compression(offsetFileLexicon,"LEXMERGE1",
+                    "DOCIDMERGE1",
+                    "TFMERGE1", offsetFileInvertedDocId,
+                    offsetFileInvertedTf,offsetFileSkipInfo);
+
+            offsetFileLexicon += 54;
+            offsetFileSkipInfo = offsets.get(0);
+            offsetFileInvertedDocId = offsets.get(1);
+            offsetFileInvertedTf = offsets.get(2);
+        }
+
+
+
+
     }
 }
 

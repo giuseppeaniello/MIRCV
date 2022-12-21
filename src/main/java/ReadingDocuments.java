@@ -4,10 +4,15 @@ import org.apache.hadoop.io.Text;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+
+import static java.nio.file.StandardOpenOption.READ;
 
 public class ReadingDocuments {
     public static  int nFileUsed = 0;
@@ -36,8 +41,10 @@ public class ReadingDocuments {
                 String docText = new String (docCurrent.split("\\t")[1].getBytes(StandardCharsets.UTF_8));
                 String docId = docCurrent.split("\\t")[0];
                 ArrayList<Text> docPreprocessed = preproc.preprocess(docText,1);
-                for(Text term : docPreprocessed){
-                    lex.addElement(term, Long.parseLong(docId), invInd);
+                if(docPreprocessed!=null) {
+                    for (Text term : docPreprocessed) {
+                        lex.addElement(term, Long.parseLong(docId), invInd);
+                    }
                 }
                 count ++;
                 if ( count % 100000 == 0)
@@ -62,6 +69,25 @@ public class ReadingDocuments {
             Lexicon.mergeAllBlocks();
         now = LocalDateTime.now();
         System.out.println("Fine"+ dtf.format(now));
+        //Compression
+        long offsetFileLexicon = 0;
+        long offsetFileInvertedDocId = 0;
+        long offsetFileInvertedTf = 0;
+        long offsetFileSkipInfo = 0;
+        Path fileLex = Paths.get("Lexicon_Merge_number_"+(nFileUsed-1));
+        FileChannel fcLex = FileChannel.open(fileLex, READ);
+        for( int i = 0; i< fcLex.size();i= i+54) {
+
+            ArrayList<Long> offsets = InvertedIndex.compression(offsetFileLexicon,"Lexicon_Merge_number_"+(nFileUsed-1),
+                    "Inverted_Index_Merge_DocId_number_"+(nFileUsed-1),
+                    "Inverted_Index_Merge_TF_number_"+(nFileUsed-1), offsetFileInvertedDocId,
+                    offsetFileInvertedTf,offsetFileSkipInfo);
+
+            offsetFileLexicon += 54;
+            offsetFileSkipInfo = offsets.get(0);
+            offsetFileInvertedDocId = offsets.get(1);
+            offsetFileInvertedTf = offsets.get(2);
+        }
 
 
     }
