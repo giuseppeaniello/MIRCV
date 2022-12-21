@@ -62,8 +62,8 @@ public class SkipInfo {
         this.finalDocId = finalDocId;
     }
 
-    public void setLenBlockDocId(int lenBlock) {
-        this.lenBlockDocId = lenBlock;
+    public void setLenBlockDocId(int lenBlockId) {
+        this.lenBlockDocId = lenBlockId;
     }
     public byte[] trasformInfoToByte(){
         byte[] converted;
@@ -113,6 +113,10 @@ public class SkipInfo {
         return skipInf;
     }
 
+    public void printSkipInfo(){
+        System.out.println("LastDoc: "+getFinalDocId()+" LenDocID: "+getLenBlockDocId()+ " LenTf: "+getLenBlockTf()+
+                " OffDocId: "+getoffsetDocId()+" OffTf: "+getOffsetTf());
+    }
     public static SkipInfo transformSkipInfoByteToValue(byte[] value){
         SkipInfo skipInf = new SkipInfo();//Vedere che valori mettere
         int count = 0;
@@ -125,7 +129,7 @@ public class SkipInfo {
                 skipInf.setLenBlockTf((skipInf.getLenBlockTf() << 8) + (b & 0xFF));
             else if(count<24 && count >= 16)
                 skipInf.setOffsetDocId((skipInf.getoffsetDocId() << 8) + (b & 0xFF));
-            else if(count<32 && count >= 24)
+            else
                 skipInf.setOffsetTf((skipInf.getOffsetTf() << 8) + (b & 0xFF));
             count ++;
         }

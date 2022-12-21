@@ -133,7 +133,7 @@ public class Lexicon {
             buffer.clear();
 
             fc.position(startReadingPosition+22);
-            buffer = ByteBuffer.allocate(32); //50 is the total number of bytes to read a complete term of the lexicon
+            buffer = ByteBuffer.allocate(32); //5 is the total number of bytes to read a complete term of the lexicon
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());

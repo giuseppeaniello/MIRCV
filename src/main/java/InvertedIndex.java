@@ -240,31 +240,6 @@ public class InvertedIndex {
 
 
 
-/*
-    public static void saveTForDocIDsCompressedOnFile(byte[] compressedTF, String filePath, long startingPoint) throws FileNotFoundException {
-        RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
-        Path fileP = Paths.get(filePath );
-        ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-            fc.position(startingPoint);
-            buffer = ByteBuffer.wrap(compressedTF);
-            while (buffer.hasRemaining()) {
-                fc.write(buffer);
-            }
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
-    }
-*/
-    /*
-    public static long sumDGap(ArrayList<Long> list){
-        long sum = 0;
-        for(long tmp : list)
-            sum += tmp;
-        return sum;
-    }
-*/
 
     public static void saveDocIDsOnFile(String filePath, Lexicon lex) throws FileNotFoundException {
         int offset = 0;
@@ -403,13 +378,12 @@ public class InvertedIndex {
         //Calculate numbers of block for the skipInfo
         int nBlocks = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
         line.setnBlock(nBlocks);
-        int sizeBlock = (int) Math.floor(postingDocIds.size()/nBlocks);
+        int sizeBlock = (int) Math.floor(postingDocIds.size()/nBlocks) +1;
         ArrayList<Long> dGapArray = new ArrayList<>();
         ArrayList<Integer> tfArray = new ArrayList<>();
         int sum=0; //Used to calculate dGap
         int currentBlock = 1;
-        int totalCompressionDocIdsLength=0;
-        int totalCompressionTfsLength = 0;
+
         int lastCompressionLengthDocIds = 0;
         int lastCompressionLengthTfs = 0;
 
@@ -427,12 +401,12 @@ public class InvertedIndex {
                 //Compression Tfs Array
                 byte[] compressedTfArray = compressListOfTFs(tfArray);
                 InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTF",compressedTfArray,offsetInvTFs);
-                totalCompressionTfsLength += compressedTfArray.length;
+
                 //Compression DGap Array
                 byte[] compressedDGap = compressListOfDocIDs(dGapArray);
 
                 InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocId",compressedDGap,offsetInvDocids);
-                totalCompressionDocIdsLength += compressedDGap.length;
+
 
                 //Insert all the values of the skip and procede with the saving
                 SkipInfo infoBlock = new SkipInfo();
@@ -464,7 +438,8 @@ public class InvertedIndex {
                 dGapArray.add(postingDocIds.get(i) - sum);
                 tfArray.add(postingTfs.get(i));
             }
-            line.saveLexiconLineWithSkip(pathLexMerge,startLexiconLine);
+
+            line.saveLexiconLineWithSkip("Lexicon",startLexiconLine);
         }
         ArrayList<Long> offsets = new ArrayList<>();
         offsets.add(offssetSkipInfo);
@@ -476,55 +451,57 @@ public class InvertedIndex {
 
 
     public static void main(String[] argv ) throws IOException {
+        //Funzioni SkipInfo ok
+        //Funzione save compress and decompress Docid ok
+        //
+        //compression(long startLexiconLine,String pathLexMerge,String pathInvDocIds,String pathInvTfs,
+        //                                   long offsetInvDocids, long offsetInvTFs, long offssetSkipInfo)
+
+       // ArrayList<Long> a = compression(54,"Lexicon_Merge_number_6","Inverted_Index_Merge_DocId_number_6",
+         //      "Inverted_Index_Merge_TF_number_6",0,0,0);
+
+        InvertedIndex invInd = new InvertedIndex();
         Lexicon lex = new Lexicon();
-        Integer tf = 5;
 
-        System.out.println(tf);
-        //a=1/3 b=2/2 c=3/4 e=4/2 f=5/1 g=6/11
-       /* newPosting a = new newPosting(1);
-        a.incrementTermFrequency();
-        a.incrementTermFrequency();
-        newPosting b = new newPosting(2);
-        b.incrementTermFrequency();
-        newPosting c = new newPosting(3);
-        c.incrementTermFrequency();
-        c.incrementTermFrequency();
-        c.incrementTermFrequency();
-        newPosting e = new newPosting(4);
-        e.incrementTermFrequency();
-        newPosting f = new newPosting(5);
-        newPosting g = new newPosting(6);
-        g.incrementTermFrequency();
-        g.incrementTermFrequency();
-        g.incrementTermFrequency();
-        g.incrementTermFrequency();
-        g.incrementTermFrequency();
-        g.incrementTermFrequency();
-        g.incrementTermFrequency();
-        g.incrementTermFrequency();
-        g.incrementTermFrequency();
-        g.incrementTermFrequency();
+        lex.addElement(new Text("b                   "), 4, invInd);
+        lex.addElement(new Text("b                   "), 4, invInd);
+        lex.addElement(new Text("b                   "), 4, invInd);
+        lex.addElement(new Text("b                   "), 4, invInd);
+        lex.addElement(new Text("b                   "), 4, invInd);
+
+        lex.addElement(new Text("b                   "), 5, invInd);
+        lex.addElement(new Text("b                   "), 5, invInd);
+        lex.addElement(new Text("b                   "), 5, invInd);
+
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+        lex.addElement(new Text("b                   "), 7, invInd);
+
+        lex.addElement(new Text("b                   "),11,invInd);
+
+        lex.addElement(new Text("b                   "),14,invInd);
+        lex.addElement(new Text("b                   "),14,invInd);
 
 
-        NewInvertedIndex d = new NewInvertedIndex(0);
-        d.allPostingLists.add(a);
-        d.allPostingLists.add(b);
-        d.allPostingLists.add(c);
-        d.allPostingLists.add(e);
-        d.allPostingLists.add(f);
-        d.allPostingLists.add(g);
+        saveDocIDsOnFile("INVDOC",lex);
+        saveTFsOnFile("INVTF",lex);
+        lex.saveLexiconOnFile("LEX");
 
-        byte[] compress = d.compressListOfTFs();
-
-        /*
-        String s = compress.toString();
-        boolean[] pippo = d.fromByteArrToBooleanArr(compress);*/
+        ArrayList<Long> aaa = compression(0,"LEX","INVDOC","INVTF",0,0,0);
 
 
+        LexiconLine l = new LexiconLine();
 
+        l = LexiconLine.readLexiconLineSkip("Lexicon",0);
+        l.printLexiconLineWithSkip();
 
-
-
+        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",32);
+        info.printSkipInfo();
 
     }
 }
