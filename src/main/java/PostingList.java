@@ -1,13 +1,14 @@
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class PostingList {
 
-    public HashMap<Long, Integer> postingList; //dopo falla private
+    public LinkedHashMap<Long, Integer> postingList; //dopo falla private
 
     public PostingList(long docID){
-        this.postingList = new HashMap<>();
+        this.postingList = new LinkedHashMap<>();
         this.postingList.put(docID, 1);
     }
 

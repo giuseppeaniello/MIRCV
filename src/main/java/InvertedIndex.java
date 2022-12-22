@@ -134,15 +134,10 @@ public class InvertedIndex {
 
     public static ArrayList<Long> transformByteToLongArray(byte[] value){
         ArrayList<Long> convertArray= new ArrayList<>();
-        byte[] tmp = new byte[8];
-        int j=0;
-        for (int i = 0 ; i<value.length;i++) {
-            tmp[j] = value[i];
-            j++;
-            if(j%8==0) {
-                j=0;
-                convertArray.add(new BigInteger(tmp).longValue());
-            }
+
+        ByteBuffer bb = ByteBuffer.wrap(value);
+        for(int i =0; i<value.length/8;i++) {
+             convertArray.add(bb.getLong());
         }
         return convertArray;
     }
@@ -151,15 +146,10 @@ public class InvertedIndex {
 
     public static ArrayList<Integer> transformByteToIntegerArray(byte[] value){
         ArrayList<Integer> convertArray= new ArrayList<>();
-        byte[] tmp = new byte[4];
-        int j=0;
-        for (int i = 0 ; i<value.length;i++) {
-            tmp[j] = value[i];
-            j++;
-            if(j%4==0) {
-                j=0;
-                convertArray.add(new BigInteger(tmp).intValue());
-            }
+
+        ByteBuffer bb = ByteBuffer.wrap(value);
+        for(int i =0; i<value.length/4;i++) {
+            convertArray.add(bb.getInt());
         }
         return convertArray;
     }
@@ -364,18 +354,14 @@ public class InvertedIndex {
         return resultByte;
     }
     public static ArrayList<Long> compression(long startLexiconLine,String pathLexMerge,String pathInvDocIds,String pathInvTfs,
-                                   long offsetInvDocids, long offsetInvTFs, long offssetSkipInfo) throws FileNotFoundException {
+                                   long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo) throws FileNotFoundException {
         //Open Lexicon to retrieve offset where is saved the PostingList
-        LexiconLine line = new LexiconLine();
-        line = Lexicon.readLexiconLine(pathLexMerge,startLexiconLine);
+        LexiconLine line = Lexicon.readLexiconLine(pathLexMerge,startLexiconLine);
 
         //Save in Array elements that need to be compressed
         ArrayList<Long> postingDocIds;
         ArrayList<Integer> postingTfs;
 
-        // queste liste se vedi gli elementi dentro non coincidono con quelli che dovrebbero essere, sono in ordine *********************************************
-        // sbagliato e quindi ti sminchia tutti i d-gap forse è un problema delle funzioni transformByteToLongArray
-        // e transformByteToIntegerArray
         postingDocIds =transformByteToLongArray(readOneDocIdPostingList(line.getOffsetDocID(),pathInvDocIds,line.getDf()));
         postingTfs = transformByteToIntegerArray(readOneTfsPostingList(line.getOffsetTF(),pathInvTfs,line.getDf()));
 
@@ -386,7 +372,7 @@ public class InvertedIndex {
         int sizeBlock = (int) Math.floor(Math.sqrt(postingDocIds.size()));
         ArrayList<Long> dGapArray = new ArrayList<>();
         ArrayList<Integer> tfArray = new ArrayList<>();
-        int sum=0; //Used to calculate dGap
+        long lastDoc=0; //Used to calculate dGap
         int currentBlock = 1;
 
         int lastCompressionLengthDocIds = 0;
@@ -394,66 +380,85 @@ public class InvertedIndex {
 
         //Compression of posting List
         for(int i =0 ; i<postingDocIds.size();i++){
-            if (i< currentBlock*sizeBlock) {
+
+            if(i != postingDocIds.size()-1 && (i+1)%sizeBlock!=0){
                 //Build of a single block
                 tfArray.add(postingTfs.get(i));
-                dGapArray.add(postingDocIds.get(i) - sum);
-                sum += postingDocIds.get(i);
+                dGapArray.add(postingDocIds.get(i) - lastDoc);
+                lastDoc = postingDocIds.get(i);
             }
-            else{   //Saving of the single block
-                //Compression Tfs Array
-                byte[] compressedTfArray = compressListOfTFs(tfArray);
-                InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTF",compressedTfArray,offsetInvTFs);
 
-                //Compression DGap Array
-                byte[] compressedDGap = compressListOfDocIDs(dGapArray);
-
-                InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocId",compressedDGap,offsetInvDocids);
-
-
+            else if(i == postingDocIds.size()-1 || (i+1)%sizeBlock==0 ){   //Saving of the single block
+                //Add last element of block
+                dGapArray.add(postingDocIds.get(i) - lastDoc);
+                tfArray.add(postingTfs.get(i));
+                lastDoc=0;
                 //Insert all the values of the skip and procede with the saving
                 SkipInfo infoBlock = new SkipInfo();
-                infoBlock.setFinalDocId(postingDocIds.get(i-1));
+                infoBlock.setFinalDocId(postingDocIds.get(i));
+                //Compression Tfs Array
+                byte[] compressedTfArray = compressListOfTFs(tfArray);
+                System.out.println("TFlen"+currentBlock+" :"+compressedTfArray.length);
+                InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTF",compressedTfArray,offsetInvTFs);
                 infoBlock.setLenBlockTf(compressedTfArray.length);
+                //Compression DGap Array
+                byte[] compressedDGap = compressListOfDocIDs(dGapArray);
+                System.out.println("DocIDlen"+currentBlock+" :"+compressedDGap.length);
+                InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocId",compressedDGap,offsetInvDocids);
                 infoBlock.setLenBlockDocId(compressedDGap.length);
-                if(currentBlock == 1) {
-                    line.setOffsetSkipBlocks(offssetSkipInfo);
-                    infoBlock.setOffsetDocId(offsetInvDocids); //Offset inserito punta al valore all'interno dell'InvertedIndex
-                    infoBlock.setOffsetTf(offsetInvTFs);
-                }else {
-                    infoBlock.setOffsetDocId(offsetInvDocids + lastCompressionLengthDocIds );
-                    infoBlock.setOffsetTf(offsetInvTFs + lastCompressionLengthTfs);
-                }
-                infoBlock.saveSkipInfoBlock("SkipInfo",offssetSkipInfo, infoBlock.trasformInfoToByte());
+
+                if(currentBlock == 1)
+                    line.setOffsetSkipBlocks(offsetSkipInfo);
+                infoBlock.setOffsetDocId(offsetInvDocids); //Offset inserito punta al valore all'interno dell'InvertedIndex
+                infoBlock.setOffsetTf(offsetInvTFs);
+
+                infoBlock.saveSkipInfoBlock("SkipInfo",offsetSkipInfo, infoBlock.trasformInfoToByte());
 
                 //Update all variables
                 currentBlock++;
-                offssetSkipInfo += 32; // 32 = vedi in classe skipinfo
-                offsetInvDocids += compressedDGap.length;
-                offsetInvTFs += compressedTfArray.length;
-                lastCompressionLengthDocIds = compressedDGap.length;
-                lastCompressionLengthTfs = compressedTfArray.length;
+                offsetSkipInfo += 32; // 32 = vedi in classe skipinfo
+                offsetInvDocids += infoBlock.getLenBlockDocId();
+                offsetInvTFs += infoBlock.getLenBlockTf();
+
 
                 dGapArray.clear();
                 tfArray.clear();
 
-                sum = 0;
-                dGapArray.add(postingDocIds.get(i) - sum);
-                tfArray.add(postingTfs.get(i));
+
             }
-            // questa non capisco perchè sia qui, è dentro ad un for quindi viene salvata la lexicon line tante **********************************************
-            // volte quanti sono i blocchi e invece dovrebbe essere una sola credo.
-            line.saveLexiconLineWithSkip("Lexicon",startLexiconLine);
+            else{
+                System.out.println("Something Wrong in the compression");
+            }
         }
+        line.saveLexiconLineWithSkip("Lexicon",startLexiconLine);
         ArrayList<Long> offsets = new ArrayList<>();
-        offsets.add(offssetSkipInfo);
+        offsets.add(offsetSkipInfo);
         offsets.add(offsetInvDocids);
         offsets.add(offsetInvTFs);
 
         return offsets;
     }
 
+//Funzione per leggere su un file
+    public static byte[] readFromAtoB(int start, String filePath, int end) {
+        Path fileP = Paths.get(filePath);
+        ByteBuffer buffer = null;
+        byte[] resultByte = new byte[end-start];
+        try (FileChannel fc = FileChannel.open(fileP, READ))
+        {
+            fc.position(start);
+            buffer = ByteBuffer.allocate(end-start); //50 is the total number of bytes to read a complete term of the lexicon
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            resultByte = buffer.array();
 
+            buffer.clear();
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+        return resultByte;
+    }
     public static void main(String[] argv ) throws IOException {
         //Funzioni SkipInfo ok
         //Funzione save compress and decompress Docid ok
@@ -507,13 +512,19 @@ public class InvertedIndex {
         ArrayList<Long> aaa = compression(0,"LEX","INVDOC","INVTF",0,0,0);
 
 
-        LexiconLine l = new LexiconLine();
+        LexiconLine l ;
 
         l = LexiconLine.readLexiconLineSkip("Lexicon",0);
         l.printLexiconLineWithSkip();
 
-        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",32*2);
-        info.printSkipInfo();
+
+        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",0);
+
+        byte[] a = readDocIDsOrTFsPostingListCompressed("INVDOC",info.getoffsetDocId(), info.getLenBlockDocId());
+        decompressionListOfDocIds(a);
+        System.out.println(decompressionListOfDocIds(a));
+
+
 
     }
 }
