@@ -369,7 +369,7 @@ public class InvertedIndex {
         int nBlocks = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
         line.setnBlock(nBlocks);
         // questa mi sa che deve essere così perchè facendo floor + 1 nel caso in cui il numero viene tondo conta un blocco di troppo ***************************************
-        int sizeBlock = (int) Math.floor(Math.sqrt(postingDocIds.size()));
+        int sizeBlock = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
         ArrayList<Long> dGapArray = new ArrayList<>();
         ArrayList<Integer> tfArray = new ArrayList<>();
         long lastDoc=0; //Used to calculate dGap
@@ -380,7 +380,7 @@ public class InvertedIndex {
 
         //Compression of posting List
         for(int i =0 ; i<postingDocIds.size();i++){
-
+            //Condizioni DA CAMBIAREEEEEE
             if(i != postingDocIds.size()-1 && (i+1)%sizeBlock!=0){
                 //Build of a single block
                 tfArray.add(postingTfs.get(i));
@@ -392,18 +392,18 @@ public class InvertedIndex {
                 //Add last element of block
                 dGapArray.add(postingDocIds.get(i) - lastDoc);
                 tfArray.add(postingTfs.get(i));
+                System.out.println("DGAP: "+ dGapArray);
+                System.out.println("TF: "+tfArray);
                 lastDoc=0;
                 //Insert all the values of the skip and procede with the saving
                 SkipInfo infoBlock = new SkipInfo();
                 infoBlock.setFinalDocId(postingDocIds.get(i));
                 //Compression Tfs Array
                 byte[] compressedTfArray = compressListOfTFs(tfArray);
-                System.out.println("TFlen"+currentBlock+" :"+compressedTfArray.length);
                 InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTF",compressedTfArray,offsetInvTFs);
                 infoBlock.setLenBlockTf(compressedTfArray.length);
                 //Compression DGap Array
                 byte[] compressedDGap = compressListOfDocIDs(dGapArray);
-                System.out.println("DocIDlen"+currentBlock+" :"+compressedDGap.length);
                 InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocId",compressedDGap,offsetInvDocids);
                 infoBlock.setLenBlockDocId(compressedDGap.length);
 
@@ -435,7 +435,7 @@ public class InvertedIndex {
         offsets.add(offsetSkipInfo);
         offsets.add(offsetInvDocids);
         offsets.add(offsetInvTFs);
-
+        System.out.println("FINEEE");
         return offsets;
     }
 
@@ -468,8 +468,10 @@ public class InvertedIndex {
 
        // ArrayList<Long> a = compression(54,"Lexicon_Merge_number_6","Inverted_Index_Merge_DocId_number_6",
          //      "Inverted_Index_Merge_TF_number_6",0,0,0);
-
+/*
         InvertedIndex invInd = new InvertedIndex();
+        InvertedIndex invInd1 = new InvertedIndex();
+        InvertedIndex invInd2 = new InvertedIndex();
         Lexicon lex = new Lexicon();
 
         lex.addElement(new Text("b                   "), 4, invInd);
@@ -496,34 +498,77 @@ public class InvertedIndex {
         lex.addElement(new Text("b                   "),14,invInd);
         lex.addElement(new Text("b                   "),14,invInd);
 
-        lex.addElement(new Text("b                   "),15,invInd);
+        lex.addElement(new Text("bb                  "),15,invInd1);
 
         lex.addElement(new Text("b                   "),16,invInd);
+        lex.addElement(new Text("b                   "),16,invInd);
+        lex.addElement(new Text("b                   "),16,invInd);
+        lex.addElement(new Text("b                   "),16,invInd);
+        lex.addElement(new Text("b                   "),16,invInd);
+        lex.addElement(new Text("b                   "),16,invInd);
+        lex.addElement(new Text("b                   "),16,invInd);
+        lex.addElement(new Text("b                   "),16,invInd);
+
 
         lex.addElement(new Text("b                   "),17,invInd);
 
         lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+        lex.addElement(new Text("b                   "),18,invInd);
+
+        lex.addElement(new Text("b                   "),19,invInd);
+
+        lex.addElement(new Text("b                   "),25,invInd);
+        lex.addElement(new Text("b                   "),25,invInd);
+        lex.addElement(new Text("b                   "),25,invInd);
+
+        lex.addElement(new Text("bb                  "),25,invInd1);
+        lex.addElement(new Text("bb                  "),25,invInd1);
+        lex.addElement(new Text("bb                  "),25,invInd1);
+        lex.addElement(new Text("bb                  "),47,invInd1);
+        lex.addElement(new Text("a                   "),50,invInd2);
 
 
         saveDocIDsOnFile("INVDOC",lex);
         saveTFsOnFile("INVTF",lex);
         lex.saveLexiconOnFile("LEX");
 
-        ArrayList<Long> aaa = compression(0,"LEX","INVDOC","INVTF",0,0,0);
+   //     ArrayList<Long> aaa = compression(0,"LEX","INVDOC","INVTF",0,0,0);
 
 
         LexiconLine l ;
 
+        l = LexiconLine.readLexiconLineSkip("LEX",0);
+        l.printLexiconLine();
+
+/*
+        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",0);
+
+        byte[] a = readDocIDsOrTFsPostingListCompressed("InvertedTF",info.getOffsetTf(), info.getLenBlockTf());
+
+        System.out.println(decompressionListOfTfs(a));
+*/
+
+        LexiconLine l;
+
         l = LexiconLine.readLexiconLineSkip("Lexicon",0);
         l.printLexiconLineWithSkip();
 
+        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",32);
+        info.printSkipInfo();
 
-        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",0);
+        byte[] a = readDocIDsOrTFsPostingListCompressed("InvertedDocId",info.getOffsetTf(), info.getLenBlockTf());
 
-        byte[] a = readDocIDsOrTFsPostingListCompressed("INVDOC",info.getoffsetDocId(), info.getLenBlockDocId());
-        decompressionListOfDocIds(a);
         System.out.println(decompressionListOfDocIds(a));
-
 
 
     }
