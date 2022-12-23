@@ -380,7 +380,7 @@ public class Lexicon {
 
     public static void main (String[] arg) throws IOException {
 
-        InvertedIndex invInd = new InvertedIndex();
+    /*    InvertedIndex invInd = new InvertedIndex();
         Lexicon lex = new Lexicon();
 
         lex.addElement(new Text("b                   "), 7, invInd);
@@ -507,7 +507,7 @@ public class Lexicon {
 
         LexiconLine lexLine = readLexiconLine("LEXMERGE1", 54*1);
 
-
+*/
 
 
     }

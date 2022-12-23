@@ -354,7 +354,7 @@ public class InvertedIndex {
         return resultByte;
     }
     public static ArrayList<Long> compression(long startLexiconLine,String pathLexMerge,String pathInvDocIds,String pathInvTfs,
-                                   long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo) throws FileNotFoundException {
+                                   long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo,long offsetLexSkip) throws FileNotFoundException {
         //Open Lexicon to retrieve offset where is saved the PostingList
         LexiconLine line = Lexicon.readLexiconLine(pathLexMerge,startLexiconLine);
 
@@ -430,11 +430,13 @@ public class InvertedIndex {
                 System.out.println("Something Wrong in the compression");
             }
         }
-        line.saveLexiconLineWithSkip("Lexicon",startLexiconLine);
+        line.saveLexiconLineWithSkip("Lexicon",offsetLexSkip);
+        offsetLexSkip += 42;
         ArrayList<Long> offsets = new ArrayList<>();
         offsets.add(offsetSkipInfo);
         offsets.add(offsetInvDocids);
         offsets.add(offsetInvTFs);
+        offsets.add(offsetLexSkip);
         System.out.println("FINEEE");
         return offsets;
     }
@@ -560,15 +562,18 @@ public class InvertedIndex {
 
         LexiconLine l;
 
-        l = LexiconLine.readLexiconLineSkip("Lexicon",0);
+        l = LexiconLine.readLexiconLineSkip("Lexicon",42*2);
         l.printLexiconLineWithSkip();
 
-        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",32);
+        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",l.getOffsetSkipBlocks()+32);
         info.printSkipInfo();
 
-        byte[] a = readDocIDsOrTFsPostingListCompressed("InvertedDocId",info.getOffsetTf(), info.getLenBlockTf());
-
+        byte[] a = readDocIDsOrTFsPostingListCompressed("InvertedDocId",info.getoffsetDocId(), info.getLenBlockDocId());
         System.out.println(decompressionListOfDocIds(a));
+
+        byte[] b = readDocIDsOrTFsPostingListCompressed("InvertedTF",info.getOffsetTf(), info.getLenBlockTf());
+        System.out.println(decompressionListOfTfs(b));
+
 
 
     }
