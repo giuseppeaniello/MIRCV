@@ -337,6 +337,23 @@ public class Lexicon {
 
     }
 
+    public static Ranking computeScoresForATermTFIDF(Text term,Lexicon lex){
+        Ranking result = new Ranking();
+        long tmpPosPosting = lex.lexicon.get(term).getOffsetSkipBlocks();
+        int nBlocks = lex.lexicon.get(term).getnBlock();
+        ArrayList<SkipInfo> info = new ArrayList<>();
+        for(int i = 0 ; i<nBlocks; i++){
+            info.add(SkipInfo.readSkipInfoFromFile("SkipInfo", tmpPosPosting+(i*32) ));
+        }
+        for (int i = 0;i<nBlocks; i++) {
+            ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                    "InvertedDocId", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
+            ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                    "InvertedTF", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
+            result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lex.lexicon.get(term).getDf());
+        }
+        return result;
+    }
 
     public static Lexicon readAllLexicon(String filePath){
         Path fileP = Paths.get(filePath);
@@ -346,9 +363,9 @@ public class Lexicon {
         try (FileChannel fc = FileChannel.open(fileP, READ))
         {
 
-            for(int i = 0; i<fc.size(); i=i+58) {
+            for(int i = 0; i<fc.size(); i=i+42) {
                 fc.position(i);
-                buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
+                buffer = ByteBuffer.allocate(20); //50 is the total number of bytes to read a complete term of the lexicon
                 do {
                     fc.read(buffer);
                 } while (buffer.hasRemaining());
@@ -356,19 +373,19 @@ public class Lexicon {
                 buffer.clear();
 
                 fc.position( i+ 22);
-                buffer = ByteBuffer.allocate(36); //50 is the total number of bytes to read a complete term of the lexicon
+                buffer = ByteBuffer.allocate(20); //42 is the total number of bytes to read a complete term of the lexicon
                 do {
                     fc.read(buffer);
                 } while (buffer.hasRemaining());
-                LexiconValue value = transformByteToValue(buffer.array());
+                LexiconLine value = LexiconLine.transformByteWIthSkipToLexicon(buffer.array());
+                LexiconValue val = new LexiconValue();
+                val.setnBlock(value.getnBlock());
+                val.setOffsetSkipBlocks(value.getOffsetSkipBlocks());
+                val.setCf(value.getCf());
+                val.setDf(value.getDf());
                 buffer.clear();
-                value.setCf(value.getCf());
-                value.setDf(value.getDf());
-                value.setOffsetTF(value.getOffsetTF());
-                value.setOffsetDocID(value.getOffsetDocID());
-                value.setLenOfDocID(value.getLenOfDocID());
-                value.setLenOfTF(value.getLenOfTF());
-                lex.lexicon.put(term,value);
+
+                lex.lexicon.put(term,val);
             }
 
         } catch (IOException ex) {

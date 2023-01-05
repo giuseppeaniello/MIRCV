@@ -18,7 +18,7 @@ public class ReadingDocuments {
     public static  int nFileUsed = 0;
 
     public static void readDoc() throws IOException {
-        File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\collection.tsv");
+        File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\a.tsv");
         //File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
         ; //initializing a new ArrayList out of String[]'s
         int indexOfFile = 1;
@@ -38,8 +38,8 @@ public class ReadingDocuments {
             System.out.println("ENTRO");
             while ( it.hasNext() && ( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) < (0.2*Runtime.getRuntime().maxMemory()) ) ) {
                 String docCurrent = it.nextLine();
-                String docText = new String (docCurrent.split("\\t")[1].getBytes(StandardCharsets.UTF_8));
-                String docId = docCurrent.split("\\t")[0];
+                String docText = new String (docCurrent.split(",")[1].getBytes(StandardCharsets.UTF_8));
+                String docId = docCurrent.split(",")[0];
                 ArrayList<Text> docPreprocessed = preproc.preprocess(docText,1);
 
                 if(docPreprocessed!=null) {
@@ -77,14 +77,16 @@ public class ReadingDocuments {
         long offsetFileInvertedTf = 0;
         long offsetFileSkipInfo = 0;
         long offsetLexSkip = 0;
-        Path fileLex = Paths.get("Lexicon_Merge_number_"+(nFileUsed-1));
+        //Path fileLex = Paths.get("Lexicon_Merge_number_"+(nFileUsed-1));
+        Path fileLex = Paths.get("Lexicon_number_"+(1));
+
         FileChannel fcLex = FileChannel.open(fileLex, READ);
 
         for( int i = 0; i< fcLex.size();i= i+54) {
 
-            ArrayList<Long> offsets = InvertedIndex.compression(i,"Lexicon_Merge_number_"+(nFileUsed-1),
-                    "Inverted_Index_Merge_DocId_number_"+(nFileUsed-1),
-                    "Inverted_Index_Merge_TF_number_"+(nFileUsed-1), offsetFileInvertedDocId,
+            ArrayList<Long> offsets = InvertedIndex.compression(i,"Lexicon_number_"+(1),
+                    "Inverted_Index_DocId_number_"+(1),
+                    "Inverted_Index_TF_number_"+(1), offsetFileInvertedDocId,
                     offsetFileInvertedTf,offsetFileSkipInfo,offsetLexSkip);
 
 

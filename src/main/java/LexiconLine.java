@@ -146,8 +146,6 @@ public class LexiconLine {
     public static LexiconLine transformByteWIthSkipToLexicon(byte[] value){
         LexiconLine l = new LexiconLine();
         int count =0;
-
-
         for (byte b : value) {
             if(count<4)
                 l.setCf((l.getCf() << 8) + (b & 0xFF));

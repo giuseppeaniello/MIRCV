@@ -295,6 +295,16 @@ public class InvertedIndex {
             System.err.println("I/O Error: " + ex);
         }
     }
+    public static ArrayList<Long> trasformDgapInDocIds(ArrayList<Long> dgap){
+        ArrayList<Long> result = new ArrayList<>();
+        long sum = 0;
+
+        for (int i = 0; i<dgap.size();i++){
+            sum += dgap.get(i);
+            result.add(sum);
+        }
+        return result;
+    }
 
     public static byte[] readOneDocIdPostingList(long startReadingPosition, String filePath, int df) {
         Path fileP = Paths.get(filePath);

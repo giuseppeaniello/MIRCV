@@ -26,6 +26,18 @@ public class LexiconValue {
         this.offsetSkipBlocks=0;
 
     }
+    public LexiconValue(){
+        this.cf = 1;
+        this.df = 1;
+        this.lastDocument = 0;
+        this.offsetTF = 0;
+        this.lenOfTF = 0;
+        this.lenOfDocID = 0;
+        this.index = 0;
+        this.nBlock = 0;
+        this.offsetSkipBlocks=0;
+
+    }
 
     public int getnBlock() {
         return nBlock;
