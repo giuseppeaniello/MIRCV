@@ -363,6 +363,7 @@ public class InvertedIndex {
         }
         return resultByte;
     }
+
     public static ArrayList<Long> compression(long startLexiconLine,String pathLexMerge,String pathInvDocIds,String pathInvTfs,
                                    long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo,long offsetLexSkip) throws FileNotFoundException {
         //Open Lexicon to retrieve offset where is saved the PostingList
