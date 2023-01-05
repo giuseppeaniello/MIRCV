@@ -18,6 +18,7 @@ public class ReadingDocuments {
     public static  int nFileUsed = 0;
 
     public static void readDoc() throws IOException {
+        DocumentTable documentTab = new DocumentTable();
         File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\a.tsv");
         //File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
         ; //initializing a new ArrayList out of String[]'s
@@ -49,11 +50,11 @@ public class ReadingDocuments {
                     }
                 }
                 count ++;
+
+                documentTab.docTab.put(Long.parseLong(docId), docPreprocessed.size()); // aggiunge il docID e la sua lunghezza alla document table
+
                 if ( count % 100000 == 0)
                     System.out.println(count);
-
-
-
             }
             System.out.println("BLOCCO CREATO");
 
@@ -64,6 +65,9 @@ public class ReadingDocuments {
             invInd.clearInvertedIndex();
             indexOfFile++;
         }
+
+        documentTab.saveDocumentTable("document_table");
+
         now = LocalDateTime.now();
         System.out.println(dtf.format(now));
         System.out.println("INIZIO MERGING");
@@ -77,6 +81,7 @@ public class ReadingDocuments {
         long offsetFileInvertedTf = 0;
         long offsetFileSkipInfo = 0;
         long offsetLexSkip = 0;
+
         //Path fileLex = Paths.get("Lexicon_Merge_number_"+(nFileUsed-1));
         Path fileLex = Paths.get("Lexicon_number_"+(1));
 

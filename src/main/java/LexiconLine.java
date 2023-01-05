@@ -143,6 +143,7 @@ public class LexiconLine {
 
         return bb.array();
     }
+
     public static LexiconLine transformByteWIthSkipToLexicon(byte[] value){
         LexiconLine l = new LexiconLine();
         int count =0;
