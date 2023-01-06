@@ -337,10 +337,10 @@ public class Lexicon {
 
     }
 
-    public static Ranking computeScoresForATermTFIDF(Text term,Lexicon lex){
+    public  Ranking computeScoresForATermTFIDF(Text term){
         Ranking result = new Ranking();
-        long tmpPosPosting = lex.lexicon.get(term).getOffsetSkipBlocks();
-        int nBlocks = lex.lexicon.get(term).getnBlock();
+        long tmpPosPosting = lexicon.get(term).getOffsetSkipBlocks();
+        int nBlocks = lexicon.get(term).getnBlock();
         ArrayList<SkipInfo> info = new ArrayList<>();
         for(int i = 0 ; i<nBlocks; i++){
             info.add(SkipInfo.readSkipInfoFromFile("SkipInfo", tmpPosPosting+(i*32) ));
@@ -350,7 +350,7 @@ public class Lexicon {
                     "InvertedDocId", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
             ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
                     "InvertedTF", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
-            result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lex.lexicon.get(term).getDf());
+            result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lexicon.get(term).getDf());
         }
         return result;
     }

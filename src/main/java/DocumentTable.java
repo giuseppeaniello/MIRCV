@@ -108,6 +108,11 @@ public class DocumentTable {
         return bb.array();
     }
 
+    public void printDocumentTable(){
+        for (Long key : docTab.keySet() ){
+            System.out.println("Doc: "+ key+ " Length: "+ docTab.get(key));
+        }
+    }
 
     public static void main(String args[]){
         long a = 8000000;

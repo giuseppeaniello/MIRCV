@@ -40,16 +40,22 @@ public class Ranking {
         }
     }
 
+    public float computeTermUpperBound(){
+        float max = 0;
+        for (Long key : docScores.keySet()){
+            if(max< docScores.get(key))
+                max = docScores.get(key);
+        }
+        return max;
+    }
+
 
     public static void main(String[] args) throws FileNotFoundException {
 
 
-        Lexicon lex = Lexicon.readAllLexicon("Lexicon");
-        Text term = new Text("ciao                ");
-
-       Ranking rank = Lexicon.computeScoresForATermTFIDF(term,lex);
-       rank.printRankingTerm();
-
+        DocumentTable doc = DocumentTable.readDocumentTable("document_table");
+        doc.printDocumentTable();
+        System.out.println("FINEE");
     }
 
 
