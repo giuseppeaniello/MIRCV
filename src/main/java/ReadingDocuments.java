@@ -1,7 +1,6 @@
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.hadoop.io.Text;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -11,10 +10,10 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-
 import static java.nio.file.StandardOpenOption.READ;
 
 public class ReadingDocuments {
+
     public static  int nFileUsed = 0;
 
     public static void readDoc() throws IOException {
@@ -27,7 +26,6 @@ public class ReadingDocuments {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
         System.out.println(dtf.format(now));
-
         LineIterator it = FileUtils.lineIterator(test2,"UTF-8");
         while (it.hasNext()) {
             //instantiate a new Inverted Index and Lexicon per block
@@ -35,29 +33,23 @@ public class ReadingDocuments {
             InvertedIndex invInd = new InvertedIndex();
             nFileUsed++;
             int count = 0;
-
             System.out.println("ENTRO");
             while ( it.hasNext() && ( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) < (0.2*Runtime.getRuntime().maxMemory()) ) ) {
                 String docCurrent = it.nextLine();
                 String docText = new String (docCurrent.split(",")[1].getBytes(StandardCharsets.UTF_8));
                 String docId = docCurrent.split(",")[0];
                 ArrayList<Text> docPreprocessed = preproc.preprocess(docText,1);
-
                 if(docPreprocessed!=null) {
                     for (Text term : docPreprocessed) {
-
                         lex.addElement(term, Long.parseLong(docId), invInd);
                     }
                 }
                 count ++;
-
                 documentTab.docTab.put(Long.parseLong(docId), docPreprocessed.size()); // aggiunge il docID e la sua lunghezza alla document table
-
                 if ( count % 100000 == 0)
                     System.out.println(count);
             }
             System.out.println("BLOCCO CREATO");
-
             InvertedIndex.saveDocIDsOnFile("Inverted_Index_DocId_number_" + indexOfFile, lex);
             InvertedIndex.saveTFsOnFile("Inverted_Index_TF_number_" + indexOfFile, lex);
             lex.saveLexiconOnFile("Lexicon_number_"+indexOfFile);
@@ -65,8 +57,6 @@ public class ReadingDocuments {
             invInd.clearInvertedIndex();
             indexOfFile++;
         }
-
-        //CALCOLA AVERAGE LENGTH IN DOCTAB
         documentTab.calculateAverageLength();
         documentTab.saveDocumentTable("document_table");
         System.out.println("document table salvata");
@@ -92,17 +82,22 @@ public class ReadingDocuments {
 
         for( int i = 0; i< fcLex.size();i= i+54) {
 
+            /*
+            ArrayList<Long> offsets = InvertedIndex.compression(offsetFileLexicon,"Lexicon_Merge_number_"+(nFileUsed-1),
+                    "Inverted_Index_Merge_DocId_number_"+(nFileUsed-1),
+                    "Inverted_Index_Merge_TF_number_"+(nFileUsed-1), offsetFileInvertedDocId,
+                    offsetFileInvertedTf,offsetFileSkipInfo);
+            */
+
             ArrayList<Long> offsets = InvertedIndex.compression(i,"Lexicon_number_"+(1),
                     "Inverted_Index_DocId_number_"+(1),
                     "Inverted_Index_TF_number_"+(1), offsetFileInvertedDocId,
                     offsetFileInvertedTf,offsetFileSkipInfo,offsetLexSkip);
 
-
             offsetFileSkipInfo = offsets.get(0);
             offsetFileInvertedDocId = offsets.get(1);
             offsetFileInvertedTf = offsets.get(2);
             offsetLexSkip = offsets.get(3);
-
         }
         Lexicon lex = Lexicon.readAllLexicon("Lexicon");
         LexiconFinal lexFinal = new LexiconFinal();
@@ -118,16 +113,10 @@ public class ReadingDocuments {
             //Compute termUpperBoundBM25
             Ranking rankBM25 = lex.computeScoresForATermBM25(term, documentTab);
             lexValueFinal.setTermUpperBoundBM25(rankBM25.computeTermUpperBound());
-            System.out.println(lexValueFinal.getTermUpperBoundBM25());
-
-
             lexFinal.lexicon.put(term,lexValueFinal);
         }
         lexFinal.saveLexiconFinal("LexiconFinal");
-
     }
-
-
 
     public static void main(String argv[]) throws IOException {
         readDoc();

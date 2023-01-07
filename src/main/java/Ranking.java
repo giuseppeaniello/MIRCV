@@ -1,13 +1,12 @@
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import static java.lang.Math.log;
 
 public class Ranking {
+
     HashMap<Long,Float> docScores;
     static int totalNumberDocuments = 8841822;
-    //Calculate the Inverted Document Frequency ,t_f is the term frequency for a term and n_docs the total n° of docs
 
     public Ranking(){
         this.docScores = new HashMap<>();
@@ -55,21 +54,20 @@ public class Ranking {
             this.docScores.replace(docId, this.docScores.get(docId), this.docScores.get(docId)+bm25);
     }
 
-    public void computeRSVbm25(ArrayList<Long> docIds, ArrayList<Integer> tfs,DocumentTable dt, int df){
-        /*mi serve
-        *
-        * */
+    public void computeRSVbm25(ArrayList<Long> docIds, ArrayList<Integer> tfs, DocumentTable dt, int df){
+        long id;
+        float bm25;
         for(int i=0; i<docIds.size(); i++){
-            long id= docIds.get(i);
-            float bm25= calculateRSVbm25(tfs.get(i),df,dt.getAverageLength(),dt.docTab.get(id) );
-            updateScoreRSVBM25(id,bm25);
+            id = docIds.get(i);
+            bm25 = calculateRSVbm25(tfs.get(i), df, dt.getAverageLength(), dt.docTab.get(id));
+            updateScoreRSVBM25(id, bm25);
         }
     }
 
     public float calculateRSVbm25(int tf, float df,float averagedl, float dl){
-        float b= 0.75F;
-        float k= 1.2F;
-        float bm25= (float) ( (tf/ ((k*( (1-b)+ (b*(dl/averagedl)) ))+tf) ) * log(totalNumberDocuments/df));
+        float b = 0.75F;
+        float k = 1.2F;
+        float bm25 = (float) ( (tf/ ((k*( (1-b)+ (b*(dl/averagedl)) ))+tf) ) * log(totalNumberDocuments/df));
         return bm25;
     }
 

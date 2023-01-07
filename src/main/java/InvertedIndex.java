@@ -73,7 +73,6 @@ public class InvertedIndex {
         return fromBooleanArrToByteArr(result);
     }
 
-
     public static byte[] compressListOfDocIDs(ArrayList<Long> list){
         List<Boolean> result = new ArrayList<>(); // lista in cui mettiamo tutto via via, non posso usare array perchè non conosco dimensione
         for(long elem : list) {
@@ -106,9 +105,6 @@ public class InvertedIndex {
         return fromBooleanArrToByteArr(arrBool);
     }
 
-
-
-
     public static byte[] readDocIDsOrTFsPostingListCompressed(String filePath,long startReadingPosition, int lenOffeset){
         byte[] result = new byte[lenOffeset];
         Path fileP = Paths.get(filePath);
@@ -127,7 +123,6 @@ public class InvertedIndex {
         return result;
     }
 
-
     private static String binaryWhitoutMostSignificant(long docID){
         return Long.toBinaryString(docID).substring(1); // convert docID in binary and trash first element
     }
@@ -141,8 +136,6 @@ public class InvertedIndex {
         }
         return convertArray;
     }
-
-
 
     public static ArrayList<Integer> transformByteToIntegerArray(byte[] value){
         ArrayList<Integer> convertArray= new ArrayList<>();
@@ -229,9 +222,6 @@ public class InvertedIndex {
         return result;
     }
 
-
-
-
     public static void saveDocIDsOnFile(String filePath, Lexicon lex) throws FileNotFoundException {
         int offset = 0;
         RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
@@ -279,11 +269,9 @@ public class InvertedIndex {
     }
 
     public static void saveDocIdsOrTfsPostingLists(String filePath, byte[] listPosting,long startingPoint) throws FileNotFoundException {
-
         RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
-
         try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
             fc.position(startingPoint);
             buffer = ByteBuffer.wrap(listPosting);
@@ -310,8 +298,7 @@ public class InvertedIndex {
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         byte[] resultByte = new byte[df*8];
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
+        try (FileChannel fc = FileChannel.open(fileP, READ)) {
             fc.position(startReadingPosition);
             buffer = ByteBuffer.allocate(df*8); //50 is the total number of bytes to read a complete term of the lexicon
             do {
@@ -335,6 +322,7 @@ public class InvertedIndex {
         converted=bb.array();
         return converted;
     }
+
     public static byte[] transformArrayIntToByteArray(ArrayList<Integer> array){
         byte[] converted;
         ByteBuffer bb = ByteBuffer.allocate(array.size()*4);
@@ -344,6 +332,7 @@ public class InvertedIndex {
         converted=bb.array();
         return converted;
     }
+
     public static byte[] readOneTfsPostingList(long startReadingPosition, String filePath, int df) {
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
@@ -368,14 +357,11 @@ public class InvertedIndex {
                                    long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo,long offsetLexSkip) throws FileNotFoundException {
         //Open Lexicon to retrieve offset where is saved the PostingList
         LexiconLine line = Lexicon.readLexiconLine(pathLexMerge,startLexiconLine);
-
         //Save in Array elements that need to be compressed
         ArrayList<Long> postingDocIds;
         ArrayList<Integer> postingTfs;
-
         postingDocIds =transformByteToLongArray(readOneDocIdPostingList(line.getOffsetDocID(),pathInvDocIds,line.getDf()));
         postingTfs = transformByteToIntegerArray(readOneTfsPostingList(line.getOffsetTF(),pathInvTfs,line.getDf()));
-
         //Calculate numbers of block for the skipInfo
         int nBlocks = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
         line.setnBlock(nBlocks);
@@ -388,10 +374,8 @@ public class InvertedIndex {
 
         int lastCompressionLengthDocIds = 0;
         int lastCompressionLengthTfs = 0;
-
         //Compression of posting List
         for(int i =0 ; i<postingDocIds.size();i++){
-            //Condizioni DA CAMBIAREEEEEE
             if(i != postingDocIds.size()-1 && (i+1)%sizeBlock!=0){
                 //Build of a single block
                 tfArray.add(postingTfs.get(i));
@@ -417,25 +401,18 @@ public class InvertedIndex {
                 byte[] compressedDGap = compressListOfDocIDs(dGapArray);
                 InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocId",compressedDGap,offsetInvDocids);
                 infoBlock.setLenBlockDocId(compressedDGap.length);
-
                 if(currentBlock == 1)
                     line.setOffsetSkipBlocks(offsetSkipInfo);
                 infoBlock.setOffsetDocId(offsetInvDocids); //Offset inserito punta al valore all'interno dell'InvertedIndex
                 infoBlock.setOffsetTf(offsetInvTFs);
-
                 infoBlock.saveSkipInfoBlock("SkipInfo",offsetSkipInfo, infoBlock.trasformInfoToByte());
-
                 //Update all variables
                 currentBlock++;
                 offsetSkipInfo += 32; // 32 = vedi in classe skipinfo
                 offsetInvDocids += infoBlock.getLenBlockDocId();
                 offsetInvTFs += infoBlock.getLenBlockTf();
-
-
                 dGapArray.clear();
                 tfArray.clear();
-
-
             }
             else{
                 System.out.println("Something Wrong in the compression");
@@ -452,26 +429,6 @@ public class InvertedIndex {
         return offsets;
     }
 
-//Funzione per leggere su un file
-    public static byte[] readFromAtoB(int start, String filePath, int end) {
-        Path fileP = Paths.get(filePath);
-        ByteBuffer buffer = null;
-        byte[] resultByte = new byte[end-start];
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
-            fc.position(start);
-            buffer = ByteBuffer.allocate(end-start); //50 is the total number of bytes to read a complete term of the lexicon
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            resultByte = buffer.array();
-
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
-        return resultByte;
-    }
     public static void main(String[] argv ) throws IOException {
         //Funzioni SkipInfo ok
         //Funzione save compress and decompress Docid ok

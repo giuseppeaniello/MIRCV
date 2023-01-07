@@ -1,5 +1,4 @@
 import com.google.common.primitives.Bytes;
-import org.apache.commons.collections.ListUtils;
 import org.apache.hadoop.io.Text;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -8,18 +7,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.TreeMap;
-
 import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class Lexicon {
 
-
     TreeMap<Text,LexiconValue> lexicon;
-
     int currentIndex;
 
     public Lexicon(){
@@ -48,7 +42,6 @@ public class Lexicon {
             }
         }
     }
-
 
     public void saveLexiconOnFile(String filePath) throws FileNotFoundException {
         RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
@@ -107,7 +100,6 @@ public class Lexicon {
                 lexValue.setLenOfTF((lexValue.getLenOfTF() << 8) + (b & 0xFF));
             count ++;
         }
-
         return lexValue;
     }
 
@@ -170,11 +162,6 @@ public class Lexicon {
         return term;
     }
 
-
-
-
-
-
     public static void mergeBlocks(String pathLex1, String pathLex2, String pathLexMerge, String pathDocID1, String pathDocID2, String pathDocIDMerge, String pathTF1, String pathTF2, String pathTFMerge) throws IOException {
         int readingPositionFileLex1 = 0;
         int readingPositionFileLex2 = 0;
@@ -188,7 +175,6 @@ public class Lexicon {
         while (readingPositionFileLex1 < fcLex1.size() && readingPositionFileLex2 < fcLex2.size()) {
             Text t1 = readTermFromBlock(pathLex1, readingPositionFileLex1);
             Text t2 = readTermFromBlock(pathLex2, readingPositionFileLex2);
-
             if (t1.compareTo(t2) == 0) {
                 LexiconLine lineLex1 = readLexiconLine(pathLex1, readingPositionFileLex1);
                 LexiconLine lineLex2 = readLexiconLine(pathLex2, readingPositionFileLex2);
@@ -196,31 +182,24 @@ public class Lexicon {
                 lineLexMerge.setTerm(t1);
                 lineLexMerge.setCf(lineLex1.getCf() + lineLex2.getCf());
                 lineLexMerge.setDf(lineLex1.getDf() + lineLex2.getDf());
-
                 //Fusione delle due posting con docids (la seconda va inserita alla fine della prima) Check per verificare
                 byte[] byteArrayMergeDocId = Bytes.concat(InvertedIndex.readOneDocIdPostingList(lineLex1.getOffsetDocID(), pathDocID1, lineLex1.getDf()),
                         InvertedIndex.readOneDocIdPostingList(lineLex2.getOffsetDocID(), pathDocID2, lineLex2.getDf()));
                 InvertedIndex.saveDocIdsOrTfsPostingLists(pathDocIDMerge,byteArrayMergeDocId,offsetDocIdMerge);
-
                 lineLexMerge.setOffsetDocID(offsetDocIdMerge);
-
                 //Fusione delle due Posting con tf
                 byte[] byteArrayMergeTf = Bytes.concat(InvertedIndex.readOneTfsPostingList(lineLex1.getOffsetTF(), pathTF1, lineLex1.getDf()),
                         InvertedIndex.readOneTfsPostingList(lineLex2.getOffsetTF(),pathTF2,lineLex2.getDf()));
                 InvertedIndex.saveDocIdsOrTfsPostingLists(pathTFMerge,byteArrayMergeTf,offsetTFMerge);
                 lineLexMerge.setOffsetTF(offsetTFMerge);
-
-
                 offsetDocIdMerge += byteArrayMergeDocId.length;
                 offsetTFMerge += byteArrayMergeTf.length;
                 lineLexMerge.setLenOfDocID(byteArrayMergeDocId.length);
                 lineLexMerge.setLenOfTF(byteArrayMergeTf.length);
-
                 lineLexMerge.saveLexiconLineOnFile(pathLexMerge,offsetFileLexMerge);
                 readingPositionFileLex1 += 54;
                 readingPositionFileLex2 += 54;
                 offsetFileLexMerge += 54;
-
             }
             else if (t1.compareTo(t2) > 0) { // caso t1>t2
                 LexiconLine lineLex = readLexiconLine(pathLex2, readingPositionFileLex2); //leggi lexiconLine
@@ -229,19 +208,16 @@ public class Lexicon {
                         InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),pathDocID2, lineLex.getDf()),offsetDocIdMerge);
                 lineLex.setOffsetDocID(offsetDocIdMerge);
 
-
                 InvertedIndex.saveDocIdsOrTfsPostingLists(pathTFMerge,
                         InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), pathTF2, lineLex.getDf()),offsetTFMerge);
                 lineLex.setOffsetTF(offsetTFMerge);
 
                 lineLex.saveLexiconLineOnFile(pathLexMerge, offsetFileLexMerge);
-
                 //Set degli elementi aggiornati
                 offsetDocIdMerge += lineLex.getLenOffDocID();
                 offsetTFMerge += lineLex.getLenOffTF();
                 readingPositionFileLex2 += 54;
                 offsetFileLexMerge += 54;
-
             } else { // caso t2>t1
                 LexiconLine lineLex = readLexiconLine(pathLex1, readingPositionFileLex1);
 
@@ -299,15 +275,12 @@ public class Lexicon {
         }
         fcLex2.close();
         fcLex1.close();
-/*
         deleteFile(pathLex2);
         deleteFile(pathLex1);
         deleteFile(pathDocID1);
         deleteFile(pathDocID2);
         deleteFile(pathTF1);
         deleteFile(pathTF2);
-*/
-
     }
 
     public static void deleteFile(String path) {
@@ -322,6 +295,7 @@ public class Lexicon {
             e.printStackTrace();
         }
     }
+
     public static  void mergeAllBlocks() throws IOException {
 
         mergeBlocks("Lexicon_number_1","Lexicon_number_2","Lexicon_Merge_number_1",
@@ -334,7 +308,6 @@ public class Lexicon {
                         "Inverted_Index_Merge_TF_number_" + (i - 2), "Inverted_Index_TF_number_" + i, "Inverted_Index_Merge_TF_number_" + (i - 1));
             }
         }
-
     }
 
     public  Ranking computeScoresForATermTFIDF(Text term){
@@ -378,9 +351,7 @@ public class Lexicon {
         ByteBuffer buffer = null;
         Lexicon lex = new Lexicon();
 
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
-
+        try (FileChannel fc = FileChannel.open(fileP, READ)) {
             for(int i = 0; i<fc.size(); i=i+42) {
                 fc.position(i);
                 buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
@@ -389,7 +360,6 @@ public class Lexicon {
                 } while (buffer.hasRemaining());
                 Text term = new Text(buffer.array());
                 buffer.clear();
-
                 fc.position( i+ 22);
                 buffer = ByteBuffer.allocate(20); //42 is the total number of bytes to read a complete term of the lexicon
                 do {
@@ -405,7 +375,6 @@ public class Lexicon {
 
                 lex.lexicon.put(term,val);
             }
-
         } catch (IOException ex) {
             System.err.println("I/O Error: " + ex);
         }

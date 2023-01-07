@@ -16,20 +16,19 @@ public class LexiconValueFinal {
         this.offsetSkipBlocks = 0;
         this.termUpperBoundTFIDF = 0;
         this.termUpperBoundBM25 = 0;
-
     }
+
     public byte[] transformValueToByte() {
         ByteBuffer bb = ByteBuffer.allocate(28);
-
         bb.putInt(getCf());
         bb.putInt(getDf());
         bb.putInt(getnBlock());
         bb.putLong(getOffsetSkipBlocks());
         bb.putFloat(getTermUpperBoundTFIDF());
         bb.putFloat(getTermUpperBoundBM25());
-
         return bb.array();
     }
+
     public static LexiconValueFinal transformByteToValue(byte[] value){
         LexiconValueFinal lexValue = new LexiconValueFinal();
         ByteBuffer bb = ByteBuffer.wrap(value);
@@ -40,7 +39,6 @@ public class LexiconValueFinal {
         lexValue.setTermUpperBoundTFIDF(bb.getFloat());
         lexValue.setTermUpperBoundBM25(bb.getFloat());
         return lexValue;
-
     }
 
     public float getTermUpperBoundTFIDF() {

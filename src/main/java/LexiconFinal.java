@@ -1,5 +1,4 @@
 import org.apache.hadoop.io.Text;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -8,11 +7,11 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.TreeMap;
-
 import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class LexiconFinal {
+
     TreeMap<Text,LexiconValueFinal> lexicon;
 
     public LexiconFinal(){
@@ -41,6 +40,7 @@ public class LexiconFinal {
             System.err.println("I/O Error: " + ex);
         }
     }
+
     public void printLexiconFinal(){
         for (Text term: lexicon.keySet()){
             System.out.println("Term: "+ term +" Cf: "+lexicon.get(term).getCf()+" DF: "+lexicon.get(term).getDf()+
@@ -62,7 +62,6 @@ public class LexiconFinal {
                 } while (buffer.hasRemaining());
                 Text term = new Text(buffer.array());
                 buffer.clear();
-
                 fc.position( i+ 22);
                 buffer = ByteBuffer.allocate(28);
                 do {
@@ -72,7 +71,6 @@ public class LexiconFinal {
                 buffer.clear();
                 lex.lexicon.put(term,value);
             }
-
         } catch (IOException ex) {
             System.err.println("I/O Error: " + ex);
         }

@@ -1,5 +1,3 @@
-import org.apache.hadoop.io.Text;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -7,11 +5,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class SkipInfo {
+
     long finalDocId;
     int lenBlockDocId;
     int lenBlockTf;
@@ -65,6 +63,7 @@ public class SkipInfo {
     public void setLenBlockDocId(int lenBlockId) {
         this.lenBlockDocId = lenBlockId;
     }
+
     public byte[] trasformInfoToByte(){
         byte[] converted;
         ByteBuffer bb = ByteBuffer.allocate(32);
@@ -77,11 +76,10 @@ public class SkipInfo {
         return converted;
     }
 
-    public  void saveSkipInfoBlock(String path, long startingPoint, byte[] info) throws FileNotFoundException {
+    public void saveSkipInfoBlock(String path, long startingPoint, byte[] info) throws FileNotFoundException {
         RandomAccessFile fileTf = new RandomAccessFile(path ,"rw");
         Path fileP = Paths.get(path);
         ByteBuffer buffer = null;
-
         try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
             fc.position(startingPoint);
             buffer = ByteBuffer.wrap(info);
@@ -98,8 +96,7 @@ public class SkipInfo {
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         SkipInfo skipInf = null;
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
+        try (FileChannel fc = FileChannel.open(fileP, READ)) {
             fc.position(startReadingPosition);
             buffer = ByteBuffer.allocate(32);
             do {
@@ -117,6 +114,7 @@ public class SkipInfo {
         System.out.println("LastDoc: "+getFinalDocId()+" LenDocID: "+getLenBlockDocId()+ " LenTf: "+getLenBlockTf()+
                 " OffDocId: "+getoffsetDocId()+" OffTf: "+getOffsetTf());
     }
+
     public static SkipInfo transformSkipInfoByteToValue(byte[] value){
         SkipInfo skipInf = new SkipInfo();//Vedere che valori mettere
         int count = 0;

@@ -8,15 +8,11 @@ public class LexiconValue {
     private int lenOfDocID;
     private int lenOfTF;
     private int index;
-
     private int nBlock;
-
     private long offsetSkipBlocks;
-
     private float termUpperBound;
 
     public LexiconValue (long lastDocument, int index){
-
         this.cf = 1;
         this.df = 1;
         this.lastDocument = lastDocument;
@@ -27,8 +23,8 @@ public class LexiconValue {
         this.nBlock = 0;
         this.offsetSkipBlocks=0;
         this.termUpperBound = 0;
-
     }
+
     public LexiconValue(){
         this.cf = 1;
         this.df = 1;
@@ -40,7 +36,6 @@ public class LexiconValue {
         this.nBlock = 0;
         this.offsetSkipBlocks=0;
         this.termUpperBound = 0;
-
     }
 
     public float getTermUpperBound() {
@@ -81,7 +76,6 @@ public class LexiconValue {
     public int getDf() {
         return df;
     }
-
 
     public void setCf(int cf) {
         this.cf = cf;

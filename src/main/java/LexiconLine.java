@@ -1,5 +1,4 @@
 import org.apache.hadoop.io.Text;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -7,11 +6,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class LexiconLine {
+
     private Text term;
     private int  cf;
     private int df;
@@ -110,6 +109,7 @@ public class LexiconLine {
         System.out.println(this.term +" "+this.cf+" "+this.df+" "+this.offsetDocID+" "+
                 this.offsetTF+ " "+ this.lenOfDocID+" "+this.lenOfTF);
     }
+
     public void saveLexiconLineOnFile(String filePath,long offset) throws FileNotFoundException {
         RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
         Path fileP = Paths.get(filePath );
@@ -134,6 +134,7 @@ public class LexiconLine {
             System.err.println("I/O Error: " + ex);
         }
     }
+
     public byte[] transformValueToByteWithSkip() {
         ByteBuffer bb = ByteBuffer.allocate(20);
         bb.putInt(getCf());
@@ -159,7 +160,6 @@ public class LexiconLine {
             count ++;
         }
         return l;
-
     }
 
     public void saveLexiconLineWithSkip(String path, long startingPoint) throws FileNotFoundException {
@@ -185,16 +185,16 @@ public class LexiconLine {
             System.err.println("I/O Error: " + ex);
         }
     }
+
     public void printLexiconLineWithSkip(){
         System.out.println("TERM: "+getTerm()+"CF: "+ getCf()+" DF: "+getDf()+" Off: "+getOffsetSkipBlocks()+" Nblock: "+getnBlock());
     }
+
     public static LexiconLine readLexiconLineSkip(String filePath,long startReadingPosition){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         LexiconLine lexVal = new LexiconLine();
-
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
+        try (FileChannel fc = FileChannel.open(fileP, READ)) {
             fc.position(startReadingPosition);
             buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
             do {

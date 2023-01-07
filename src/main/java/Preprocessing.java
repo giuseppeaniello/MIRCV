@@ -1,44 +1,32 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.tartarus.snowball.ext.PorterStemmer;
 import org.apache.hadoop.io.Text;
 
-
-
 public class Preprocessing {
+
     HashSet<String> stopwords ; //Get the list of stopwords
     public Preprocessing() throws IOException {
         this.stopwords=new HashSet<>();
         this.stopwords=getStopwords();
     }
+
     public ArrayList<Text> preprocess(String doc_in, int check) throws IOException {  //applies the preprocessing
         if(check==1){ //If check==1 the stemming and stopwords removal are applied
             String doc_out=doc_in;
-            //int id=getDocID(doc_in);
-            //System.out.println("ID: "+ id);
             doc_out=textclean(doc_out); //Text cleaned and converted from ASCII to UNICODE
             doc_out=doc_out.toLowerCase(); //Text to lower case
-            //System.out.println("DOC IN"+doc_in);
-            //System.out.println("DOC OUT"+doc_out);
-
             ArrayList<String> doc_no_sw = removeStopwords(doc_out,this.stopwords); //Remove the stopwords
             ArrayList<Text> doc_stemmed= stemming(doc_no_sw); //Applies the stemming to the string tokens
             return doc_stemmed;
         }
         else{
             String doc_out=doc_in;
-            //int id=getDocID(doc_in);
-            //System.out.println("ID: "+ id);
             doc_out=textclean(doc_out); //Text cleaned and converted from ASCII to UNICODE
             doc_out=doc_out.toLowerCase(); //Text to lower case
-            //System.out.println("DOC IN"+doc_in);
-            //System.out.println("DOC OUT"+doc_out);
             ArrayList<Text> doc_final= new ArrayList<Text>();
             String doc_w[]=doc_out.split("\\s+"); //split the string by space separator
             for(String i:doc_w ){
@@ -48,13 +36,10 @@ public class Preprocessing {
         }
     }
 
-
-
     public static HashSet<String> getStopwords() throws IOException { //ritorna il dizionario di stopwords
         File file=new File("stopwords.txt");
         //String file=("C:\\Users\\Rauro\\OneDrive\\Desktop\\Uni\\Information Retrivial\\stopwords.txt");
         //File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
-
         HashSet<String> stopwords = new HashSet<>();
         LineIterator it = FileUtils.lineIterator(file,"UTF-8");
         while (it.hasNext()) {
@@ -62,6 +47,7 @@ public class Preprocessing {
         }
         return stopwords;
     }
+
     //Remove the stopwords in the document that are present in the stopword dictionary
     public static ArrayList removeStopwords(String document_in,HashSet<String> stopwords){
         if(document_in==null){
@@ -78,14 +64,11 @@ public class Preprocessing {
     }
 
     public static String textclean(String document_in) { //Convert the input document from ASCII to UNICODE
-
         document_in=getDocument(document_in);
         // strips off all non-ASCII characters
         document_in = document_in.replaceAll("[^\\x00-\\x7F]", "");
-
         // erases all the ASCII control characters
         document_in = document_in.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "");
-
         // removes non-printable characters from Unicode
         document_in = document_in.replaceAll("\\p{C}", "");
         document_in= document_in.replaceAll("'s","");
@@ -147,7 +130,6 @@ public class Preprocessing {
             return padded_textw;
         }
     }
-
 
     public static void main(String[] args) throws IOException {
         String text= "0	The presence of communication amid scientific minds was equally important to the success of the Manhattan Project as scientific intellect was. The only cloud hanging over the impressive achievement of the atomic researchers and engineers is what their success truly meant; hundreds of thousands of innocent lives obliterated.";

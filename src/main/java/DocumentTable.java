@@ -27,7 +27,6 @@ public class DocumentTable {
         return averageLength;
     }
 
-    // da testare
     public void saveDocumentTable(String filePath) throws FileNotFoundException {
         RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
         Path fileP = Paths.get(filePath);
@@ -56,8 +55,6 @@ public class DocumentTable {
         }
     }
 
-
-    // da testare
     public static DocumentTable readDocumentTable(String filePath){
         System.out.println("Document table letta: ");
         Path fileP = Paths.get(filePath);
@@ -79,7 +76,6 @@ public class DocumentTable {
                 } while (buffer.hasRemaining());
                 byte[] lenDocByte = buffer.array();
                 buffer.clear();
-
                 long docId = convertByteArrToLong(docIdByte); // funzione che trasforma da byte[] a long
                 int lenDoc = convertByteArrToInt(lenDocByte); //funzione che trasforma da byte[] a int
                 result.docTab.put(docId, lenDoc);
@@ -104,7 +100,6 @@ public class DocumentTable {
         setAverageLength(sum/ docTab.size());
     }
 
-    // testata
     private static byte[] convertIntToByteArray(int length) {
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putInt(length);
@@ -117,7 +112,6 @@ public class DocumentTable {
         return bb.array();
     }
 
-    // testata
     private static long convertByteArrToLong(byte[] bytes) {
         long value = 0l;
         for (byte b : bytes) {
@@ -126,7 +120,6 @@ public class DocumentTable {
         return value;
     }
 
-    // testata
     private static int convertByteArrToInt(byte[] bytes){
         int value = 0;
         for (byte b : bytes) {
@@ -135,8 +128,6 @@ public class DocumentTable {
         return value;
     }
 
-
-    // testata
     public static byte[] convertLongToByteArr(long number){
         ByteBuffer bb = ByteBuffer.allocate(8);
         bb.putLong(number);
