@@ -41,7 +41,13 @@ public class LexiconFinal {
             System.err.println("I/O Error: " + ex);
         }
     }
-
+    public void printLexiconFinal(){
+        for (Text term: lexicon.keySet()){
+            System.out.println("Term: "+ term +" Cf: "+lexicon.get(term).getCf()+" DF: "+lexicon.get(term).getDf()+
+                    " NBlock: "+lexicon.get(term).getnBlock()+" OffsetBlock: "+lexicon.get(term).getOffsetSkipBlocks()
+                        +" TermUpperBound: "+lexicon.get(term).getTermUpperBound());
+        }
+    }
     public static LexiconFinal readFinalLexiconFromFile(String filePath){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer;

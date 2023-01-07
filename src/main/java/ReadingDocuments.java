@@ -114,7 +114,6 @@ public class ReadingDocuments {
             Ranking rank = lex.computeScoresForATermTFIDF(term);
             lexValueFinal.setTermUpperBound(rank.computeTermUpperBound());
             lexFinal.lexicon.put(term,lexValueFinal);
-            lex.lexicon.remove(term);
         }
         lexFinal.saveLexiconFinal("LexiconFinal");
 

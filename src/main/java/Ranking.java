@@ -1,6 +1,7 @@
 import org.apache.hadoop.io.Text;
 
 import java.io.FileNotFoundException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -53,9 +54,10 @@ public class Ranking {
     public static void main(String[] args) throws FileNotFoundException {
 
 
-        DocumentTable doc = DocumentTable.readDocumentTable("document_table");
-        doc.printDocumentTable();
-        System.out.println("FINEE");
+        /*LexiconFinal lex = LexiconFinal.readFinalLexiconFromFile("LexiconFinal");
+        lex.printLexiconFinal();
+        System.out.println("FINEE");*/
+
     }
 
 
