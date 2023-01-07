@@ -49,6 +49,30 @@ public class Ranking {
         }
         return max;
     }
+    public void updateScoreRSVBM25(long docId,float bm25){
+        if (!this.docScores.containsKey(docId))
+            this.docScores.put(docId,bm25);
+        else
+            this.docScores.replace(docId, this.docScores.get(docId), this.docScores.get(docId)+bm25);
+    }
+
+    public void computeRSVbm25(ArrayList<Long> docIds, ArrayList<Integer> tfs,DocumentTable dt, float df){
+        /*mi serve
+        *
+        * */
+        for(int i=0; i<docIds.size();i++){
+            long id= docIds.get(i);
+            float bm25= calculateRSVbm25(tfs.get(i),df,dt.getAverageLength(),dt.docTab.get(id) );
+            updateScoreRSVBM25(id,bm25);
+        }
+    }
+    public float calculateRSVbm25(int tf, float df,float averagedl, float dl){
+        float b= 0.75F;
+        float k= 1.2F;
+        float bm25= (float) ( (tf/ ((k*( (1-b)+ (b*(dl/averagedl)) ))+tf) ) * log(totalNumberDocuments/df));
+
+        return bm25;
+    }
 
 
     public static void main(String[] args) throws FileNotFoundException {
