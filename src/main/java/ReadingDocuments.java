@@ -66,6 +66,8 @@ public class ReadingDocuments {
             indexOfFile++;
         }
 
+        //CALCOLA AVERAGE LENGTH IN DOCTAB
+        documentTab.calculateAverageLength();
         documentTab.saveDocumentTable("document_table");
         System.out.println("document table salvata");
         documentTab.printDocumentTable();
@@ -110,14 +112,18 @@ public class ReadingDocuments {
             lexValueFinal.setDf(lex.lexicon.get(term).getDf());
             lexValueFinal.setnBlock(lex.lexicon.get(term).getnBlock());
             lexValueFinal.setOffsetSkipBlocks(lex.lexicon.get(term).getOffsetSkipBlocks());
-            //Compute termUpperBound
-            Ranking rank = lex.computeScoresForATermTFIDF(term);
-            lexValueFinal.setTermUpperBoundTFIDF(rank.computeTermUpperBound());
+            //Compute termUpperBoundTFIDF
+            Ranking rankTFIDF = lex.computeScoresForATermTFIDF(term);
+            lexValueFinal.setTermUpperBoundTFIDF(rankTFIDF.computeTermUpperBound());
+            //Compute termUpperBoundBM25
+            Ranking rankBM25 = lex.computeScoresForATermBM25(term, documentTab);
+            lexValueFinal.setTermUpperBoundBM25(rankBM25.computeTermUpperBound());
+            System.out.println(lexValueFinal.getTermUpperBoundBM25());
+
+
             lexFinal.lexicon.put(term,lexValueFinal);
         }
         lexFinal.saveLexiconFinal("LexiconFinal");
-
-
 
     }
 

@@ -1,7 +1,4 @@
-import org.apache.hadoop.io.Text;
-
 import java.io.FileNotFoundException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -35,6 +32,7 @@ public class Ranking {
             updateScoreTFIDF(docIds.get(i),tfs.get(i),df);
         }
     }
+
     public void printRankingTerm(){
         for (Long key : docScores.keySet()){
             System.out.println("DOCID: "+key+" SCORE: "+docScores.get(key));
@@ -49,6 +47,7 @@ public class Ranking {
         }
         return max;
     }
+
     public void updateScoreRSVBM25(long docId,float bm25){
         if (!this.docScores.containsKey(docId))
             this.docScores.put(docId,bm25);
@@ -56,21 +55,21 @@ public class Ranking {
             this.docScores.replace(docId, this.docScores.get(docId), this.docScores.get(docId)+bm25);
     }
 
-    public void computeRSVbm25(ArrayList<Long> docIds, ArrayList<Integer> tfs,DocumentTable dt, float df){
+    public void computeRSVbm25(ArrayList<Long> docIds, ArrayList<Integer> tfs,DocumentTable dt, int df){
         /*mi serve
         *
         * */
-        for(int i=0; i<docIds.size();i++){
+        for(int i=0; i<docIds.size(); i++){
             long id= docIds.get(i);
             float bm25= calculateRSVbm25(tfs.get(i),df,dt.getAverageLength(),dt.docTab.get(id) );
             updateScoreRSVBM25(id,bm25);
         }
     }
+
     public float calculateRSVbm25(int tf, float df,float averagedl, float dl){
         float b= 0.75F;
         float k= 1.2F;
         float bm25= (float) ( (tf/ ((k*( (1-b)+ (b*(dl/averagedl)) ))+tf) ) * log(totalNumberDocuments/df));
-
         return bm25;
     }
 
@@ -87,10 +86,13 @@ public class Ranking {
 
         System.out.println("FINEE");
 
+
+
     }
 
 
     //bm25
     //termupperbound
+
 
 }

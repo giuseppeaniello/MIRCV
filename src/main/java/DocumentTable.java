@@ -96,7 +96,13 @@ public class DocumentTable {
         return result;
     }
 
-
+    public void calculateAverageLength(){
+        int sum=0;
+        for(Long docId:this.docTab.keySet()){
+            sum += docTab.get(docId);
+        }
+        setAverageLength(sum/ docTab.size());
+    }
 
     // testata
     private static byte[] convertIntToByteArray(int length) {
