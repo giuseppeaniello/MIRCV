@@ -54,9 +54,10 @@ public class Ranking {
     public static void main(String[] args) throws FileNotFoundException {
 
 
-        /*LexiconFinal lex = LexiconFinal.readFinalLexiconFromFile("LexiconFinal");
+        LexiconFinal lex = LexiconFinal.readFinalLexiconFromFile("LexiconFinal");
         lex.printLexiconFinal();
-        System.out.println("FINEE");*/
+
+        System.out.println("FINEE");
 
     }
 

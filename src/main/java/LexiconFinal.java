@@ -58,7 +58,7 @@ public class LexiconFinal {
 
             for(int i = 0; i<fc.size(); i=i+46) {
                 fc.position(i);
-                buffer = ByteBuffer.allocate(20); //50 is the total number of bytes to read a complete term of the lexicon
+                buffer = ByteBuffer.allocate(20);
                 do {
                     fc.read(buffer);
                 } while (buffer.hasRemaining());
@@ -66,13 +66,12 @@ public class LexiconFinal {
                 buffer.clear();
 
                 fc.position( i+ 22);
-                buffer = ByteBuffer.allocate(24); //42 is the total number of bytes to read a complete term of the lexicon
+                buffer = ByteBuffer.allocate(24);
                 do {
                     fc.read(buffer);
                 } while (buffer.hasRemaining());
                 LexiconValueFinal value = LexiconValueFinal.transformByteToValue(buffer.array());
                 buffer.clear();
-
                 lex.lexicon.put(term,value);
             }
 

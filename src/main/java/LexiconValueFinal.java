@@ -28,23 +28,16 @@ public class LexiconValueFinal {
 
         return bb.array();
     }
-    public static LexiconValueFinal transformByteToValue(byte [] value){
+    public static LexiconValueFinal transformByteToValue(byte[] value){
         LexiconValueFinal lexValue = new LexiconValueFinal();
-        int count =0;
-        for (byte b : value) {
-            if(count<4)
-                lexValue.setCf((lexValue.getCf() << 8) + (b & 0xFF));
-            else if(count <8 && count>=4)
-                lexValue.setDf((lexValue.getDf() << 8) + (b & 0xFF));
-            else if(count <12 && count>=8)
-                lexValue.setnBlock((lexValue.getnBlock() << 8) + (b & 0xFF));
-            else if(count<20 && count >= 12)
-                lexValue.setOffsetSkipBlocks((lexValue.getOffsetSkipBlocks() << 8) + (b & 0xFF));
-            //else
-              //  lexValue.setTermUpperBound((lexValue.getTermUpperBound() << 8) + (b & 0xFF));
-            count ++;
-        }
+        ByteBuffer bb = ByteBuffer.wrap(value);
+        lexValue.setCf(bb.getInt());
+        lexValue.setDf(bb.getInt());
+        lexValue.setnBlock(bb.getInt());
+        lexValue.setOffsetSkipBlocks(bb.getLong());
+        lexValue.setTermUpperBound(bb.getFloat());
         return lexValue;
+
     }
 
     public float getTermUpperBound() {
