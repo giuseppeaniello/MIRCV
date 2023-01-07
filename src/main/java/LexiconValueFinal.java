@@ -6,25 +6,27 @@ public class LexiconValueFinal {
     private int df;
     private int nBlock;
     private long offsetSkipBlocks;
-
-    private float termUpperBound;
+    private float termUpperBoundTFIDF;
+    private float termUpperBoundBM25;
 
     public LexiconValueFinal(){
         this.cf = 0;
         this.df = 0;
         this.nBlock = 0;
         this.offsetSkipBlocks = 0;
-        this.termUpperBound = 0;
+        this.termUpperBoundTFIDF = 0;
+        this.termUpperBoundBM25 = 0;
 
     }
     public byte[] transformValueToByte() {
-        ByteBuffer bb = ByteBuffer.allocate(24);
+        ByteBuffer bb = ByteBuffer.allocate(28);
 
         bb.putInt(getCf());
         bb.putInt(getDf());
         bb.putInt(getnBlock());
         bb.putLong(getOffsetSkipBlocks());
-        bb.putFloat(getTermUpperBound());
+        bb.putFloat(getTermUpperBoundTFIDF());
+        bb.putFloat(getTermUpperBoundBM25());
 
         return bb.array();
     }
@@ -35,13 +37,18 @@ public class LexiconValueFinal {
         lexValue.setDf(bb.getInt());
         lexValue.setnBlock(bb.getInt());
         lexValue.setOffsetSkipBlocks(bb.getLong());
-        lexValue.setTermUpperBound(bb.getFloat());
+        lexValue.setTermUpperBoundTFIDF(bb.getFloat());
+        lexValue.setTermUpperBoundBM25(bb.getFloat());
         return lexValue;
 
     }
 
-    public float getTermUpperBound() {
-        return termUpperBound;
+    public float getTermUpperBoundTFIDF() {
+        return termUpperBoundTFIDF;
+    }
+
+    public float getTermUpperBoundBM25() {
+        return termUpperBoundBM25;
     }
 
     public long getOffsetSkipBlocks() {
@@ -60,8 +67,12 @@ public class LexiconValueFinal {
         return df;
     }
 
-    public void setTermUpperBound(float termUpperBound) {
-        this.termUpperBound = termUpperBound;
+    public void setTermUpperBoundTFIDF(float termUpperBoundTFIDF) {
+        this.termUpperBoundTFIDF = termUpperBoundTFIDF;
+    }
+
+    public void setTermUpperBoundBM25(float termUpperBoundBM25) {
+        this.termUpperBoundBM25 = termUpperBoundBM25;
     }
 
     public void setOffsetSkipBlocks(long offsetSkipBlocks) {

@@ -45,18 +45,16 @@ public class LexiconFinal {
         for (Text term: lexicon.keySet()){
             System.out.println("Term: "+ term +" Cf: "+lexicon.get(term).getCf()+" DF: "+lexicon.get(term).getDf()+
                     " NBlock: "+lexicon.get(term).getnBlock()+" OffsetBlock: "+lexicon.get(term).getOffsetSkipBlocks()
-                        +" TermUpperBound: "+lexicon.get(term).getTermUpperBound());
+                        +" TermUpperBoundTFIDF: "+lexicon.get(term).getTermUpperBoundTFIDF() + " TermUpperBoundBM25: " + lexicon.get(term).getTermUpperBoundBM25());
         }
     }
+
     public static LexiconFinal readFinalLexiconFromFile(String filePath){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer;
         LexiconFinal lex = new LexiconFinal();
-
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
-
-            for(int i = 0; i<fc.size(); i=i+46) {
+        try (FileChannel fc = FileChannel.open(fileP, READ)) {
+            for(int i = 0; i<fc.size(); i=i+50) {
                 fc.position(i);
                 buffer = ByteBuffer.allocate(20);
                 do {
@@ -66,7 +64,7 @@ public class LexiconFinal {
                 buffer.clear();
 
                 fc.position( i+ 22);
-                buffer = ByteBuffer.allocate(24);
+                buffer = ByteBuffer.allocate(28);
                 do {
                     fc.read(buffer);
                 } while (buffer.hasRemaining());

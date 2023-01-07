@@ -1,7 +1,6 @@
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.hadoop.io.Text;
-import org.apache.lucene.index.Term;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,7 +111,7 @@ public class ReadingDocuments {
             lexValueFinal.setOffsetSkipBlocks(lex.lexicon.get(term).getOffsetSkipBlocks());
             //Compute termUpperBound
             Ranking rank = lex.computeScoresForATermTFIDF(term);
-            lexValueFinal.setTermUpperBound(rank.computeTermUpperBound());
+            lexValueFinal.setTermUpperBoundTFIDF(rank.computeTermUpperBound());
             lexFinal.lexicon.put(term,lexValueFinal);
         }
         lexFinal.saveLexiconFinal("LexiconFinal");
