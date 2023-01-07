@@ -57,6 +57,10 @@ public class Ranking {
         LexiconFinal lex = LexiconFinal.readFinalLexiconFromFile("LexiconFinal");
         lex.printLexiconFinal();
 
+        DocumentTable dt = DocumentTable.readDocumentTable("document_table");
+
+        dt.printDocumentTable();
+
         System.out.println("FINEE");
 
     }

@@ -66,8 +66,10 @@ public class ReadingDocuments {
             indexOfFile++;
         }
 
+        documentTab.setAverageLength(5); //////DA TOGLIEREEEEEEE
         documentTab.saveDocumentTable("document_table");
-
+        System.out.println("document table salvata");
+        documentTab.printDocumentTable();
         now = LocalDateTime.now();
         System.out.println(dtf.format(now));
         System.out.println("INIZIO MERGING");
