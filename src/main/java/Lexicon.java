@@ -310,13 +310,13 @@ public class Lexicon {
         }
     }
 
-    public  Ranking computeScoresForATermTFIDF(Text term){
+    public  Ranking computeScoresForATermTfidfForUpperBound(Text term){
         Ranking result = new Ranking();
         long tmpPosPosting = lexicon.get(term).getOffsetSkipBlocks();
         int nBlocks = lexicon.get(term).getnBlock();
-        ArrayList<SkipInfo> info = new ArrayList<>();
+        ArrayList<SkipBlock> info = new ArrayList<>();
         for(int i = 0 ; i<nBlocks; i++){
-            info.add(SkipInfo.readSkipInfoFromFile("SkipInfo", tmpPosPosting+(i*32) ));
+            info.add(SkipBlock.readSkipBlockFromFile("SkipInfo", tmpPosPosting+(i*32) ));
         }
         for (int i = 0;i<nBlocks; i++) {
             ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
@@ -328,13 +328,13 @@ public class Lexicon {
         return result;
     }
 
-    public  Ranking computeScoresForATermBM25(Text term, DocumentTable docTab){
+    public  Ranking computeScoresForATermBM25ForUpperBound(Text term, DocumentTable docTab){
         Ranking result = new Ranking();
         long tmpPosPosting = lexicon.get(term).getOffsetSkipBlocks();
         int nBlocks = lexicon.get(term).getnBlock();
-        ArrayList<SkipInfo> info = new ArrayList<>();
+        ArrayList<SkipBlock> info = new ArrayList<>();
         for(int i = 0 ; i<nBlocks; i++){
-            info.add(SkipInfo.readSkipInfoFromFile("SkipInfo", tmpPosPosting+(i*32) ));
+            info.add(SkipBlock.readSkipBlockFromFile("SkipInfo", tmpPosPosting+(i*32) ));
         }
         for (int i = 0;i<nBlocks; i++) {
             ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(

@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
-public class SkipInfo {
+public class SkipBlock {
 
     long finalDocId;
     int lenBlockDocId;
@@ -16,7 +16,7 @@ public class SkipInfo {
     long offsetDocId;
     long offsetTf;
 
-    public SkipInfo(){
+    public SkipBlock(){
         this.finalDocId = 0;
         this.lenBlockDocId = 0;
         this.offsetDocId = 0;
@@ -92,10 +92,10 @@ public class SkipInfo {
         }
     }
 
-    public static SkipInfo readSkipInfoFromFile(String filePath, long startReadingPosition){
+    public static SkipBlock readSkipBlockFromFile(String filePath, long startReadingPosition){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
-        SkipInfo skipInf = null;
+        SkipBlock skipInf = null;
         try (FileChannel fc = FileChannel.open(fileP, READ)) {
             fc.position(startReadingPosition);
             buffer = ByteBuffer.allocate(32);
@@ -115,8 +115,8 @@ public class SkipInfo {
                 " OffDocId: "+getoffsetDocId()+" OffTf: "+getOffsetTf());
     }
 
-    public static SkipInfo transformSkipInfoByteToValue(byte[] value){
-        SkipInfo skipInf = new SkipInfo();//Vedere che valori mettere
+    public static SkipBlock transformSkipInfoByteToValue(byte[] value){
+        SkipBlock skipInf = new SkipBlock();//Vedere che valori mettere
         int count = 0;
         for (byte b : value) {
             if(count<8)

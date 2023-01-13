@@ -108,10 +108,10 @@ public class ReadingDocuments {
             lexValueFinal.setnBlock(lex.lexicon.get(term).getnBlock());
             lexValueFinal.setOffsetSkipBlocks(lex.lexicon.get(term).getOffsetSkipBlocks());
             //Compute termUpperBoundTFIDF
-            Ranking rankTFIDF = lex.computeScoresForATermTFIDF(term);
+            Ranking rankTFIDF = lex.computeScoresForATermTfidfForUpperBound(term);
             lexValueFinal.setTermUpperBoundTFIDF(rankTFIDF.computeTermUpperBound());
             //Compute termUpperBoundBM25
-            Ranking rankBM25 = lex.computeScoresForATermBM25(term, documentTab);
+            Ranking rankBM25 = lex.computeScoresForATermBM25ForUpperBound(term, documentTab);
             lexValueFinal.setTermUpperBoundBM25(rankBM25.computeTermUpperBound());
             lexFinal.lexicon.put(term,lexValueFinal);
         }

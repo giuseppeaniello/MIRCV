@@ -1,3 +1,5 @@
+import org.apache.hadoop.io.Text;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,25 +74,45 @@ public class Ranking {
     }
 
 
+
+
+
+
+
+
     public static void main(String[] args) throws FileNotFoundException {
-
-
-        LexiconFinal lex = LexiconFinal.readFinalLexiconFromFile("LexiconFinal");
+       /* LexiconFinal lex = LexiconFinal.readFinalLexiconFromFile("LexiconFinal");
         lex.printLexiconFinal();
-
         DocumentTable dt = DocumentTable.readDocumentTable("document_table");
-
         dt.printDocumentTable();
-
         System.out.println("FINEE");
+        */
+        LexiconFinal lex = new LexiconFinal();
+        lex = LexiconFinal.readFinalLexiconFromFile("LexiconFinal");
+        ArrayList<Text>  queryTerms = new ArrayList<>();
+        Text term1 = new Text("ciao                ");
+        Text term2 = new Text("santi               ");
+        Text term3 = new Text("de                  ");
+        queryTerms.add(term1);
+        queryTerms.add(term2);
+        queryTerms.add(term3);
+        ArrayList<SkipBlock> listSkipInfo = new ArrayList<>();
+
+        for(Text term : queryTerms) {
+            if (lex.lexicon.containsKey(term)){
+                long offSkipBlock = lex.lexicon.get(term).getOffsetSkipBlocks();
+                int nBlock = lex.lexicon.get(term).getnBlock();
+            }
+        }
+
+
+
 
 
 
     }
 
 
-    //bm25
-    //termupperbound
 
 
 }

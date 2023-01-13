@@ -3,7 +3,6 @@ import org.apache.hadoop.io.Text;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
@@ -363,17 +362,16 @@ public class InvertedIndex {
         postingDocIds =transformByteToLongArray(readOneDocIdPostingList(line.getOffsetDocID(),pathInvDocIds,line.getDf()));
         postingTfs = transformByteToIntegerArray(readOneTfsPostingList(line.getOffsetTF(),pathInvTfs,line.getDf()));
         //Calculate numbers of block for the skipInfo
-        int nBlocks = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
-        line.setnBlock(nBlocks);
+        //int nBlocks = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
+        //line.setnBlock(nBlocks);
         // questa mi sa che deve essere così perchè facendo floor + 1 nel caso in cui il numero viene tondo conta un blocco di troppo ***************************************
         int sizeBlock = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
         ArrayList<Long> dGapArray = new ArrayList<>();
         ArrayList<Integer> tfArray = new ArrayList<>();
         long lastDoc=0; //Used to calculate dGap
-        int currentBlock = 1;
+        int currentBlock = 0;
 
-        int lastCompressionLengthDocIds = 0;
-        int lastCompressionLengthTfs = 0;
+
         //Compression of posting List
         for(int i =0 ; i<postingDocIds.size();i++){
             if(i != postingDocIds.size()-1 && (i+1)%sizeBlock!=0){
@@ -387,11 +385,9 @@ public class InvertedIndex {
                 //Add last element of block
                 dGapArray.add(postingDocIds.get(i) - lastDoc);
                 tfArray.add(postingTfs.get(i));
-                System.out.println("DGAP: "+ dGapArray);
-                System.out.println("TF: "+tfArray);
                 lastDoc=0;
                 //Insert all the values of the skip and procede with the saving
-                SkipInfo infoBlock = new SkipInfo();
+                SkipBlock infoBlock = new SkipBlock();
                 infoBlock.setFinalDocId(postingDocIds.get(i));
                 //Compression Tfs Array
                 byte[] compressedTfArray = compressListOfTFs(tfArray);
@@ -401,10 +397,11 @@ public class InvertedIndex {
                 byte[] compressedDGap = compressListOfDocIDs(dGapArray);
                 InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocId",compressedDGap,offsetInvDocids);
                 infoBlock.setLenBlockDocId(compressedDGap.length);
-                if(currentBlock == 1)
+                if(currentBlock == 0)
                     line.setOffsetSkipBlocks(offsetSkipInfo);
                 infoBlock.setOffsetDocId(offsetInvDocids); //Offset inserito punta al valore all'interno dell'InvertedIndex
                 infoBlock.setOffsetTf(offsetInvTFs);
+
                 infoBlock.saveSkipInfoBlock("SkipInfo",offsetSkipInfo, infoBlock.trasformInfoToByte());
                 //Update all variables
                 currentBlock++;
@@ -418,6 +415,7 @@ public class InvertedIndex {
                 System.out.println("Something Wrong in the compression");
             }
         }
+        line.setnBlock(currentBlock);
         line.saveLexiconLineWithSkip("Lexicon",offsetLexSkip);
         offsetLexSkip += 42;
         ArrayList<Long> offsets = new ArrayList<>();
@@ -533,7 +531,7 @@ public class InvertedIndex {
         l = LexiconLine.readLexiconLineSkip("Lexicon",42*2);
         l.printLexiconLineWithSkip();
 
-        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",l.getOffsetSkipBlocks()+32);
+        SkipBlock info = SkipBlock.readSkipBlockFromFile("SkipInfo",l.getOffsetSkipBlocks()+32);
         info.printSkipInfo();
 
         byte[] a = readDocIDsOrTFsPostingListCompressed("InvertedDocId",info.getoffsetDocId(), info.getLenBlockDocId());
