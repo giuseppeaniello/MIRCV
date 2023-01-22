@@ -9,10 +9,13 @@ public class ResultQueue{
     public ResultQueue(){
         this.queue = new ArrayList<>();
         this.k = 5;
+        for(int i=0; i<k; i++)
+            queue.add(new QueueElement(-1, -1));
     }
 
     public boolean push(QueueElement qe){
-        for(int i=0; i< queue.size(); i++){
+        removeElementAlreadyPresent(qe);
+        for(int i=0; i<queue.size(); i++){
             if(queue.get(i).getScore() < qe.getScore()){
                 queue.add(i, qe);
                 if (queue.size() == k+1) {
@@ -22,6 +25,15 @@ public class ResultQueue{
             }
         }
         return false;
+    }
+
+    public void removeElementAlreadyPresent(QueueElement qe){
+        for(int i=0; i<k; i++){
+            if(queue.get(i).getDocID() == qe.getDocID()) {
+                queue.remove(i);
+                return;
+            }
+        }
     }
 
 }
