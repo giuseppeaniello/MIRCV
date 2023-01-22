@@ -12,7 +12,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 
 public class DocumentTable {
     public HashMap<Long, Integer> docTab; // key=docID val=length
-    private float averageLength;
+    private float averageLength; // average length of all documents
 
     public DocumentTable(){
         docTab = new HashMap<>();
@@ -27,6 +27,7 @@ public class DocumentTable {
         return averageLength;
     }
 
+    // method to save the document table on file filePath
     public void saveDocumentTable(String filePath) throws FileNotFoundException {
         RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
         Path fileP = Paths.get(filePath);
@@ -55,6 +56,7 @@ public class DocumentTable {
         }
     }
 
+    // method to load the document table from disk to main memory
     public static DocumentTable readDocumentTable(String filePath){
         System.out.println("Document table letta: ");
         Path fileP = Paths.get(filePath);
@@ -76,8 +78,8 @@ public class DocumentTable {
                 } while (buffer.hasRemaining());
                 byte[] lenDocByte = buffer.array();
                 buffer.clear();
-                long docId = convertByteArrToLong(docIdByte); // funzione che trasforma da byte[] a long
-                int lenDoc = convertByteArrToInt(lenDocByte); //funzione che trasforma da byte[] a int
+                long docId = convertByteArrToLong(docIdByte); // method to convert byte[] to long
+                int lenDoc = convertByteArrToInt(lenDocByte); // method to convert byte[] to int
                 result.docTab.put(docId, lenDoc);
             }
             fc.position(fc.size()-4);
@@ -92,6 +94,7 @@ public class DocumentTable {
         return result;
     }
 
+    // method to compute the average length
     public void calculateAverageLength(){
         int sum=0;
         for(Long docId:this.docTab.keySet()){

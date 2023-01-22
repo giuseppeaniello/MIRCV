@@ -21,28 +21,42 @@ public class Lexicon {
         this.currentIndex = 0;
     }
 
+    // method to add a term in Lexicon
     public void addElement(Text term, long docId, InvertedIndex invInd){
-        if(!lexicon.containsKey(term)){ // case new term
+       // case new term
+        if(!lexicon.containsKey(term)){
+            // creation of new lexiconValue to be added
             LexiconValue lexiconValue = new LexiconValue(docId, currentIndex);
+            // adding the first posting to the new posting list of the new term
             invInd.addPostingOfNewTerm(docId);
             lexicon.put(term,lexiconValue);
             currentIndex += 1;
+            // set last document to keep track of what documents have already been processed
+            // in order to know when we have same term in same document
             lexiconValue.setLastDocument(docId);
         }
         else{ // case term already appeared in the same document
             if(lexicon.get(term).getLastDocument() == docId){
+                // collection frequency is incremented
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
+                // term frequency is incremented
                 invInd.incrementPostingTF(lexicon.get(term).getIndex(), docId);
             }
             else{ // case term already appeared but in different document
+                // collection frequency is incremented
                 lexicon.get(term).setCf(lexicon.get(term).getCf() + 1);
+                // creation of new posting
                 invInd.addPostingOfExistingTerm(lexicon.get(term).getIndex(), docId);
+                // document frequency is incremented
                 lexicon.get(term).setDf(lexicon.get(term).getDf() + 1);
+                // set last document to keep track of what documents have already been processed
+                // in order to know when we have same term in same document
                 lexicon.get(term).setLastDocument(docId);
             }
         }
     }
 
+    // method to save on file the lexicon
     public void saveLexiconOnFile(String filePath) throws FileNotFoundException {
         RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
         Path fileP = Paths.get(filePath );
@@ -54,6 +68,7 @@ public class Lexicon {
                     fc.write(buffer);
                 }
                 buffer.clear();
+                // transformation in byte of all the values of a term
                 byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(),
                                                             lexicon.get(key).getOffsetDocID(),
                                                                 lexicon.get(key).getOffsetTF(),
@@ -70,6 +85,7 @@ public class Lexicon {
         }
     }
 
+    // method to convert all the field of a LexiconValue in byte[]
     public static byte[] transformValueToByte( int cF, int dF, long offsetDocId, long offsetTF, int lenOfDocID,int lenOfTF ) {
         ByteBuffer bb = ByteBuffer.allocate(32);
         bb.putInt(cF);
@@ -81,9 +97,9 @@ public class Lexicon {
         return bb.array();
     }
 
+    // method to read all the field of a LexiconValue from byte[]
     public static LexiconValue transformByteToValue(byte[] value){
-        LexiconValue lexValue = new LexiconValue(0,0);//Vedere che valori mettere
-
+        LexiconValue lexValue = new LexiconValue(0,0);
         int count = 0;
         for (byte b : value) {
             if(count<4)
@@ -103,6 +119,7 @@ public class Lexicon {
         return lexValue;
     }
 
+    // method to clean a lexicon and call garbage collection
     public void clearLexicon(){
         this.lexicon.clear();
         this.lexicon = null;
@@ -110,25 +127,27 @@ public class Lexicon {
         System.gc();
     }
 
+    // method to read a single lexicon line from file given the offset in which this line starts on file
     public static LexiconLine readLexiconLine(String filePath,long startReadingPosition){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         LexiconLine lexVal = new LexiconLine();
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
+        try (FileChannel fc = FileChannel.open(fileP, READ)) {
+            // reading of the term
             fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
+            buffer = ByteBuffer.allocate(22);
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
             lexVal.setTerm(new Text(buffer.array()));
             buffer.clear();
-
+            // reading of the values
             fc.position(startReadingPosition+22);
             buffer = ByteBuffer.allocate(32); //5 is the total number of bytes to read a complete term of the lexicon
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
+            // setting all the read values in the LexiconLine to be returned
             LexiconValue values = transformByteToValue(buffer.array());
             buffer.clear();
             lexVal.setCf(values.getCf());
@@ -143,14 +162,14 @@ public class Lexicon {
         return lexVal;
     }
 
+    // method to read a term from a block of Lexicon during SPIMI
     public static Text readTermFromBlock(String filePath, int startReadingPosition){
         Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         Text term = null;
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
+        try (FileChannel fc = FileChannel.open(fileP, READ)) {
             fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
+            buffer = ByteBuffer.allocate(22);
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
@@ -162,26 +181,41 @@ public class Lexicon {
         return term;
     }
 
-    public static void mergeBlocks(String pathLex1, String pathLex2, String pathLexMerge, String pathDocID1, String pathDocID2, String pathDocIDMerge, String pathTF1, String pathTF2, String pathTFMerge) throws IOException {
+    // method to merge all the blocks created during SPIMI in order to obtain a single Lexicon and a single InvertedIndex
+    // this merge is performed two files at a time until there is just one file left
+    public static void mergeBlocks(String pathLex1, String pathLex2, String pathLexMerge, String pathDocID1,
+                                   String pathDocID2, String pathDocIDMerge, String pathTF1, String pathTF2,
+                                   String pathTFMerge) throws IOException {
+        // offset to read on file1
         int readingPositionFileLex1 = 0;
+        // offset to read on file2
         int readingPositionFileLex2 = 0;
+        // offset to write on file merge
         long offsetFileLexMerge = 0;
+        // offset to write docIds in file merge
         long offsetDocIdMerge = 0;
+        // offset to write TFs in file merge
         long offsetTFMerge = 0;
         Path fileLex1 = Paths.get(pathLex1);
         Path fileLex2 = Paths.get(pathLex2);
         FileChannel fcLex1 = FileChannel.open(fileLex1, READ);
         FileChannel fcLex2 = FileChannel.open(fileLex2, READ);
+        // while neither file1 or file2 has completely been read
         while (readingPositionFileLex1 < fcLex1.size() && readingPositionFileLex2 < fcLex2.size()) {
+            // read the two terms
             Text t1 = readTermFromBlock(pathLex1, readingPositionFileLex1);
             Text t2 = readTermFromBlock(pathLex2, readingPositionFileLex2);
+            // if the two terms are the same term
             if (t1.compareTo(t2) == 0) {
                 LexiconLine lineLex1 = readLexiconLine(pathLex1, readingPositionFileLex1);
                 LexiconLine lineLex2 = readLexiconLine(pathLex2, readingPositionFileLex2);
                 LexiconLine lineLexMerge = new LexiconLine();
                 lineLexMerge.setTerm(t1);
+                // the two CFs are summed
                 lineLexMerge.setCf(lineLex1.getCf() + lineLex2.getCf());
+                // the two DFs are summed
                 lineLexMerge.setDf(lineLex1.getDf() + lineLex2.getDf());
+                //
                 //Fusione delle due posting con docids (la seconda va inserita alla fine della prima) Check per verificare
                 byte[] byteArrayMergeDocId = Bytes.concat(InvertedIndex.readOneDocIdPostingList(lineLex1.getOffsetDocID(), pathDocID1, lineLex1.getDf()),
                         InvertedIndex.readOneDocIdPostingList(lineLex2.getOffsetDocID(), pathDocID2, lineLex2.getDf()));

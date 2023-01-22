@@ -27,8 +27,8 @@ public class MaxScore {
     private ResultQueue topK;
     private ArrayList<Float> ub;
     private long next;
+
     public MaxScore(int n){
-    //Contatore del blocco corrente
         this.n = n;
         this.currentBlocks = new ArrayList<>();
         for (int i = 0; i<n; i++) {
@@ -37,7 +37,6 @@ public class MaxScore {
 
         //Upload first Skip Blocks for each term
         this.info = new ArrayList<>();
-
         //Define sigma(vector of term upperBound)
         this.sigma = new ArrayList<>();
         //Define P (matrix of all first block of posting list)
@@ -47,7 +46,6 @@ public class MaxScore {
         this.termOrdered = new ArrayList<>();
         this.threshold = 0;
         this.pivot = 0;
-
         this.topK = new ResultQueue();
         this.ub = new ArrayList<>();
         this.next  = 0;
@@ -92,6 +90,7 @@ public class MaxScore {
         }
         return Collections.min(tmp);
     }
+
     public boolean nextDocId(int index, long offsetSkipInfo, int nBlocks){
         P.get(index).remove(0);
         Ptf.get(index).remove(0);
@@ -111,16 +110,12 @@ public class MaxScore {
             }
            else {
                System.out.println("ENTRO");
-
                SkipBlock newInfo = SkipBlock.readSkipBlockFromFile("SkipInfo", offsetSkipInfo + 32*currentBlocks.get(index));
                info.set(index, newInfo);
-
-
                ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
                        InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedDocId", newInfo.getoffsetDocId(),
                                newInfo.getLenBlockDocId())));
                P.set(index, docids);
-
                ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
                        "InvertedTF", newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                Ptf.set(index, tfs);
@@ -130,10 +125,10 @@ public class MaxScore {
         }
         return true;
     }
+
     public void nextGEQ(int index, long value, long startSkipBlock, int nBlock){
         System.out.println("ENTRAAAAAAA");
         for (int i = 0; i< P.get(index).size();i++){
-
             if(P.get(index).get(i) < value){
                 P.get(index).remove(i);
                 Ptf.get(index).remove(i);
@@ -149,11 +144,9 @@ public class MaxScore {
                             InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedDocId", newInfo.getoffsetDocId(),
                                     newInfo.getLenBlockDocId())));
                     P.set(index, docids);
-
                     ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
                             "InvertedTF", newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                     Ptf.set(index, tfs);
-
                     for(int i=0; i<P.get(index).size(); i++){
                         if(P.get(index).get(i) < value) {
                             P.get(index).remove(i);
@@ -270,6 +263,9 @@ public class MaxScore {
         terms.add(new Text("ciao                "));
         terms.add(new Text("anna                "));
         terms.add(new Text("santi               "));
+      //  terms.add(new Text("de                  "));
+      //  terms.add(new Text("chiamo              "));
+      //  terms.add(new Text("mi                  "));
 
         LexiconFinal lex = Ranking.createLexiconWithQueryTerm(terms);
         MaxScore max = new MaxScore(lex.lexicon.size());
