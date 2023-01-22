@@ -41,6 +41,29 @@ public class LexiconFinal {
         }
     }
 
+    public void save(String filePath) throws FileNotFoundException {
+        RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
+        Path fileP = Paths.get(filePath );
+        ByteBuffer buffer = null;
+        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
+            for(Text key : lexicon.keySet()){
+                buffer = ByteBuffer.wrap(key.getBytes());
+                while (buffer.hasRemaining()) {
+                    fc.write(buffer);
+                }
+                buffer.clear();
+                byte[] valueByte = lexicon.get(key).transformValueToByte();
+                buffer = ByteBuffer.wrap(valueByte);
+                while (buffer.hasRemaining()) {
+                    fc.write(buffer);
+                }
+                buffer.clear();
+            }
+        } catch (IOException ex) {
+            System.err.println("I/O Error: " + ex);
+        }
+    }
+
     public void printLexiconFinal(){
         for (Text term: lexicon.keySet()){
             System.out.println("Term: "+ term +" Cf: "+lexicon.get(term).getCf()+" DF: "+lexicon.get(term).getDf()+
@@ -76,6 +99,9 @@ public class LexiconFinal {
         }
         return lex;
     }
+
+
+
 
 
 }

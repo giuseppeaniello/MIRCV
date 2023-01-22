@@ -18,8 +18,8 @@ public class ReadingDocuments {
 
     public static void readDoc() throws IOException {
         DocumentTable documentTab = new DocumentTable();
-        //File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\a.tsv");
-        File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\a.tsv");
+        File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\a.tsv");
+        //File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\a.tsv");
         ; //initializing a new ArrayList out of String[]'s
         int indexOfFile = 1;
         Preprocessing preproc = new Preprocessing();

@@ -1,9 +1,17 @@
 import org.apache.hadoop.io.Text;
 
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
 import static java.lang.Math.log;
+import static java.nio.file.StandardOpenOption.READ;
 
 public class Ranking {
 
@@ -14,7 +22,7 @@ public class Ranking {
         this.docScores = new HashMap<>();
     }
 
-    public float idf (long df){
+    public static float idf (long df){
         return (float) log(totalNumberDocuments/df);
     }
 
@@ -72,47 +80,106 @@ public class Ranking {
         float bm25 = (float) ( (tf/ ((k*( (1-b)+ (b*(dl/averagedl)) ))+tf) ) * log(totalNumberDocuments/df));
         return bm25;
     }
+    public ArrayList<SkipBlock> uploadAllSkipInfo(long startOffset,int nBlocks){
+        ArrayList<SkipBlock> skipInfo = new ArrayList<>();
+        for (int i = 0 ; i<nBlocks*32; i = i + 32){
+            SkipBlock info = SkipBlock.readSkipBlockFromFile("SkipInfo",startOffset+i);
+            skipInfo.add(info);
+        }
+        return skipInfo;
+    }
+  /*  public PostingList uploadPostingList(ArrayList<SkipBlock> skipInfo){
+        ArrayList<Long> docIds = new ArrayList<>();
+        ArrayList<Integer> tfs = new ArrayList<>();
+        for (SkipBlock  info : skipInfo){
+            long offsetDocids = info.getoffsetDocId();
+            long offesetTfs = info.getOffsetTf();
+            int lenDocIds = info.getLenBlockDocId();
+            int lenTfs = info.getLenBlockTf();
+            docIds.addAll( InvertedIndex.trasformDgapInDocIds(
+                    InvertedIndex.decompressionListOfDocIds(
+                            InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedDocId",offsetDocids,lenDocIds))));
+            tfs.addAll(InvertedIndex.decompressionListOfTfs(
+                    InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedTF",offesetTfs,lenTfs)));
 
+        }
+        PostingList postingLists = new PostingList();
+        for (int i = 0; i< docIds.size(); i++){
+            postingLists.postingList.put(docIds.get(i),tfs.get(i));
+        }
+    }*/
 
+    public static long binarySearchTermInLexicon(Text term) throws FileNotFoundException {
+        Path fileP = Paths.get("LexiconFinal" );
+        RandomAccessFile file = new RandomAccessFile(new File("LexiconFinal"), "r");
+        //Get file channel in read-only mode
+        long midpoint ;
+        //Get direct byte buffer access using channel.map() operation
 
+        try (FileChannel fileChannel = FileChannel.open(fileP, READ)) {
+            MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
+            long size = fileChannel.size()/50;
+            long lb = 0;
+            long ub = size;
+            midpoint=-1;
+            boolean found = false;
+            while(!found){
+                if(ub < lb) {
+                    midpoint = -1;
+                    break;
+                }
+                midpoint = lb + (ub-lb)/2;
+                byte[] tmp = new byte[20];
+                buffer.position((int) midpoint*50);
+                buffer.get(tmp,0,20);
+                Text termTmp = new Text(tmp);
 
+                if(termTmp.compareTo(term)<0)
+                    lb = midpoint +1 ;
+                else if (termTmp.compareTo(term)>0)
+                    ub = midpoint-1;
+                else if (termTmp.compareTo(term) == 0)
+                    found = true;
+                else
+                    System.out.println("Something in Binary Search go wrong");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return midpoint;
 
-
+    }
+    public static LexiconFinal createLexiconWithQueryTerm(ArrayList<Text> terms) throws FileNotFoundException {
+        LexiconFinal lexQuery = new LexiconFinal();
+        for (Text term:terms){
+            long midpoint = binarySearchTermInLexicon(term);
+            if (midpoint!=-1) {
+                LexiconLineFinal l = LexiconLineFinal.readLineLexicon("LexiconFinal", midpoint * 50);
+                lexQuery.lexicon.put(l.getTerm(), l.getLexiconValueFinal());
+            }
+        }
+        return lexQuery;
+    }
 
 
     public static void main(String[] args) throws FileNotFoundException {
-       /* LexiconFinal lex = LexiconFinal.readFinalLexiconFromFile("LexiconFinal");
+
+        ArrayList<Text> terms = new ArrayList<>();
+
+        terms.add(new Text("ciao                "));
+        terms.add(new Text("anna                "));
+        terms.add(new Text("santi               "));
+        LexiconFinal lex = createLexiconWithQueryTerm(terms);
         lex.printLexiconFinal();
-        DocumentTable dt = DocumentTable.readDocumentTable("document_table");
-        dt.printDocumentTable();
-        System.out.println("FINEE");
-        */
-        LexiconFinal lex = new LexiconFinal();
-        lex = LexiconFinal.readFinalLexiconFromFile("LexiconFinal");
-        ArrayList<Text>  queryTerms = new ArrayList<>();
-        Text term1 = new Text("ciao                ");
-        Text term2 = new Text("santi               ");
-        Text term3 = new Text("de                  ");
-        queryTerms.add(term1);
-        queryTerms.add(term2);
-        queryTerms.add(term3);
-        ArrayList<SkipBlock> listSkipInfo = new ArrayList<>();
-
-        for(Text term : queryTerms) {
-            if (lex.lexicon.containsKey(term)){
-                long offSkipBlock = lex.lexicon.get(term).getOffsetSkipBlocks();
-                int nBlock = lex.lexicon.get(term).getnBlock();
-            }
-        }
-
-
-
 
 
 
     }
 
 
+
+    //bm25
+    //termupperbound
 
 
 }

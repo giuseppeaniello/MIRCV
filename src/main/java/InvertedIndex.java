@@ -385,7 +385,7 @@ public class InvertedIndex {
                 //Add last element of block
                 dGapArray.add(postingDocIds.get(i) - lastDoc);
                 tfArray.add(postingTfs.get(i));
-                lastDoc=0;
+                // lastDoc=0;
                 //Insert all the values of the skip and procede with the saving
                 SkipBlock infoBlock = new SkipBlock();
                 infoBlock.setFinalDocId(postingDocIds.get(i));
