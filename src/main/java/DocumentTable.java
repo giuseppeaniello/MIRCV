@@ -11,19 +11,23 @@ import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class DocumentTable {
-    public HashMap<Long, Integer> docTab; // key=docID val=length
-    private float averageLength; // average length of all documents
+    private static HashMap<Long, Integer> docTab; // key=docID val=length
+    private static float averageLength; // average length of all documents
 
     public DocumentTable(){
         docTab = new HashMap<>();
         averageLength = 0;
     }
 
+    public static HashMap<Long, Integer> getDocTab() {
+        return docTab;
+    }
+
     public void setAverageLength(float averageLength) {
         this.averageLength = averageLength;
     }
 
-    public float getAverageLength() {
+    public static float getAverageLength() {
         return averageLength;
     }
 

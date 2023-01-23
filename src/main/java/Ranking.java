@@ -69,7 +69,7 @@ public class Ranking {
         float bm25;
         for(int i=0; i<docIds.size(); i++){
             id = docIds.get(i);
-            bm25 = calculateRSVbm25(tfs.get(i), df, dt.getAverageLength(), dt.docTab.get(id));
+            bm25 = calculateRSVbm25(tfs.get(i), df, dt.getAverageLength(), DocumentTable.getDocTab().get(id));
             updateScoreRSVBM25(id, bm25);
         }
     }
@@ -80,6 +80,7 @@ public class Ranking {
         float bm25 = (float) ( (tf/ ((k*( (1-b)+ (b*(dl/averagedl)) ))+tf) ) * log(totalNumberDocuments/df));
         return bm25;
     }
+
     public ArrayList<SkipBlock> uploadAllSkipInfo(long startOffset,int nBlocks){
         ArrayList<SkipBlock> skipInfo = new ArrayList<>();
         for (int i = 0 ; i<nBlocks*32; i = i + 32){

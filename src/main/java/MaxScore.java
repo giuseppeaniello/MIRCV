@@ -27,10 +27,12 @@ public class MaxScore {
     private ResultQueue topK;
     private ArrayList<Float> ub;
     private long next;
+    private static boolean scoringFunction; // false means TFIDF and true means BM25
 
-    public MaxScore(int n){
+    public MaxScore(int n, boolean scoringFunction){
         this.n = n;
         this.currentBlocks = new ArrayList<>();
+        MaxScore.scoringFunction = scoringFunction;
         for (int i = 0; i<n; i++) {
             this.currentBlocks.add(0);
         }
@@ -182,11 +184,23 @@ public class MaxScore {
     }
     public static float scoreTFIDF(int tf,long df){
         return (float) ((1 + log(tf))*Ranking.idf(df));
+    }
 
+    public static float scoreBM25(int tf, float df, float dl){
+        float b = 0.75F;
+        float k = 1.2F;
+        return (float) ( (tf/ ((k*( (1-b)+ (b*(dl/DocumentTable.getAverageLength())) ))+tf) ) * log(Ranking.totalNumberDocuments/df));
+    }
+
+    public static float score(int tf, long df, float dl){
+        if(!scoringFunction)
+            return scoreTFIDF(tf, df);
+        else
+            return scoreBM25(tf, df, dl);
     }
 
     public ResultQueue maxScore(LexiconFinal lex) throws FileNotFoundException {
-        MaxScore maxScore = new MaxScore(lex.lexicon.size());
+        MaxScore maxScore = new MaxScore(lex.lexicon.size(), scoringFunction);
 
 
         for (Text term : lex.lexicon.keySet()){
@@ -226,7 +240,7 @@ public class MaxScore {
             next = Long.MAX_VALUE;
             for(int i = pivot ;i<n ; i++) {
                 if(P.get(i).get(0) == current){
-                    score += scoreTFIDF(Ptf.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getDf()) ;
+                    score += score(Ptf.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getDf(), DocumentTable.getDocTab().get(P.get(i).get(0))) ;
                     if( !nextDocId(i,lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(),lex.lexicon.get(termOrdered.get(i)).getnBlock()) ){
                         if(i!=0)
                             i -= 1;
@@ -243,7 +257,7 @@ public class MaxScore {
                     break;
                 nextGEQ(i, current, lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(), lex.lexicon.get(termOrdered.get(i)).getnBlock());
                 if(P.get(i).get(0) == current){
-                     score += scoreTFIDF(Ptf.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getDf());
+                     score += score(Ptf.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getDf(), DocumentTable.getDocTab().get(P.get(i).get(0)));
                 }
             }
             if (topK.push(new QueueElement(current, score))){
@@ -257,21 +271,20 @@ public class MaxScore {
 
         }
         return topK;
-
     }
+
     public static void main(String arg[]) throws FileNotFoundException {
         ArrayList<Text> terms = new ArrayList<>();
-
+        DocumentTable.readDocumentTable("document_table");
         terms.add(new Text("ciao                "));
         terms.add(new Text("anna                "));
         terms.add(new Text("santi               "));
         terms.add(new Text("de                  "));
-
         terms.add(new Text("chiamo              "));
         terms.add(new Text("mi                  "));
 
         LexiconFinal lex = Ranking.createLexiconWithQueryTerm(terms);
-        MaxScore max = new MaxScore(lex.lexicon.size());
+        MaxScore max = new MaxScore(lex.lexicon.size(), true);
         ResultQueue qq = max.maxScore(lex);
         for(QueueElement qe : qq.queue){
             System.out.println(qe.getDocID() + " " + qe.getScore());

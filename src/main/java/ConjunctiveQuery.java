@@ -19,8 +19,10 @@ public class ConjunctiveQuery {
     private ArrayList<Text> termOrdered;
     private float score;
     private ArrayList<Integer> currentBlocks;
-    public ConjunctiveQuery(int n){
+    private static boolean scoringFunction; // false means TFIDF and true means BM25
 
+    public ConjunctiveQuery(int n, boolean scoringFunction){
+        ConjunctiveQuery.scoringFunction = scoringFunction;
         this.n = n;
         this.score = 0;
         this.Ptf = new ArrayList<>(n);
@@ -145,10 +147,24 @@ public class ConjunctiveQuery {
         }
         return false;
     }
+
     public static float scoreTFIDF(int tf,long df){
         return (float) ((1 + log(tf))*Ranking.idf(df));
-
     }
+
+    public static float scoreBM25(int tf, float df, float dl){
+        float b = 0.75F;
+        float k = 1.2F;
+        return (float) ( (tf/ ((k*( (1-b)+ (b*(dl/DocumentTable.getAverageLength())) ))+tf) ) * log(Ranking.totalNumberDocuments/df));
+    }
+
+    public static float score(int tf, long df, float dl){
+        if(!scoringFunction)
+            return scoreTFIDF(tf, df);
+        else
+            return scoreBM25(tf, df, dl);
+    }
+
     public ResultQueue computeTopK(LexiconFinal lex){
 
         ArrayList<Integer> dfVector = new ArrayList<>();
@@ -199,7 +215,7 @@ public class ConjunctiveQuery {
             }
             if (i == n && !finish){
                 for (int j = 0; j<n; j++){
-                    score += scoreTFIDF(Ptf.get(j).get(0),lex.lexicon.get(termOrdered.get(j)).getDf());
+                    score += score(Ptf.get(j).get(0),lex.lexicon.get(termOrdered.get(j)).getDf(), DocumentTable.getDocTab().get(P.get(j).get(0)));
                 }
                 topK.push(new QueueElement(current , score));
                 score=0;
@@ -215,7 +231,7 @@ public class ConjunctiveQuery {
     }
     public static void main(String args[]) throws FileNotFoundException {
         ArrayList<Text> terms = new ArrayList<>();
-
+        DocumentTable.readDocumentTable("document_table");
         //terms.add(new Text("anna                "));
 
         //terms.add(new Text("santi               "));
@@ -225,7 +241,7 @@ public class ConjunctiveQuery {
 
         LexiconFinal lex = Ranking.createLexiconWithQueryTerm(terms);
         lex.printLexiconFinal();
-        ConjunctiveQuery cq = new ConjunctiveQuery(lex.lexicon.size());
+        ConjunctiveQuery cq = new ConjunctiveQuery(lex.lexicon.size(), false);
         ResultQueue qq = cq.computeTopK(lex);
         for(QueueElement qe : qq.queue){
             System.out.println(qe.getDocID() + " " + qe.getScore());
