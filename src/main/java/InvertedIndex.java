@@ -299,7 +299,7 @@ public class InvertedIndex {
         byte[] resultByte = new byte[df*8];
         try (FileChannel fc = FileChannel.open(fileP, READ)) {
             fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(df*8); //50 is the total number of bytes to read a complete term of the lexicon
+            buffer = ByteBuffer.allocate(df*8);
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
@@ -428,14 +428,6 @@ public class InvertedIndex {
     }
 
     public static void main(String[] argv ) throws IOException {
-        //Funzioni SkipInfo ok
-        //Funzione save compress and decompress Docid ok
-        //
-        //compression(long startLexiconLine,String pathLexMerge,String pathInvDocIds,String pathInvTfs,
-        //                                   long offsetInvDocids, long offsetInvTFs, long offssetSkipInfo)
-
-       // ArrayList<Long> a = compression(54,"Lexicon_Merge_number_6","Inverted_Index_Merge_DocId_number_6",
-         //      "Inverted_Index_Merge_TF_number_6",0,0,0);
 /*
         InvertedIndex invInd = new InvertedIndex();
         InvertedIndex invInd1 = new InvertedIndex();
@@ -526,19 +518,10 @@ public class InvertedIndex {
         System.out.println(decompressionListOfTfs(a));
 */
 
-        LexiconLine l;
 
-        l = LexiconLine.readLexiconLineSkip("Lexicon",42*2);
-        l.printLexiconLineWithSkip();
 
-        SkipBlock info = SkipBlock.readSkipBlockFromFile("SkipInfo",l.getOffsetSkipBlocks()+32);
-        info.printSkipInfo();
 
-        byte[] a = readDocIDsOrTFsPostingListCompressed("InvertedDocId",info.getoffsetDocId(), info.getLenBlockDocId());
-        System.out.println(decompressionListOfDocIds(a));
 
-        byte[] b = readDocIDsOrTFsPostingListCompressed("InvertedTF",info.getOffsetTf(), info.getLenBlockTf());
-        System.out.println(decompressionListOfTfs(b));
 
 
 
