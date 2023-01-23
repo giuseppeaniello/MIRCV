@@ -1,9 +1,7 @@
 import org.apache.hadoop.io.Text;
-
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
-
 import static java.lang.Math.log;
 
 public class MaxScore {
@@ -27,9 +25,9 @@ public class MaxScore {
     private ResultQueue topK;
     private ArrayList<Float> ub;
     private long next;
-    private static boolean scoringFunction; // false means TFIDF and true means BM25
+    private static int scoringFunction; // 0 means TFIDF and 1 means BM25
 
-    public MaxScore(int n, boolean scoringFunction){
+    public MaxScore(int n, int scoringFunction){
         this.n = n;
         this.currentBlocks = new ArrayList<>();
         MaxScore.scoringFunction = scoringFunction;
@@ -193,7 +191,7 @@ public class MaxScore {
     }
 
     public static float score(int tf, long df, float dl){
-        if(!scoringFunction)
+        if(scoringFunction != 1)
             return scoreTFIDF(tf, df);
         else
             return scoreBM25(tf, df, dl);
@@ -201,10 +199,7 @@ public class MaxScore {
 
     public ResultQueue maxScore(LexiconFinal lex) throws FileNotFoundException {
         MaxScore maxScore = new MaxScore(lex.lexicon.size(), scoringFunction);
-
-
         for (Text term : lex.lexicon.keySet()){
-
             //Trovo posizione ordinata dove inserire il valore
             int index = findIndexToAdd(lex.lexicon.get(term).getTermUpperBoundTFIDF());
 
@@ -234,7 +229,6 @@ public class MaxScore {
             ub.add(ub.get(i-1)+ sigma.get(i));
         //Trova il minimo docId tra tutte le postingLIst in P
         current = findMinDocId();
-
         while(pivot < n && n != 0){
             score = 0;
             next = Long.MAX_VALUE;
@@ -249,9 +243,7 @@ public class MaxScore {
                 if(n != 0 && P.get(i).get(0) < next ){
                     next = P.get(i).get(0);
                 }
-
             }
-
             for(int i = pivot-1; i >= 0; i--){
                 if (score + ub.get(i) <= threshold)
                     break;
@@ -267,15 +259,13 @@ public class MaxScore {
                 }
             }
             current = next;
-
-
         }
         return topK;
     }
 
     public static void main(String arg[]) throws FileNotFoundException {
         ArrayList<Text> terms = new ArrayList<>();
-        DocumentTable.readDocumentTable("document_table");
+        DocumentTable.readDocumentTable();
         terms.add(new Text("ciao                "));
         terms.add(new Text("anna                "));
         terms.add(new Text("santi               "));
@@ -284,7 +274,7 @@ public class MaxScore {
         terms.add(new Text("mi                  "));
 
         LexiconFinal lex = Ranking.createLexiconWithQueryTerm(terms);
-        MaxScore max = new MaxScore(lex.lexicon.size(), true);
+        MaxScore max = new MaxScore(lex.lexicon.size(), 1);
         ResultQueue qq = max.maxScore(lex);
         for(QueueElement qe : qq.queue){
             System.out.println(qe.getDocID() + " " + qe.getScore());

@@ -19,9 +19,9 @@ public class ConjunctiveQuery {
     private ArrayList<Text> termOrdered;
     private float score;
     private ArrayList<Integer> currentBlocks;
-    private static boolean scoringFunction; // false means TFIDF and true means BM25
+    private static int scoringFunction; // 0 means TFIDF and 1 means BM25
 
-    public ConjunctiveQuery(int n, boolean scoringFunction){
+    public ConjunctiveQuery(int n, int scoringFunction){
         ConjunctiveQuery.scoringFunction = scoringFunction;
         this.n = n;
         this.score = 0;
@@ -159,7 +159,7 @@ public class ConjunctiveQuery {
     }
 
     public static float score(int tf, long df, float dl){
-        if(!scoringFunction)
+        if(scoringFunction != 1)
             return scoreTFIDF(tf, df);
         else
             return scoreBM25(tf, df, dl);
@@ -226,22 +226,20 @@ public class ConjunctiveQuery {
                 i = 1;
             }
         }
-
         return topK;
     }
+
     public static void main(String args[]) throws FileNotFoundException {
         ArrayList<Text> terms = new ArrayList<>();
-        DocumentTable.readDocumentTable("document_table");
+        DocumentTable.readDocumentTable();
         //terms.add(new Text("anna                "));
-
         //terms.add(new Text("santi               "));
         terms.add(new Text("de                  "));
         //terms.add(new Text("chiamo              "));
         terms.add(new Text("mi                  "));
-
         LexiconFinal lex = Ranking.createLexiconWithQueryTerm(terms);
         lex.printLexiconFinal();
-        ConjunctiveQuery cq = new ConjunctiveQuery(lex.lexicon.size(), false);
+        ConjunctiveQuery cq = new ConjunctiveQuery(lex.lexicon.size(), 1);
         ResultQueue qq = cq.computeTopK(lex);
         for(QueueElement qe : qq.queue){
             System.out.println(qe.getDocID() + " " + qe.getScore());

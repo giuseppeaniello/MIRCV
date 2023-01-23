@@ -61,9 +61,9 @@ public class DocumentTable {
     }
 
     // method to load the document table from disk to main memory
-    public static DocumentTable readDocumentTable(String filePath){
+    public static DocumentTable readDocumentTable(){
         System.out.println("Document table letta: ");
-        Path fileP = Paths.get(filePath);
+        Path fileP = Paths.get("document_table");
         DocumentTable result = new DocumentTable();
         ByteBuffer buffer = null;
         try (FileChannel fc = FileChannel.open(fileP, READ)) {
