@@ -19,7 +19,7 @@ public class ResultQueue{
             if(queue.get(i).getScore() < qe.getScore()){
                 queue.add(i, qe);
                 if (queue.size() == k+1) {
-                    queue.remove(k - 1);
+                    queue.remove(k);
                 }
                 return true;
             }

@@ -132,6 +132,7 @@ public class MaxScore {
             if(P.get(index).get(i) < value){
                 P.get(index).remove(i);
                 Ptf.get(index).remove(i);
+                i--;
             }
         }
         if(P.get(index).isEmpty()){
@@ -151,6 +152,7 @@ public class MaxScore {
                         if(P.get(index).get(i) < value) {
                             P.get(index).remove(i);
                             Ptf.get(index).remove(i);
+                            i--;
                         }
                         else
                             return;
@@ -263,9 +265,10 @@ public class MaxScore {
         terms.add(new Text("ciao                "));
         terms.add(new Text("anna                "));
         terms.add(new Text("santi               "));
-      //  terms.add(new Text("de                  "));
-      //  terms.add(new Text("chiamo              "));
-      //  terms.add(new Text("mi                  "));
+        terms.add(new Text("de                  "));
+
+        terms.add(new Text("chiamo              "));
+        terms.add(new Text("mi                  "));
 
         LexiconFinal lex = Ranking.createLexiconWithQueryTerm(terms);
         MaxScore max = new MaxScore(lex.lexicon.size());
