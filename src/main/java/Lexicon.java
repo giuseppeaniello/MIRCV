@@ -57,32 +57,29 @@ public class Lexicon {
     }
 
     // method to save on file the lexicon
-    public void saveLexiconOnFile(String filePath) throws FileNotFoundException {
-        RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
-        Path fileP = Paths.get(filePath );
+    public void saveLexiconOnFile(String filePath, FileChannel fc) throws IOException {
         ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-            for(Text key : lexicon.keySet()){
-                buffer = ByteBuffer.wrap(key.getBytes());
-                while (buffer.hasRemaining()) {
-                    fc.write(buffer);
-                }
-                buffer.clear();
-                // transformation in byte of all the values of a term
-                byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(),
-                                                            lexicon.get(key).getOffsetDocID(),
-                                                                lexicon.get(key).getOffsetTF(),
-                                                                    lexicon.get(key).getLenOfDocID(),
-                                                                            lexicon.get(key).getLenOfTF());
-                buffer = ByteBuffer.wrap(valueByte);
-                while (buffer.hasRemaining()) {
-                    fc.write(buffer);
-                }
-                buffer.clear();
+        for(Text key : lexicon.keySet()){
+            buffer = ByteBuffer.wrap(key.getBytes());
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
             }
-        } catch (IOException ex) {
-        System.err.println("I/O Error: " + ex);
+            buffer.clear();
+            // transformation in byte of all the values of a term
+            byte[] valueByte = transformValueToByte(lexicon.get(key).getCf(), lexicon.get(key).getDf(),
+                    lexicon.get(key).getOffsetDocID(),
+                    lexicon.get(key).getOffsetTF(),
+                    lexicon.get(key).getLenOfDocID(),
+                    lexicon.get(key).getLenOfTF());
+            buffer = ByteBuffer.wrap(valueByte);
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
+            }
+            buffer.clear();
         }
+
+
+
     }
 
     // method to convert all the field of a LexiconValue in byte[]

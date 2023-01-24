@@ -221,49 +221,38 @@ public class InvertedIndex {
         return result;
     }
 
-    public static void saveDocIDsOnFile(String filePath, Lexicon lex) throws FileNotFoundException {
+    public static void saveDocIDsOnFile(String filePath, Lexicon lex, FileChannel fc) throws IOException {
         int offset = 0;
-        RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
-        Path fileP = Paths.get(filePath);
+
         ByteBuffer buffer = null;
         for(Text term:lex.lexicon.keySet()){
             lex.lexicon.get(term).setOffsetDocID(offset);
             lex.lexicon.get(term).setLenOfDocID(lex.lexicon.get(term).getDf()*8);
             byte[] listOfDocIDs = allPostingLists.get( lex.lexicon.get(term).getIndex() ).convertDocIDsToByteArray();
-            try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-                fc.position(offset);
-                buffer = ByteBuffer.wrap(listOfDocIDs);
-                while (buffer.hasRemaining()) {
-                    fc.write(buffer);
-                }
-                buffer.clear();
-                offset += lex.lexicon.get(term).getLenOfDocID();
-            } catch (IOException ex) {
-                System.err.println("I/O Error: " + ex);
+            fc.position(offset);
+            buffer = ByteBuffer.wrap(listOfDocIDs);
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
             }
+            buffer.clear();
+            offset += lex.lexicon.get(term).getLenOfDocID();
         }
     }
 
-    public static void saveTFsOnFile(String filePath, Lexicon lex) throws FileNotFoundException {
+    public static void saveTFsOnFile(String filePath, Lexicon lex, FileChannel fc) throws IOException {
         int offset = 0;
-        RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
-        Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
         for(Text term:lex.lexicon.keySet()){
             lex.lexicon.get(term).setOffsetTF(offset);
             lex.lexicon.get(term).setLenOfTF(lex.lexicon.get(term).getDf()*4);
             byte[] listOfTFs = allPostingLists.get( lex.lexicon.get(term).getIndex() ).convertTFsToByteArray();
-            try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-                fc.position(offset);
-                buffer = ByteBuffer.wrap(listOfTFs);
-                while (buffer.hasRemaining()) {
-                    fc.write(buffer);
-                }
-                buffer.clear();
-                offset += lex.lexicon.get(term).getLenOfTF();
-            } catch (IOException ex) {
-                System.err.println("I/O Error: " + ex);
+            fc.position(offset);
+            buffer = ByteBuffer.wrap(listOfTFs);
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
             }
+            buffer.clear();
+            offset += lex.lexicon.get(term).getLenOfTF();
         }
     }
 
