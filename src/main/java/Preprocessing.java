@@ -15,8 +15,8 @@ public class Preprocessing {
         this.stopwords=getStopwords();
     }
 
-    public static ArrayList<Text> preprocess(String doc_in, int check) throws IOException {  //applies the preprocessing
-        if(check==1){ //If check==1 the stemming and stopwords removal are applied
+    public static ArrayList<Text> preprocess(String doc_in) throws IOException {  //applies the preprocessing
+        if(MainQueryProcessing.flagStopWordAndStemming==1){ //If check==1 the stemming and stopwords removal are applied
             String doc_out=doc_in;
             doc_out=textclean(doc_out); //Text cleaned and converted from ASCII to UNICODE
             doc_out=doc_out.toLowerCase(); //Text to lower case

@@ -92,6 +92,19 @@ public class MaxScore {
     }
 
     public boolean nextDocId(int index, long offsetSkipInfo, int nBlocks){
+        String pathSkipInfo;
+        String pathDocId;
+        String pathTF;
+        if(MainQueryProcessing.flagStopWordAndStemming == 1){
+            pathSkipInfo = "SkipInfoStemmedAndStopwordRemoved";
+            pathDocId = "InvertedDocIdStemmedAndStopwordRemoved";
+            pathTF = "InvertedTFStemmedAndStopwordRemoved";
+        }
+        else{
+            pathSkipInfo = "SkipInfoWithoutStemmingAndStopwordRemoving";
+            pathDocId = "InvertedDocIdWithoutStemmingAndStopwordRemoving";
+            pathTF = "InvertedTFWithoutStemmingAndStopwordRemoving";
+        }
         P.get(index).remove(0);
         Ptf.get(index).remove(0);
         //Add case finish block
@@ -110,14 +123,14 @@ public class MaxScore {
             }
            else {
                System.out.println("ENTRO");
-               SkipBlock newInfo = SkipBlock.readSkipBlockFromFile("SkipInfo", offsetSkipInfo + 32*currentBlocks.get(index));
+               SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(pathSkipInfo, offsetSkipInfo + 32*currentBlocks.get(index));
                info.set(index, newInfo);
                ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
-                       InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedDocId", newInfo.getoffsetDocId(),
+                       InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocId, newInfo.getoffsetDocId(),
                                newInfo.getLenBlockDocId())));
                P.set(index, docids);
                ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                       "InvertedTF", newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
+                       pathTF, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                Ptf.set(index, tfs);
                System.out.println("FINE");
                return true;
@@ -127,6 +140,19 @@ public class MaxScore {
     }
 
     public void nextGEQ(int index, long value, long startSkipBlock, int nBlock){
+        String pathSkipInfo;
+        String pathDocId;
+        String pathTF;
+        if(MainQueryProcessing.flagStopWordAndStemming == 1){
+            pathSkipInfo = "SkipInfoStemmedAndStopwordRemoved";
+            pathDocId = "InvertedDocIdStemmedAndStopwordRemoved";
+            pathTF = "InvertedTFStemmedAndStopwordRemoved";
+        }
+        else{
+            pathSkipInfo = "SkipInfoWithoutStemmingAndStopwordRemoving";
+            pathDocId = "InvertedDocIdWithoutStemmingAndStopwordRemoving";
+            pathTF = "InvertedTFWithoutStemmingAndStopwordRemoving";
+        }
         System.out.println("ENTRAAAAAAA");
         for (int i = 0; i< P.get(index).size();i++){
             if(P.get(index).get(i) < value){
@@ -139,14 +165,14 @@ public class MaxScore {
             while(currentBlocks.get(index) < nBlock){
                 currentBlocks.set(index, currentBlocks.get(index)+1);
                 // leggere il prossimo SkipBlock
-                SkipBlock newInfo = SkipBlock.readSkipBlockFromFile("SkipInfo", startSkipBlock+32*currentBlocks.get(index));
+                SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(pathSkipInfo, startSkipBlock+32*currentBlocks.get(index));
                 if(newInfo.getFinalDocId() >= value){
                     ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
-                            InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedDocId", newInfo.getoffsetDocId(),
+                            InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocId, newInfo.getoffsetDocId(),
                                     newInfo.getLenBlockDocId())));
                     P.set(index, docids);
                     ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                            "InvertedTF", newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
+                            pathTF, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                     Ptf.set(index, tfs);
                     for(int i=0; i<P.get(index).size(); i++){
                         if(P.get(index).get(i) < value) {
@@ -199,6 +225,20 @@ public class MaxScore {
 
     public ResultQueue maxScore(LexiconFinal lex) throws FileNotFoundException {
         MaxScore maxScore = new MaxScore(lex.lexicon.size(), scoringFunction);
+        String pathSkipInfo;
+        String pathDocID;
+        String pathTF;
+        if(MainQueryProcessing.flagStopWordAndStemming == 1){
+            pathSkipInfo = "SkipInfoStemmedAndStopwordRemoved";
+            pathDocID = "InvertedDocIdStemmedAndStopwordRemoved";
+            pathTF = "InvertedTFStemmedAndStopwordRemoved";
+        }
+        else{
+            pathSkipInfo = "SkipInfoWithoutStemmingAndStopwordRemoving";
+            pathDocID = "InvertedDocIdWithoutStemmingAndStopwordRemoving";
+            pathTF = "InvertedTFWithoutStemmingAndStopwordRemoving";
+        }
+
         for (Text term : lex.lexicon.keySet()){
             //Trovo posizione ordinata dove inserire il valore
             int index = findIndexToAdd(lex.lexicon.get(term).getTermUpperBoundTFIDF());
@@ -207,17 +247,17 @@ public class MaxScore {
             sigma.add(index,lex.lexicon.get(term).getTermUpperBoundTFIDF());
 
             //Calcolo skipInfo dei primi blocchi e li ordino in base a sigma
-            info.add(index,SkipBlock.readSkipBlockFromFile("SkipInfo",lex.lexicon.get(term).getOffsetSkipBlocks()));
+            info.add(index,SkipBlock.readSkipBlockFromFile(pathSkipInfo,lex.lexicon.get(term).getOffsetSkipBlocks()));
 
             //Trovo postingList primo blocco e lo inserisco nel vettore P(matrice delle postingList di ogni queryTerm ordinato in base a sigma)
             ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
-                    InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedDocId",info.get(index).getoffsetDocId(),
+                    InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocID,info.get(index).getoffsetDocId(),
                             info.get(index).getLenBlockDocId())));
             P.add(index,docids);
 
             //Troviamo le tf dei primi blocchi ordinati in base a sigma
             ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                    "InvertedTF",info.get(index).getOffsetTf(),info.get(index).getLenBlockTf()));
+                    pathTF,info.get(index).getOffsetTf(),info.get(index).getLenBlockTf()));
             Ptf.add(index,tfs);
 
             //Variabile usate per tenere traccia del nuovo ordine

@@ -353,7 +353,7 @@ public class InvertedIndex {
     }
 
     public static ArrayList<Long> compression(long startLexiconLine,String pathLexMerge,String pathInvDocIds,String pathInvTfs,
-                                   long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo,long offsetLexSkip) throws FileNotFoundException {
+                                   long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo, long offsetLexSkip, int flag) throws FileNotFoundException {
         //Open Lexicon to retrieve offset where is saved the PostingList
         LexiconLine line = Lexicon.readLexiconLine(pathLexMerge,startLexiconLine);
         //Save in Array elements that need to be compressed
@@ -391,18 +391,26 @@ public class InvertedIndex {
                 infoBlock.setFinalDocId(postingDocIds.get(i));
                 //Compression Tfs Array
                 byte[] compressedTfArray = compressListOfTFs(tfArray);
-                InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTF",compressedTfArray,offsetInvTFs);
+                if(flag == 1)
+                    InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTFStemmedAndStopwordRemoved",compressedTfArray,offsetInvTFs);
+                else
+                    InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTFWithoutStemmingAndStopwordRemoving",compressedTfArray,offsetInvTFs);
                 infoBlock.setLenBlockTf(compressedTfArray.length);
                 //Compression DGap Array
                 byte[] compressedDGap = compressListOfDocIDs(dGapArray);
-                InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocId",compressedDGap,offsetInvDocids);
+                if(flag == 1)
+                    InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocIdStemmedAndStopwordRemoved",compressedDGap,offsetInvDocids);
+                else
+                    InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocIdWithoutStemmingAndStopwordRemoving",compressedDGap,offsetInvDocids);
                 infoBlock.setLenBlockDocId(compressedDGap.length);
                 if(currentBlock == 0)
                     line.setOffsetSkipBlocks(offsetSkipInfo);
                 infoBlock.setOffsetDocId(offsetInvDocids); //Offset inserito punta al valore all'interno dell'InvertedIndex
                 infoBlock.setOffsetTf(offsetInvTFs);
-
-                infoBlock.saveSkipInfoBlock("SkipInfo",offsetSkipInfo, infoBlock.trasformInfoToByte());
+                if(flag == 1)
+                    infoBlock.saveSkipInfoBlock("SkipInfoStemmedAndStopwordRemoved", offsetSkipInfo, infoBlock.trasformInfoToByte());
+                else
+                    infoBlock.saveSkipInfoBlock("SkipInfoWithoutStemmingAndStopwordRemoving", offsetSkipInfo, infoBlock.trasformInfoToByte());
                 //Update all variables
                 currentBlock++;
                 offsetSkipInfo += 32; // 32 = vedi in classe skipinfo

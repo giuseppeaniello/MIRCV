@@ -63,7 +63,11 @@ public class DocumentTable {
     // method to load the document table from disk to main memory
     public static DocumentTable readDocumentTable(){
         System.out.println("Document table letta: ");
-        Path fileP = Paths.get("document_table");
+        Path fileP;
+        if(MainQueryProcessing.flagStopWordAndStemming==1)
+            fileP = Paths.get("document_table_stemmed_and_stopword_removed");
+        else
+            fileP = Paths.get("document_table_without_stemming_and_stopword_removal");
         DocumentTable result = new DocumentTable();
         ByteBuffer buffer = null;
         try (FileChannel fc = FileChannel.open(fileP, READ)) {

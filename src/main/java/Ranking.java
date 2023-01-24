@@ -1,5 +1,4 @@
 import org.apache.hadoop.io.Text;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -111,8 +110,16 @@ public class Ranking {
     }*/
 
     public static long binarySearchTermInLexicon(Text term) throws FileNotFoundException {
-        Path fileP = Paths.get("LexiconFinal" );
-        RandomAccessFile file = new RandomAccessFile(new File("LexiconFinal"), "r");
+        Path fileP;
+        RandomAccessFile file;
+        if(MainQueryProcessing.flagStopWordAndStemming == 1) {
+            fileP = Paths.get("LexiconFinalStemmedAndStopWordRemoved");
+            file = new RandomAccessFile(new File("LexiconFinalStemmedAndStopWordRemoved"), "r");
+        }
+        else{
+            fileP = Paths.get("LexiconFinalWithoutStemmingAndStopWordRemoval");
+            file = new RandomAccessFile(new File("LexiconFinalWithoutStemmingAndStopWordRemoval"), "r");
+        }
         //Get file channel in read-only mode
         long midpoint ;
         //Get direct byte buffer access using channel.map() operation
@@ -150,12 +157,17 @@ public class Ranking {
         return midpoint;
 
     }
+
     public static LexiconFinal createLexiconWithQueryTerm(ArrayList<Text> terms) throws FileNotFoundException {
         LexiconFinal lexQuery = new LexiconFinal();
         for (Text term:terms){
             long midpoint = binarySearchTermInLexicon(term);
             if (midpoint!=-1) {
-                LexiconLineFinal l = LexiconLineFinal.readLineLexicon("LexiconFinal", midpoint * 50);
+                LexiconLineFinal l;
+                if(MainQueryProcessing.flagStopWordAndStemming == 1)
+                    l = LexiconLineFinal.readLineLexicon("LexiconFinalStemmedAndStopWordRemoved", midpoint * 50);
+                else
+                    l = LexiconLineFinal.readLineLexicon("LexiconFinalWithoutStemmingAndStopWordRemoval", midpoint * 50);
                 lexQuery.lexicon.put(l.getTerm(), l.getLexiconValueFinal());
             }
         }
@@ -176,11 +188,6 @@ public class Ranking {
 
 
     }
-
-
-
-    //bm25
-    //termupperbound
 
 
 }

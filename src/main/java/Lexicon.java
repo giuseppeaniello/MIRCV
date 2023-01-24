@@ -344,38 +344,67 @@ public class Lexicon {
         }
     }
 
-    public  Ranking computeScoresForATermTfidfForUpperBound(Text term){
+    public  Ranking computeScoresForATermTfidfForUpperBound(Text term, int flag){
         Ranking result = new Ranking();
         long tmpPosPosting = lexicon.get(term).getOffsetSkipBlocks();
         int nBlocks = lexicon.get(term).getnBlock();
         ArrayList<SkipBlock> info = new ArrayList<>();
-        for(int i = 0 ; i<nBlocks; i++){
-            info.add(SkipBlock.readSkipBlockFromFile("SkipInfo", tmpPosPosting+(i*32) ));
+        if(flag==1) {
+            for (int i = 0; i < nBlocks; i++) {
+                info.add(SkipBlock.readSkipBlockFromFile("SkipInfoStemmedAndStopwordRemoved", tmpPosPosting + (i * 32)));
+            }
+            for (int i = 0;i<nBlocks; i++) {
+                ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                        "InvertedDocIdStemmedAndStopwordRemoved", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
+                ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                        "InvertedTFStemmedAndStopwordRemoved", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
+                result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lexicon.get(term).getDf());
+            }
         }
-        for (int i = 0;i<nBlocks; i++) {
-            ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                    "InvertedDocId", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
-            ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                    "InvertedTF", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
-            result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lexicon.get(term).getDf());
+        else{
+            for (int i = 0; i < nBlocks; i++) {
+                info.add(SkipBlock.readSkipBlockFromFile("SkipInfoWithoutStemmingAndStopwordRemoving", tmpPosPosting + (i * 32)));
+            }
+            for (int i = 0;i<nBlocks; i++) {
+                ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                        "InvertedDocIdWithoutStemmingAndStopwordRemoving", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
+                ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                        "InvertedTFWithoutStemmingAndStopwordRemoving", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
+                result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lexicon.get(term).getDf());
+            }
         }
+
         return result;
     }
 
-    public  Ranking computeScoresForATermBM25ForUpperBound(Text term, DocumentTable docTab){
+    public  Ranking computeScoresForATermBM25ForUpperBound(Text term, DocumentTable docTab, int flag){
         Ranking result = new Ranking();
         long tmpPosPosting = lexicon.get(term).getOffsetSkipBlocks();
         int nBlocks = lexicon.get(term).getnBlock();
         ArrayList<SkipBlock> info = new ArrayList<>();
-        for(int i = 0 ; i<nBlocks; i++){
-            info.add(SkipBlock.readSkipBlockFromFile("SkipInfo", tmpPosPosting+(i*32) ));
+        if(flag == 1) {
+            for (int i = 0; i < nBlocks; i++) {
+                info.add(SkipBlock.readSkipBlockFromFile("SkipInfoStemmedAndStopwordRemoved", tmpPosPosting + (i * 32)));
+            }
+            for (int i = 0; i < nBlocks; i++) {
+                ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                        "InvertedDocIdStemmedAndStopwordRemoved", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
+                ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                        "InvertedTFStemmedAndStopwordRemoved", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
+                result.computeRSVbm25(postingDocid, postingTf, docTab, lexicon.get(term).getDf());
+            }
         }
-        for (int i = 0;i<nBlocks; i++) {
-            ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                    "InvertedDocId", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
-            ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                    "InvertedTF", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
-            result.computeRSVbm25(postingDocid, postingTf, docTab, lexicon.get(term).getDf());
+        else{
+            for (int i = 0; i < nBlocks; i++) {
+                info.add(SkipBlock.readSkipBlockFromFile("SkipInfoWithoutStemmingAndStopwordRemoving", tmpPosPosting + (i * 32)));
+            }
+            for (int i = 0; i < nBlocks; i++) {
+                ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                        "InvertedDocIdWithoutStemmingAndStopwordRemoving", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
+                ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                        "InvertedTFWithoutStemmingAndStopwordRemoving", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
+                result.computeRSVbm25(postingDocid, postingTf, docTab, lexicon.get(term).getDf());
+            }
         }
         return result;
     }

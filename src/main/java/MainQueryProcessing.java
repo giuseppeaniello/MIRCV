@@ -6,6 +6,7 @@ import java.util.Scanner;
 
 
 public class MainQueryProcessing {
+    static int flagStopWordAndStemming;
 
     // first args (from args[0] to args[N-4] included are query terms
     // args[N-3] is the flag for stemming and stopwords removal, args[N-3]==1 the stemming and stopwords removal are applied
@@ -13,19 +14,20 @@ public class MainQueryProcessing {
     // args[N-1] is the flag to choose the scoring function. args[N-1]==0 means TFID, args[N-1]==1 means BM25
     public static void main(String[] args){
         try {
+            MainQueryProcessing.flagStopWordAndStemming = Integer.parseInt(args[args.length-3]);
             Preprocessing p = new Preprocessing();
             DocumentTable.readDocumentTable();
         } catch (IOException e) {
             e.printStackTrace();
         }
         while(true) {
-
             String query = "";
             for(int i=0; i<args.length-3; i++){
                 query += args[i];
+                query += " ";
             }
             try {
-                ArrayList<Text> queryTerms = Preprocessing.preprocess(query, Integer.parseInt(args[args.length-3]));
+                ArrayList<Text> queryTerms = Preprocessing.preprocess(query);
                 System.out.println(queryTerms);
                 LexiconFinal lexQuery = Ranking.createLexiconWithQueryTerm(queryTerms);
                 if(Integer.parseInt(args[args.length-2]) == 0){

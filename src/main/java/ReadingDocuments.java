@@ -16,7 +16,7 @@ public class ReadingDocuments {
 
     public static  int nFileUsed = 0;
 
-    public static void readDoc() throws IOException {
+    public static void readDoc(int flag) throws IOException {
         DocumentTable documentTab = new DocumentTable();
         //File test2 = new File("C:\\Users\\onpep\\Desktop\\InformationRetrivial\\Project\\a.tsv");
         File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\a.tsv");
@@ -38,7 +38,7 @@ public class ReadingDocuments {
                 String docCurrent = it.nextLine();
                 String docText = new String (docCurrent.split(",")[1].getBytes(StandardCharsets.UTF_8));
                 String docId = docCurrent.split(",")[0];
-                ArrayList<Text> docPreprocessed = preproc.preprocess(docText,1);
+                ArrayList<Text> docPreprocessed = preproc.preprocess(docText);
                 if(docPreprocessed!=null) {
                     for (Text term : docPreprocessed) {
                         lex.addElement(term, Long.parseLong(docId), invInd);
@@ -58,7 +58,10 @@ public class ReadingDocuments {
             indexOfFile++;
         }
         documentTab.calculateAverageLength();
-        documentTab.saveDocumentTable("document_table");
+        if(flag == 1)
+            documentTab.saveDocumentTable("document_table_stemmed_and_stopword_removed");
+        else
+            documentTab.saveDocumentTable("document_table_without_stemming_and_stopword_removal");
         System.out.println("document table salvata");
         documentTab.printDocumentTable();
         now = LocalDateTime.now();
@@ -86,13 +89,13 @@ public class ReadingDocuments {
             ArrayList<Long> offsets = InvertedIndex.compression(offsetFileLexicon,"Lexicon_Merge_number_"+(nFileUsed-1),
                     "Inverted_Index_Merge_DocId_number_"+(nFileUsed-1),
                     "Inverted_Index_Merge_TF_number_"+(nFileUsed-1), offsetFileInvertedDocId,
-                    offsetFileInvertedTf,offsetFileSkipInfo);
+                    offsetFileInvertedTf,offsetFileSkipInfo, flag);
             */
 
             ArrayList<Long> offsets = InvertedIndex.compression(i,"Lexicon_number_"+(1),
                     "Inverted_Index_DocId_number_"+(1),
                     "Inverted_Index_TF_number_"+(1), offsetFileInvertedDocId,
-                    offsetFileInvertedTf,offsetFileSkipInfo,offsetLexSkip);
+                    offsetFileInvertedTf,offsetFileSkipInfo,offsetLexSkip, flag);
 
             offsetFileSkipInfo = offsets.get(0);
             offsetFileInvertedDocId = offsets.get(1);
@@ -108,18 +111,21 @@ public class ReadingDocuments {
             lexValueFinal.setnBlock(lex.lexicon.get(term).getnBlock());
             lexValueFinal.setOffsetSkipBlocks(lex.lexicon.get(term).getOffsetSkipBlocks());
             //Compute termUpperBoundTFIDF
-            Ranking rankTFIDF = lex.computeScoresForATermTfidfForUpperBound(term);
+            Ranking rankTFIDF = lex.computeScoresForATermTfidfForUpperBound(term, flag);
             lexValueFinal.setTermUpperBoundTFIDF(rankTFIDF.computeTermUpperBound());
             //Compute termUpperBoundBM25
-            Ranking rankBM25 = lex.computeScoresForATermBM25ForUpperBound(term, documentTab);
+            Ranking rankBM25 = lex.computeScoresForATermBM25ForUpperBound(term, documentTab, flag);
             lexValueFinal.setTermUpperBoundBM25(rankBM25.computeTermUpperBound());
             lexFinal.lexicon.put(term,lexValueFinal);
         }
-        lexFinal.saveLexiconFinal("LexiconFinal");
+        if(flag == 1)
+            lexFinal.saveLexiconFinal("LexiconFinalStemmedAndStopWordRemoved");
+        else
+            lexFinal.saveLexiconFinal("LexiconFinalWithoutStemmingAndStopWordRemoval");
     }
 
     public static void main(String argv[]) throws IOException {
-        readDoc();
+        readDoc(1);
 
 
         //System.out.println( "\\u" + Integer.toHexString('÷' | 0x10000).substring(1) );
