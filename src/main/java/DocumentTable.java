@@ -153,18 +153,5 @@ public class DocumentTable {
     }
 
 
-    public static void main(String args[]){
-        long a = 8000000;
-        int c = 150000;
-        byte[] intArr = convertIntToByteArray(c);
-        byte[] longArr = convertLongToByteArr(a);
-
-        long res1 = convertByteArrToInt(intArr);
-        long res2 = convertByteArrToLong(longArr);
-
-        System.out.println(res1);
-        System.out.println(res2);
-
-    }
 
 }

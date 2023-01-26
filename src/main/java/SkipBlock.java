@@ -78,37 +78,31 @@ public class SkipBlock {
         return converted;
     }
 
-    public void saveSkipInfoBlock(String path, long startingPoint, byte[] info) throws FileNotFoundException {
-        RandomAccessFile fileTf = new RandomAccessFile(path ,"rw");
-        Path fileP = Paths.get(path);
+    public void saveSkipInfoBlock(FileChannel fc, long startingPoint, byte[] info) throws IOException {
+
         ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-            fc.position(startingPoint);
-            buffer = ByteBuffer.wrap(info);
-            while (buffer.hasRemaining()) {
-                fc.write(buffer);
-            }
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
+        fc.position(startingPoint);
+        buffer = ByteBuffer.wrap(info);
+        while (buffer.hasRemaining()) {
+            fc.write(buffer);
         }
+        buffer.clear();
+
     }
 
-    public static SkipBlock readSkipBlockFromFile(String filePath, long startReadingPosition){
-        Path fileP = Paths.get(filePath);
+    public static SkipBlock readSkipBlockFromFile(FileChannel fc, long startReadingPosition) throws IOException {
+
         ByteBuffer buffer = null;
         SkipBlock skipInf = null;
-        try (FileChannel fc = FileChannel.open(fileP, READ)) {
-            fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(32);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            skipInf = transformSkipInfoByteToValue(buffer.array());
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
+
+        fc.position(startReadingPosition);
+        buffer = ByteBuffer.allocate(32);
+        do {
+            fc.read(buffer);
+        } while (buffer.hasRemaining());
+        skipInf = transformSkipInfoByteToValue(buffer.array());
+        buffer.clear();
+
         return skipInf;
     }
 

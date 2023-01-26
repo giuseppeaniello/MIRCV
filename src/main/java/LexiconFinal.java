@@ -18,28 +18,24 @@ public class LexiconFinal {
         this.lexicon = new TreeMap<>();
     }
 
-    public void saveLexiconFinal(String filePath) throws FileNotFoundException {
-        RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
-        Path fileP = Paths.get(filePath );
+    public void saveLexiconFinal(FileChannel fc) throws IOException {
+
         ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-            for(Text key : lexicon.keySet()){
-                buffer = ByteBuffer.wrap(key.getBytes());
-                while (buffer.hasRemaining()) {
-                    fc.write(buffer);
-                }
-                buffer.clear();
-                byte[] valueByte = lexicon.get(key).transformValueToByte();
-                buffer = ByteBuffer.wrap(valueByte);
-                while (buffer.hasRemaining()) {
-                    fc.write(buffer);
-                }
-                buffer.clear();
+        for(Text key : lexicon.keySet()){
+            buffer = ByteBuffer.wrap(key.getBytes());
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
             }
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
+            buffer.clear();
+            byte[] valueByte = lexicon.get(key).transformValueToByte();
+            buffer = ByteBuffer.wrap(valueByte);
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
+            }
+            buffer.clear();
         }
     }
+
 
     public void save(String filePath) throws FileNotFoundException {
         RandomAccessFile file = new RandomAccessFile(filePath ,"rw");

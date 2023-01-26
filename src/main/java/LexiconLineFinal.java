@@ -95,38 +95,30 @@ public class LexiconLineFinal {
         return l;
     }
 
-    public static LexiconLineFinal readLineLexicon(String filePath, long offset){
-        Path fileP = Paths.get(filePath);
+    public static LexiconLineFinal readLineLexicon(FileChannel fc, long offset) throws IOException {
         ByteBuffer buffer;
         LexiconLineFinal lex = new LexiconLineFinal();
-        try (FileChannel fc = FileChannel.open(fileP, READ)) {
+        fc.position(offset);
+        buffer = ByteBuffer.allocate(22);
+        do {
+            fc.read(buffer);
+        } while (buffer.hasRemaining());
+        lex.setTerm(new Text(buffer.array()));
 
-            fc.position(offset);
-            buffer = ByteBuffer.allocate(22);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            lex.setTerm(new Text(buffer.array()));
-
-            buffer.clear();
-            fc.position( offset+ 22);
-            buffer = ByteBuffer.allocate(28);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            LexiconValueFinal val = LexiconValueFinal.transformByteToValue(buffer.array());
-            lex.setCf(val.getCf());
-            lex.setDf(val.getDf());
-            lex.setnBlock(val.getnBlock());
-            lex.setOffsetSkipBlocks(val.getOffsetSkipBlocks());
-            lex.setTermUpperBoundTFIDF(val.getTermUpperBoundTFIDF());
-            lex.setTermUpperBoundBM25(val.getTermUpperBoundBM25());
-            buffer.clear();
-
-
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
+        buffer.clear();
+        fc.position( offset+ 22);
+        buffer = ByteBuffer.allocate(28);
+        do {
+            fc.read(buffer);
+        } while (buffer.hasRemaining());
+        LexiconValueFinal val = LexiconValueFinal.transformByteToValue(buffer.array());
+        lex.setCf(val.getCf());
+        lex.setDf(val.getDf());
+        lex.setnBlock(val.getnBlock());
+        lex.setOffsetSkipBlocks(val.getOffsetSkipBlocks());
+        lex.setTermUpperBoundTFIDF(val.getTermUpperBoundTFIDF());
+        lex.setTermUpperBoundBM25(val.getTermUpperBoundBM25());
+        buffer.clear();
         return lex;
     }
 }

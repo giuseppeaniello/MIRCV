@@ -1,5 +1,10 @@
 import org.apache.hadoop.io.Text;
+
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import static java.lang.Math.log;
@@ -91,20 +96,9 @@ public class MaxScore {
         return Collections.min(tmp);
     }
 
-    public boolean nextDocId(int index, long offsetSkipInfo, int nBlocks){
-        String pathSkipInfo;
-        String pathDocId;
-        String pathTF;
-        if(MainQueryProcessing.flagStopWordAndStemming == 1){
-            pathSkipInfo = "SkipInfoStemmedAndStopwordRemoved";
-            pathDocId = "InvertedDocIdStemmedAndStopwordRemoved";
-            pathTF = "InvertedTFStemmedAndStopwordRemoved";
-        }
-        else{
-            pathSkipInfo = "SkipInfoWithoutStemmingAndStopwordRemoving";
-            pathDocId = "InvertedDocIdWithoutStemmingAndStopwordRemoving";
-            pathTF = "InvertedTFWithoutStemmingAndStopwordRemoving";
-        }
+    public boolean nextDocId(int index, long offsetSkipInfo, int nBlocks,FileChannel skipChannel,
+                             FileChannel docIdChannel, FileChannel tfChannel) throws IOException {
+
         P.get(index).remove(0);
         Ptf.get(index).remove(0);
         //Add case finish block
@@ -123,14 +117,14 @@ public class MaxScore {
             }
            else {
                System.out.println("ENTRO");
-               SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(pathSkipInfo, offsetSkipInfo + 32*currentBlocks.get(index));
+               SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(skipChannel, offsetSkipInfo + 32*currentBlocks.get(index));
                info.set(index, newInfo);
                ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
-                       InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocId, newInfo.getoffsetDocId(),
+                       InvertedIndex.readDocIDsOrTFsPostingListCompressed(docIdChannel, newInfo.getoffsetDocId(),
                                newInfo.getLenBlockDocId())));
                P.set(index, docids);
                ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                       pathTF, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
+                       tfChannel, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                Ptf.set(index, tfs);
                System.out.println("FINE");
                return true;
@@ -139,21 +133,10 @@ public class MaxScore {
         return true;
     }
 
-    public void nextGEQ(int index, long value, long startSkipBlock, int nBlock){
-        String pathSkipInfo;
-        String pathDocId;
-        String pathTF;
-        if(MainQueryProcessing.flagStopWordAndStemming == 1){
-            pathSkipInfo = "SkipInfoStemmedAndStopwordRemoved";
-            pathDocId = "InvertedDocIdStemmedAndStopwordRemoved";
-            pathTF = "InvertedTFStemmedAndStopwordRemoved";
-        }
-        else{
-            pathSkipInfo = "SkipInfoWithoutStemmingAndStopwordRemoving";
-            pathDocId = "InvertedDocIdWithoutStemmingAndStopwordRemoving";
-            pathTF = "InvertedTFWithoutStemmingAndStopwordRemoving";
-        }
-        System.out.println("ENTRAAAAAAA");
+    public void nextGEQ(int index, long value, long startSkipBlock, int nBlock,FileChannel skipChannel,
+                        FileChannel docIdChannel, FileChannel tfChannel) throws IOException {
+
+
         for (int i = 0; i< P.get(index).size();i++){
             if(P.get(index).get(i) < value){
                 P.get(index).remove(i);
@@ -165,14 +148,14 @@ public class MaxScore {
             while(currentBlocks.get(index) < nBlock){
                 currentBlocks.set(index, currentBlocks.get(index)+1);
                 // leggere il prossimo SkipBlock
-                SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(pathSkipInfo, startSkipBlock+32*currentBlocks.get(index));
+                SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(skipChannel, startSkipBlock+32*currentBlocks.get(index));
                 if(newInfo.getFinalDocId() >= value){
                     ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
-                            InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocId, newInfo.getoffsetDocId(),
+                            InvertedIndex.readDocIDsOrTFsPostingListCompressed(docIdChannel, newInfo.getoffsetDocId(),
                                     newInfo.getLenBlockDocId())));
                     P.set(index, docids);
                     ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                            pathTF, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
+                            tfChannel, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                     Ptf.set(index, tfs);
                     for(int i=0; i<P.get(index).size(); i++){
                         if(P.get(index).get(i) < value) {
@@ -223,7 +206,7 @@ public class MaxScore {
             return scoreBM25(tf, df, dl);
     }
 
-    public ResultQueue maxScore(LexiconFinal lex) throws FileNotFoundException {
+    public ResultQueue maxScore(LexiconFinal lex) throws IOException {
         MaxScore maxScore = new MaxScore(lex.lexicon.size(), scoringFunction);
         String pathSkipInfo;
         String pathDocID;
@@ -238,6 +221,12 @@ public class MaxScore {
             pathDocID = "InvertedDocIdWithoutStemmingAndStopwordRemoving";
             pathTF = "InvertedTFWithoutStemmingAndStopwordRemoving";
         }
+        RandomAccessFile invertedDocIdFile = new RandomAccessFile(new File(pathDocID), "r");
+        FileChannel invDocIdsChannel = invertedDocIdFile.getChannel();
+        RandomAccessFile invTfsFile = new RandomAccessFile(new File(pathTF), "r");
+        FileChannel invertedTfsChannel = invTfsFile.getChannel();
+        RandomAccessFile skipInfoFile = new RandomAccessFile(new File(pathSkipInfo), "r");
+        FileChannel skipInfoChannel = skipInfoFile.getChannel();
 
         for (Text term : lex.lexicon.keySet()){
             //Trovo posizione ordinata dove inserire il valore
@@ -247,17 +236,17 @@ public class MaxScore {
             sigma.add(index,lex.lexicon.get(term).getTermUpperBoundTFIDF());
 
             //Calcolo skipInfo dei primi blocchi e li ordino in base a sigma
-            info.add(index,SkipBlock.readSkipBlockFromFile(pathSkipInfo,lex.lexicon.get(term).getOffsetSkipBlocks()));
+            info.add(index,SkipBlock.readSkipBlockFromFile(skipInfoChannel,lex.lexicon.get(term).getOffsetSkipBlocks()));
 
             //Trovo postingList primo blocco e lo inserisco nel vettore P(matrice delle postingList di ogni queryTerm ordinato in base a sigma)
             ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
-                    InvertedIndex.readDocIDsOrTFsPostingListCompressed(pathDocID,info.get(index).getoffsetDocId(),
+                    InvertedIndex.readDocIDsOrTFsPostingListCompressed(invDocIdsChannel,info.get(index).getoffsetDocId(),
                             info.get(index).getLenBlockDocId())));
             P.add(index,docids);
 
             //Troviamo le tf dei primi blocchi ordinati in base a sigma
             ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                    pathTF,info.get(index).getOffsetTf(),info.get(index).getLenBlockTf()));
+                    invertedTfsChannel,info.get(index).getOffsetTf(),info.get(index).getLenBlockTf()));
             Ptf.add(index,tfs);
 
             //Variabile usate per tenere traccia del nuovo ordine
@@ -275,7 +264,8 @@ public class MaxScore {
             for(int i = pivot ;i<n ; i++) {
                 if(P.get(i).get(0) == current){
                     score += score(Ptf.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getDf(), DocumentTable.getDocTab().get(P.get(i).get(0))) ;
-                    if( !nextDocId(i,lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(),lex.lexicon.get(termOrdered.get(i)).getnBlock()) ){
+                    if( !nextDocId(i,lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(),lex.lexicon.get(termOrdered.get(i)).getnBlock(),
+                            skipInfoChannel,invDocIdsChannel,invertedTfsChannel) ){
                         if(i!=0)
                             i -= 1;
                     }
@@ -287,7 +277,8 @@ public class MaxScore {
             for(int i = pivot-1; i >= 0; i--){
                 if (score + ub.get(i) <= threshold)
                     break;
-                nextGEQ(i, current, lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(), lex.lexicon.get(termOrdered.get(i)).getnBlock());
+                nextGEQ(i, current, lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(), lex.lexicon.get(termOrdered.get(i)).getnBlock(),
+                        skipInfoChannel,invDocIdsChannel,invertedTfsChannel);
                 if(P.get(i).get(0) == current){
                      score += score(Ptf.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getDf(), DocumentTable.getDocTab().get(P.get(i).get(0)));
                 }
@@ -303,24 +294,6 @@ public class MaxScore {
         return topK;
     }
 
-    public static void main(String arg[]) throws FileNotFoundException {
-        ArrayList<Text> terms = new ArrayList<>();
-        DocumentTable.readDocumentTable();
-        terms.add(new Text("ciao                "));
-        terms.add(new Text("anna                "));
-        terms.add(new Text("santi               "));
-        terms.add(new Text("de                  "));
-        terms.add(new Text("chiamo              "));
-        terms.add(new Text("mi                  "));
-
-        LexiconFinal lex = Ranking.createLexiconWithQueryTerm(terms);
-        MaxScore max = new MaxScore(lex.lexicon.size(), 1);
-        ResultQueue qq = max.maxScore(lex);
-        for(QueueElement qe : qq.queue){
-            System.out.println(qe.getDocID() + " " + qe.getScore());
-        }
-
-    }
 
 
 }

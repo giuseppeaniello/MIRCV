@@ -1,5 +1,7 @@
 import com.google.common.primitives.Bytes;
 import org.apache.hadoop.io.Text;
+
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -57,7 +59,7 @@ public class Lexicon {
     }
 
     // method to save on file the lexicon
-    public void saveLexiconOnFile(String filePath, FileChannel fc) throws IOException {
+    public void saveLexiconOnFile(FileChannel fc) throws IOException {
         ByteBuffer buffer = null;
         for(Text key : lexicon.keySet()){
             buffer = ByteBuffer.wrap(key.getBytes());
@@ -125,64 +127,55 @@ public class Lexicon {
     }
 
     // method to read a single lexicon line from file given the offset in which this line starts on file
-    public static LexiconLine readLexiconLine(String filePath,long startReadingPosition){
-        Path fileP = Paths.get(filePath);
+    public static LexiconLine readLexiconLine(FileChannel fc,long startReadingPosition) throws IOException {
         ByteBuffer buffer = null;
         LexiconLine lexVal = new LexiconLine();
-        try (FileChannel fc = FileChannel.open(fileP, READ)) {
-            // reading of the term
-            fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(22);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            lexVal.setTerm(new Text(buffer.array()));
-            buffer.clear();
-            // reading of the values
-            fc.position(startReadingPosition+22);
-            buffer = ByteBuffer.allocate(32); //5 is the total number of bytes to read a complete term of the lexicon
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            // setting all the read values in the LexiconLine to be returned
-            LexiconValue values = transformByteToValue(buffer.array());
-            buffer.clear();
-            lexVal.setCf(values.getCf());
-            lexVal.setDf(values.getDf());
-            lexVal.setOffsetTF(values.getOffsetTF());
-            lexVal.setOffsetDocID(values.getOffsetDocID());
-            lexVal.setLenOfDocID(values.getLenOfDocID());
-            lexVal.setLenOfTF(values.getLenOfTF());
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
+        // reading of the term
+        fc.position(startReadingPosition);
+        buffer = ByteBuffer.allocate(22);
+        do {
+            fc.read(buffer);
+        } while (buffer.hasRemaining());
+        lexVal.setTerm(new Text(buffer.array()));
+        buffer.clear();
+        // reading of the values
+        fc.position(startReadingPosition+22);
+        buffer = ByteBuffer.allocate(32); //5 is the total number of bytes to read a complete term of the lexicon
+        do {
+            fc.read(buffer);
+        } while (buffer.hasRemaining());
+        // setting all the read values in the LexiconLine to be returned
+        LexiconValue values = transformByteToValue(buffer.array());
+        buffer.clear();
+        lexVal.setCf(values.getCf());
+        lexVal.setDf(values.getDf());
+        lexVal.setOffsetTF(values.getOffsetTF());
+        lexVal.setOffsetDocID(values.getOffsetDocID());
+        lexVal.setLenOfDocID(values.getLenOfDocID());
+        lexVal.setLenOfTF(values.getLenOfTF());
+
         return lexVal;
     }
 
     // method to read a term from a block of Lexicon during SPIMI
-    public static Text readTermFromBlock(String filePath, int startReadingPosition){
-        Path fileP = Paths.get(filePath);
+    public static Text readTermFromBlock(FileChannel fc, int startReadingPosition) throws IOException {
         ByteBuffer buffer = null;
         Text term = null;
-        try (FileChannel fc = FileChannel.open(fileP, READ)) {
-            fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(22);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            term = new Text(buffer.array());
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
+        fc.position(startReadingPosition);
+        buffer = ByteBuffer.allocate(22);
+        do {
+            fc.read(buffer);
+        } while (buffer.hasRemaining());
+        term = new Text(buffer.array());
+        buffer.clear();
         return term;
     }
 
     // method to merge all the blocks created during SPIMI in order to obtain a single Lexicon and a single InvertedIndex
     // this merge is performed two files at a time until there is just one file left
-    public static void mergeBlocks(String pathLex1, String pathLex2, String pathLexMerge, String pathDocID1,
-                                   String pathDocID2, String pathDocIDMerge, String pathTF1, String pathTF2,
-                                   String pathTFMerge) throws IOException {
+      public static void mergeBlocks(FileChannel fcLex1, FileChannel fcLex2, FileChannel fcLexMerge, FileChannel fcDocID1,
+                                   FileChannel fcDocID2, FileChannel fcDocIDMerge, FileChannel fcTF1, FileChannel fcTF2,
+                                   FileChannel fcTFMerge) throws IOException {
         // offset to read on file1
         int readingPositionFileLex1 = 0;
         // offset to read on file2
@@ -193,19 +186,16 @@ public class Lexicon {
         long offsetDocIdMerge = 0;
         // offset to write TFs in file merge
         long offsetTFMerge = 0;
-        Path fileLex1 = Paths.get(pathLex1);
-        Path fileLex2 = Paths.get(pathLex2);
-        FileChannel fcLex1 = FileChannel.open(fileLex1, READ);
-        FileChannel fcLex2 = FileChannel.open(fileLex2, READ);
+
         // while neither file1 or file2 has completely been read
         while (readingPositionFileLex1 < fcLex1.size() && readingPositionFileLex2 < fcLex2.size()) {
             // read the two terms
-            Text t1 = readTermFromBlock(pathLex1, readingPositionFileLex1);
-            Text t2 = readTermFromBlock(pathLex2, readingPositionFileLex2);
+            Text t1 = readTermFromBlock(fcLex1, readingPositionFileLex1);
+            Text t2 = readTermFromBlock(fcLex2, readingPositionFileLex2);
             // if the two terms are the same term
             if (t1.compareTo(t2) == 0) {
-                LexiconLine lineLex1 = readLexiconLine(pathLex1, readingPositionFileLex1);
-                LexiconLine lineLex2 = readLexiconLine(pathLex2, readingPositionFileLex2);
+                LexiconLine lineLex1 = readLexiconLine(fcLex1, readingPositionFileLex1);
+                LexiconLine lineLex2 = readLexiconLine(fcLex2, readingPositionFileLex2);
                 LexiconLine lineLexMerge = new LexiconLine();
                 lineLexMerge.setTerm(t1);
                 // the two CFs are summed
@@ -214,53 +204,53 @@ public class Lexicon {
                 lineLexMerge.setDf(lineLex1.getDf() + lineLex2.getDf());
                 //
                 //Fusione delle due posting con docids (la seconda va inserita alla fine della prima) Check per verificare
-                byte[] byteArrayMergeDocId = Bytes.concat(InvertedIndex.readOneDocIdPostingList(lineLex1.getOffsetDocID(), pathDocID1, lineLex1.getDf()),
-                        InvertedIndex.readOneDocIdPostingList(lineLex2.getOffsetDocID(), pathDocID2, lineLex2.getDf()));
-                InvertedIndex.saveDocIdsOrTfsPostingLists(pathDocIDMerge,byteArrayMergeDocId,offsetDocIdMerge);
+                byte[] byteArrayMergeDocId = Bytes.concat(InvertedIndex.readOneDocIdPostingList(lineLex1.getOffsetDocID(), fcDocID1, lineLex1.getDf()),
+                        InvertedIndex.readOneDocIdPostingList(lineLex2.getOffsetDocID(), fcDocID2, lineLex2.getDf()));
+                InvertedIndex.saveDocIdsOrTfsPostingLists(fcDocIDMerge,byteArrayMergeDocId,offsetDocIdMerge);
                 lineLexMerge.setOffsetDocID(offsetDocIdMerge);
                 //Fusione delle due Posting con tf
-                byte[] byteArrayMergeTf = Bytes.concat(InvertedIndex.readOneTfsPostingList(lineLex1.getOffsetTF(), pathTF1, lineLex1.getDf()),
-                        InvertedIndex.readOneTfsPostingList(lineLex2.getOffsetTF(),pathTF2,lineLex2.getDf()));
-                InvertedIndex.saveDocIdsOrTfsPostingLists(pathTFMerge,byteArrayMergeTf,offsetTFMerge);
+                byte[] byteArrayMergeTf = Bytes.concat(InvertedIndex.readOneTfsPostingList(lineLex1.getOffsetTF(), fcTF1, lineLex1.getDf()),
+                        InvertedIndex.readOneTfsPostingList(lineLex2.getOffsetTF(),fcTF2,lineLex2.getDf()));
+                InvertedIndex.saveDocIdsOrTfsPostingLists(fcTFMerge,byteArrayMergeTf,offsetTFMerge);
                 lineLexMerge.setOffsetTF(offsetTFMerge);
                 offsetDocIdMerge += byteArrayMergeDocId.length;
                 offsetTFMerge += byteArrayMergeTf.length;
                 lineLexMerge.setLenOfDocID(byteArrayMergeDocId.length);
                 lineLexMerge.setLenOfTF(byteArrayMergeTf.length);
-                lineLexMerge.saveLexiconLineOnFile(pathLexMerge,offsetFileLexMerge);
+                lineLexMerge.saveLexiconLineOnFile(fcLexMerge,offsetFileLexMerge);
                 readingPositionFileLex1 += 54;
                 readingPositionFileLex2 += 54;
                 offsetFileLexMerge += 54;
             }
             else if (t1.compareTo(t2) > 0) { // caso t1>t2
-                LexiconLine lineLex = readLexiconLine(pathLex2, readingPositionFileLex2); //leggi lexiconLine
+                LexiconLine lineLex = readLexiconLine(fcLex2, readingPositionFileLex2); //leggi lexiconLine
 
-                InvertedIndex.saveDocIdsOrTfsPostingLists(pathDocIDMerge,
-                        InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),pathDocID2, lineLex.getDf()),offsetDocIdMerge);
+                InvertedIndex.saveDocIdsOrTfsPostingLists(fcDocIDMerge,
+                        InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),fcDocID2, lineLex.getDf()),offsetDocIdMerge);
                 lineLex.setOffsetDocID(offsetDocIdMerge);
 
-                InvertedIndex.saveDocIdsOrTfsPostingLists(pathTFMerge,
-                        InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), pathTF2, lineLex.getDf()),offsetTFMerge);
+                InvertedIndex.saveDocIdsOrTfsPostingLists(fcTFMerge,
+                        InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), fcTF2, lineLex.getDf()),offsetTFMerge);
                 lineLex.setOffsetTF(offsetTFMerge);
 
-                lineLex.saveLexiconLineOnFile(pathLexMerge, offsetFileLexMerge);
+                lineLex.saveLexiconLineOnFile(fcLexMerge, offsetFileLexMerge);
                 //Set degli elementi aggiornati
                 offsetDocIdMerge += lineLex.getLenOffDocID();
                 offsetTFMerge += lineLex.getLenOffTF();
                 readingPositionFileLex2 += 54;
                 offsetFileLexMerge += 54;
             } else { // caso t2>t1
-                LexiconLine lineLex = readLexiconLine(pathLex1, readingPositionFileLex1);
+                LexiconLine lineLex = readLexiconLine(fcLex1, readingPositionFileLex1);
 
-                InvertedIndex.saveDocIdsOrTfsPostingLists(pathDocIDMerge,
-                        InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),pathDocID1, lineLex.getDf()),offsetDocIdMerge);
+                InvertedIndex.saveDocIdsOrTfsPostingLists(fcDocIDMerge,
+                        InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),fcDocID1, lineLex.getDf()),offsetDocIdMerge);
                 lineLex.setOffsetDocID(offsetDocIdMerge);
 
-                InvertedIndex.saveDocIdsOrTfsPostingLists(pathTFMerge,
-                        InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), pathTF1, lineLex.getDf()),offsetTFMerge);
+                InvertedIndex.saveDocIdsOrTfsPostingLists(fcTFMerge,
+                        InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), fcTF1, lineLex.getDf()),offsetTFMerge);
                 lineLex.setOffsetTF(offsetTFMerge);
 
-                lineLex.saveLexiconLineOnFile(pathLexMerge, offsetFileLexMerge);
+                lineLex.saveLexiconLineOnFile(fcLexMerge, offsetFileLexMerge);
 
                 offsetDocIdMerge += lineLex.getLenOffDocID();
                 offsetTFMerge += lineLex.getLenOffTF();
@@ -269,17 +259,17 @@ public class Lexicon {
             }
         }
         while (readingPositionFileLex1 < fcLex1.size()) {
-            LexiconLine lineLex = readLexiconLine(pathLex1, readingPositionFileLex1);
+            LexiconLine lineLex = readLexiconLine(fcLex1, readingPositionFileLex1);
 
-            InvertedIndex.saveDocIdsOrTfsPostingLists(pathDocIDMerge,
-                    InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),pathDocID1, lineLex.getDf()),offsetDocIdMerge);
+            InvertedIndex.saveDocIdsOrTfsPostingLists(fcDocIDMerge,
+                    InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),fcDocID1, lineLex.getDf()),offsetDocIdMerge);
             lineLex.setOffsetDocID(offsetDocIdMerge);
 
-            InvertedIndex.saveDocIdsOrTfsPostingLists(pathTFMerge,
-                    InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), pathTF1, lineLex.getDf()),offsetTFMerge);
+            InvertedIndex.saveDocIdsOrTfsPostingLists(fcTFMerge,
+                    InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), fcTF1, lineLex.getDf()),offsetTFMerge);
             lineLex.setOffsetTF(offsetTFMerge);
 
-            lineLex.saveLexiconLineOnFile(pathLexMerge, offsetFileLexMerge);
+            lineLex.saveLexiconLineOnFile(fcLexMerge, offsetFileLexMerge);
 
             offsetDocIdMerge += lineLex.getLenOffDocID();
             offsetTFMerge += lineLex.getLenOffTF();
@@ -287,31 +277,24 @@ public class Lexicon {
             offsetFileLexMerge += 54;
         }
         while (readingPositionFileLex2 < fcLex2.size()) {
-            LexiconLine lineLex = readLexiconLine(pathLex2, readingPositionFileLex2);
+            LexiconLine lineLex = readLexiconLine(fcLex2, readingPositionFileLex2);
 
-            InvertedIndex.saveDocIdsOrTfsPostingLists(pathDocIDMerge,
-                    InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),pathDocID2, lineLex.getDf()),offsetDocIdMerge);
+            InvertedIndex.saveDocIdsOrTfsPostingLists(fcDocIDMerge,
+                    InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),fcDocID2, lineLex.getDf()),offsetDocIdMerge);
             lineLex.setOffsetDocID(offsetDocIdMerge);
 
-            InvertedIndex.saveDocIdsOrTfsPostingLists(pathTFMerge,
-                    InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), pathTF2, lineLex.getDf()), offsetTFMerge);
+            InvertedIndex.saveDocIdsOrTfsPostingLists(fcTFMerge,
+                    InvertedIndex.readOneTfsPostingList(lineLex.getOffsetTF(), fcTF2, lineLex.getDf()), offsetTFMerge);
             lineLex.setOffsetTF(offsetTFMerge);
 
-            lineLex.saveLexiconLineOnFile(pathLexMerge, offsetFileLexMerge);
+            lineLex.saveLexiconLineOnFile(fcLexMerge, offsetFileLexMerge);
 
             offsetDocIdMerge += lineLex.getLenOffDocID();
             offsetTFMerge += lineLex.getLenOffTF();
             readingPositionFileLex2 += 54;
             offsetFileLexMerge += 54;
         }
-        fcLex2.close();
-        fcLex1.close();
-        deleteFile(pathLex2);
-        deleteFile(pathLex1);
-        deleteFile(pathDocID1);
-        deleteFile(pathDocID2);
-        deleteFile(pathTF1);
-        deleteFile(pathTF2);
+
     }
 
     public static void deleteFile(String path) {
@@ -328,252 +311,171 @@ public class Lexicon {
     }
 
     public static  void mergeAllBlocks() throws IOException {
-
-        mergeBlocks("Lexicon_number_1","Lexicon_number_2","Lexicon_Merge_number_1",
-                "Inverted_Index_DocId_number_1","Inverted_Index_DocId_number_2","Inverted_Index_Merge_DocId_number_1",
-                "Inverted_Index_TF_number_1","Inverted_Index_TF_number_2","Inverted_Index_Merge_TF_number_1");
+        //Open all fileChannel
+        RandomAccessFile lexFile1 = new RandomAccessFile(new File("Lexicon_number_"+1), "r");
+        FileChannel lexChannel1 = lexFile1.getChannel();
+        RandomAccessFile lexFile2 = new RandomAccessFile(new File("Lexicon_number_"+2), "r");
+        FileChannel lexChannel2 = lexFile2.getChannel();
+        RandomAccessFile invertedDocIdFile1 = new RandomAccessFile(new File("Inverted_Index_DocId_number_" + 1), "r");
+        FileChannel invDocIdsChannel1 = invertedDocIdFile1.getChannel();
+        RandomAccessFile invertedDocIdFile2 = new RandomAccessFile(new File("Inverted_Index_DocId_number_" + 2), "r");
+        FileChannel invDocIdsChannel2 = invertedDocIdFile2.getChannel();
+        RandomAccessFile invTfsFile1 = new RandomAccessFile(new File("Inverted_Index_TF_number_" + 1), "r");
+        FileChannel invertedTfsChannel1 = invTfsFile1.getChannel();
+        RandomAccessFile invTfsFile2 = new RandomAccessFile(new File("Inverted_Index_TF_number_" + 2), "r");
+        FileChannel invertedTfsChannel2 = invTfsFile2.getChannel();
+        //File Merge
+        RandomAccessFile lexFileMerge = new RandomAccessFile(new File("Lexicon_Merge_number_1"), "rw");
+        FileChannel lexChannelMerge = lexFileMerge.getChannel();
+        RandomAccessFile invDocIdFileMerge = new RandomAccessFile(new File("Inverted_Index_Merge_DocId_number_1"), "rw");
+        FileChannel invDocIdsChannelMerge = invDocIdFileMerge.getChannel();
+        RandomAccessFile invTfsFileMerge = new RandomAccessFile(new File("Inverted_Index_Merge_TF_number_1"), "rw");
+        FileChannel invertedTfsChannelMerge = invTfsFileMerge.getChannel();
+        //Start with merging of two first blocks
+        mergeBlocks( lexChannel1, lexChannel2, lexChannelMerge,
+                     invDocIdsChannel1, invDocIdsChannel2, invDocIdsChannelMerge,
+                    invertedTfsChannel1, invertedTfsChannel2, invertedTfsChannelMerge);
+        //Close all FileChannel
+        lexChannel1.close();
+        lexChannel2.close();
+        lexChannelMerge.close();
+        invDocIdsChannel1.close();
+        invDocIdsChannel2.close();
+        invDocIdsChannelMerge.close();
+        invertedTfsChannel1.close();
+        invertedTfsChannel2.close();
+        invertedTfsChannelMerge.close();
+        deleteFile("Lexicon_number_"+1);
+        deleteFile("Lexicon_number_"+2);
+        deleteFile("Inverted_Index_DocId_number_" + 1);
+        deleteFile("Inverted_Index_DocId_number_" + 2);
+        deleteFile("Inverted_Index_TF_number_" + 1);
+        deleteFile("Inverted_Index_TF_number_" + 2);
+        //Iteration of merging process
         if(ReadingDocuments.nFileUsed > 2 ) {
             for (int i = 3; i <= ReadingDocuments.nFileUsed; i++) {
-                mergeBlocks("Lexicon_Merge_number_" + (i - 2), "Lexicon_number_" + i, "Lexicon_Merge_number_" + (i - 1),
-                        "Inverted_Index_Merge_DocId_number_" + (i - 2), "Inverted_Index_DocId_number_" + i, "Inverted_Index_Merge_DocId_number_" + (i - 1),
-                        "Inverted_Index_Merge_TF_number_" + (i - 2), "Inverted_Index_TF_number_" + i, "Inverted_Index_Merge_TF_number_" + (i - 1));
+                //Open all fileChannel
+                lexFile1 = new RandomAccessFile(new File("Lexicon_Merge_number_"+(i-2)), "r");
+                lexChannel1 = lexFile1.getChannel();
+                lexFile2 = new RandomAccessFile(new File("Lexicon_number_"+(i)), "r");
+                lexChannel2 = lexFile2.getChannel();
+                invertedDocIdFile1 = new RandomAccessFile(new File("Inverted_Index_Merge_DocId_number_" + (i-2)), "r");
+                invDocIdsChannel1 = invertedDocIdFile1.getChannel();
+                invertedDocIdFile2 = new RandomAccessFile(new File("Inverted_Index_DocId_number_" + (i)), "r");
+                invDocIdsChannel2 = invertedDocIdFile2.getChannel();
+                invTfsFile1 = new RandomAccessFile(new File("Inverted_Index_Merge_TF_number_" + (i-2)), "r");
+                invertedTfsChannel1 = invTfsFile1.getChannel();
+                invTfsFile2 = new RandomAccessFile(new File("Inverted_Index_TF_number_" + (i)), "r");
+                invertedTfsChannel2 = invTfsFile2.getChannel();
+                //File Merge
+                lexFileMerge = new RandomAccessFile(new File("Lexicon_Merge_number_"+(i-1)), "rw");
+                lexChannelMerge = lexFileMerge.getChannel();
+                invDocIdFileMerge = new RandomAccessFile(new File("Inverted_Index_Merge_DocId_number_"+(i-1)), "rw");
+                invDocIdsChannelMerge = invDocIdFileMerge.getChannel();
+                invTfsFileMerge = new RandomAccessFile(new File("Inverted_Index_Merge_TF_number_"+(i-1)), "rw");
+                invertedTfsChannelMerge = invTfsFileMerge.getChannel();
+
+                mergeBlocks( lexChannel1, lexChannel2, lexChannelMerge,
+                        invDocIdsChannel1, invDocIdsChannel2, invDocIdsChannelMerge,
+                        invertedTfsChannel1, invertedTfsChannel2, invertedTfsChannelMerge);
+                lexChannel1.close();
+                lexChannel2.close();
+                lexChannelMerge.close();
+                invDocIdsChannel1.close();
+                invDocIdsChannel2.close();
+                invDocIdsChannelMerge.close();
+                invertedTfsChannel1.close();
+                invertedTfsChannel2.close();
+                invertedTfsChannelMerge.close();
+
+                deleteFile("Lexicon_Merge_number_"+(i-2));
+                deleteFile("Lexicon_number_"+i);
+                deleteFile("Inverted_Index_Merge_DocId_number_" + (i-2));
+                deleteFile("Inverted_Index_DocId_number_" + (i));
+                deleteFile("Inverted_Index_Merge_TF_number_" + (i-2));
+                deleteFile("Inverted_Index_TF_number_" + (i));
             }
+
         }
     }
 
-    public  Ranking computeScoresForATermTfidfForUpperBound(Text term, int flag){
+    public  Ranking computeScoresForATermTfidfForUpperBound(Text term,FileChannel skipInfoFileChannel,
+                                                            FileChannel invDocIdChannel,FileChannel invTfChannel) throws IOException {
         Ranking result = new Ranking();
         long tmpPosPosting = lexicon.get(term).getOffsetSkipBlocks();
         int nBlocks = lexicon.get(term).getnBlock();
         ArrayList<SkipBlock> info = new ArrayList<>();
-        if(flag==1) {
-            for (int i = 0; i < nBlocks; i++) {
-                info.add(SkipBlock.readSkipBlockFromFile("SkipInfoStemmedAndStopwordRemoved", tmpPosPosting + (i * 32)));
-            }
-            for (int i = 0;i<nBlocks; i++) {
-                ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                        "InvertedDocIdStemmedAndStopwordRemoved", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
-                ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                        "InvertedTFStemmedAndStopwordRemoved", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
-                result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lexicon.get(term).getDf());
-            }
-        }
-        else{
-            for (int i = 0; i < nBlocks; i++) {
-                info.add(SkipBlock.readSkipBlockFromFile("SkipInfoWithoutStemmingAndStopwordRemoving", tmpPosPosting + (i * 32)));
-            }
-            for (int i = 0;i<nBlocks; i++) {
-                ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                        "InvertedDocIdWithoutStemmingAndStopwordRemoving", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
-                ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                        "InvertedTFWithoutStemmingAndStopwordRemoving", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
-                result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lexicon.get(term).getDf());
-            }
-        }
 
+        for (int i = 0; i < nBlocks; i++) {
+            info.add(SkipBlock.readSkipBlockFromFile(skipInfoFileChannel, tmpPosPosting + (i * 32)));
+        }
+        for (int i = 0;i<nBlocks; i++) {
+            ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                    invDocIdChannel, info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
+            ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                    invTfChannel , info.get(i).getOffsetTf(), info.get(i).getLenBlockTf()));
+            result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lexicon.get(term).getDf());
+        }
+        //InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(invDocIdChannelAfterCompression,83051,5))
+        //InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(invTFChannelAfterCompression,82246,1))
         return result;
     }
 
-    public  Ranking computeScoresForATermBM25ForUpperBound(Text term, DocumentTable docTab, int flag){
+    public  Ranking computeScoresForATermBM25ForUpperBound(Text term, DocumentTable docTab, FileChannel skipInfoFileChannel,
+                                                           FileChannel invDocIdChannel,FileChannel invTfChannel) throws IOException {
         Ranking result = new Ranking();
         long tmpPosPosting = lexicon.get(term).getOffsetSkipBlocks();
         int nBlocks = lexicon.get(term).getnBlock();
         ArrayList<SkipBlock> info = new ArrayList<>();
-        if(flag == 1) {
+
             for (int i = 0; i < nBlocks; i++) {
-                info.add(SkipBlock.readSkipBlockFromFile("SkipInfoStemmedAndStopwordRemoved", tmpPosPosting + (i * 32)));
+                info.add(SkipBlock.readSkipBlockFromFile(skipInfoFileChannel, tmpPosPosting + (i * 32)));
             }
             for (int i = 0; i < nBlocks; i++) {
                 ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                        "InvertedDocIdStemmedAndStopwordRemoved", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
+                        invDocIdChannel, info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
                 ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                        "InvertedTFStemmedAndStopwordRemoved", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
+                        invTfChannel, info.get(i).getOffsetTf(), info.get(i).getLenBlockTf()));
                 result.computeRSVbm25(postingDocid, postingTf, docTab, lexicon.get(term).getDf());
             }
-        }
-        else{
-            for (int i = 0; i < nBlocks; i++) {
-                info.add(SkipBlock.readSkipBlockFromFile("SkipInfoWithoutStemmingAndStopwordRemoving", tmpPosPosting + (i * 32)));
-            }
-            for (int i = 0; i < nBlocks; i++) {
-                ArrayList<Long> postingDocid = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                        "InvertedDocIdWithoutStemmingAndStopwordRemoving", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId())));
-                ArrayList<Integer> postingTf = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                        "InvertedTFWithoutStemmingAndStopwordRemoving", info.get(i).getoffsetDocId(), info.get(i).getLenBlockDocId()));
-                result.computeRSVbm25(postingDocid, postingTf, docTab, lexicon.get(term).getDf());
-            }
-        }
+
         return result;
     }
 
-    public static Lexicon readAllLexicon(String filePath){
-        Path fileP = Paths.get(filePath);
+    public static Lexicon readAllLexicon(FileChannel fc) throws IOException {
+
         ByteBuffer buffer = null;
         Lexicon lex = new Lexicon();
 
-        try (FileChannel fc = FileChannel.open(fileP, READ)) {
-            for(int i = 0; i<fc.size(); i=i+42) {
-                fc.position(i);
-                buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
-                do {
-                    fc.read(buffer);
-                } while (buffer.hasRemaining());
-                Text term = new Text(buffer.array());
-                buffer.clear();
-                fc.position( i+ 22);
-                buffer = ByteBuffer.allocate(20); //42 is the total number of bytes to read a complete term of the lexicon
-                do {
-                    fc.read(buffer);
-                } while (buffer.hasRemaining());
-                LexiconLine value = LexiconLine.transformByteWIthSkipToLexicon(buffer.array());
-                LexiconValue val = new LexiconValue();
-                val.setnBlock(value.getnBlock());
-                val.setOffsetSkipBlocks(value.getOffsetSkipBlocks());
-                val.setCf(value.getCf());
-                val.setDf(value.getDf());
-                buffer.clear();
+        for(int i = 0; i<fc.size(); i=i+42) {
+            fc.position(i);
+            buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            Text term = new Text(buffer.array());
+            buffer.clear();
+            fc.position( i+ 22);
+            buffer = ByteBuffer.allocate(20); //42 is the total number of bytes to read a complete term of the lexicon
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            LexiconLine value = LexiconLine.transformByteWIthSkipToLexicon(buffer.array());
+            LexiconValue val = new LexiconValue();
+            val.setnBlock(value.getnBlock());
+            val.setOffsetSkipBlocks(value.getOffsetSkipBlocks());
+            val.setCf(value.getCf());
+            val.setDf(value.getDf());
+            buffer.clear();
 
-                lex.lexicon.put(term,val);
-            }
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
+            lex.lexicon.put(term,val);
         }
+
+
         return lex;
     }
 
 
-    public static void main (String[] arg) throws IOException {
 
-    /*    InvertedIndex invInd = new InvertedIndex();
-        Lexicon lex = new Lexicon();
-
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 1, invInd);
-        lex.addElement(new Text("b                   "), 3, invInd);
-        lex.addElement(new Text("b                   "), 500 , invInd);
-
-
-        lex.addElement(new Text("c                   "), 1, invInd);
-        lex.addElement(new Text("c                   "), 1, invInd);
-        lex.addElement(new Text("c                   "), 1, invInd);
-        lex.addElement(new Text("c                   "), 1, invInd);
-        lex.addElement(new Text("c                   "), 1, invInd);
-        lex.addElement(new Text("c                   "), 1, invInd);
-        lex.addElement(new Text("c                   "), 1, invInd);
-        lex.addElement(new Text("c                   "), 1, invInd);
-        lex.addElement(new Text("c                   "), 1, invInd);
-
-
-        InvertedIndex.saveDocIDsOnFile("DOCID1", lex);
-        InvertedIndex.saveTFsOnFile("TF1", lex);
-        lex.saveLexiconOnFile("LEX1");
-
-        System.out.println("1: ------------------------------");
-        for(Text term : lex.lexicon.keySet()){
-            System.out.print(term + "  ");
-            System.out.print("offsetTF: " + lex.lexicon.get(term).getOffsetTF() + "  ");
-            System.out.print("offsetDocID " + lex.lexicon.get(term).getOffsetDocID() + "  ");
-            System.out.print("length offsetDocID " + lex.lexicon.get(term).getLenOfDocID() + "  ");
-            System.out.print("length offsetTF " + lex.lexicon.get(term).getLenOfTF() + "  ");
-            System.out.print("CF: " + lex.lexicon.get(term).getCf() + "  ");
-            System.out.print("DF: " + lex.lexicon.get(term).getDf() + "  ");
-
-            for(int i=0; i<lex.lexicon.get(term).getDf(); i++){
-                System.out.print("TF: " + invInd.allPostingLists.get(lex.lexicon.get(term).getIndex()).postingList + "  ");
-            }
-            System.out.print("\n");
-        }
-        System.out.print("\n");
-        System.out.print("\n");
-        System.out.print("\n");
-
-
-
-        Lexicon lex2 = new Lexicon();
-        InvertedIndex invInd2 = new InvertedIndex();
-
-        lex2.addElement(new Text("d                   "), 1, invInd2);
-        lex2.addElement(new Text("d                   "), 1, invInd2);
-        lex2.addElement(new Text("d                   "), 1, invInd2);
-
-        lex2.addElement(new Text("e                   "), 1, invInd2);
-
-        lex2.addElement(new Text("f                   "), 1, invInd2);
-        lex2.addElement(new Text("f                   "), 1, invInd2);
-        lex2.addElement(new Text("f                   "), 1, invInd2);
-        lex2.addElement(new Text("f                   "), 3, invInd2);
-        lex2.addElement(new Text("f                   "), 500 , invInd2);
-
-
-        lex2.addElement(new Text("g                   "), 1, invInd2);
-        lex2.addElement(new Text("g                   "), 1, invInd2);
-        lex2.addElement(new Text("g                   "), 1, invInd2);
-        lex2.addElement(new Text("g                   "), 1, invInd2);
-        lex2.addElement(new Text("g                   "), 1, invInd2);
-        lex2.addElement(new Text("g                   "), 1, invInd2);
-        lex2.addElement(new Text("g                   "), 1, invInd2);
-        lex2.addElement(new Text("g                   "), 1, invInd2);
-        lex2.addElement(new Text("g                   "), 1, invInd2);
-
-
-        InvertedIndex.saveDocIDsOnFile("DOCID2", lex2);
-        InvertedIndex.saveTFsOnFile("TF2", lex2);
-        lex2.saveLexiconOnFile("LEX2");
-
-        System.out.println("2: ------------------------------");
-        for(Text term : lex2.lexicon.keySet()){
-            System.out.print(term + "  ");
-            System.out.print("offsetTF: " + lex2.lexicon.get(term).getOffsetTF() + "  ");
-            System.out.print("offsetDocID " + lex2.lexicon.get(term).getOffsetDocID() + "  ");
-            System.out.print("length offsetDocID " + lex2.lexicon.get(term).getLenOfDocID() + "  ");
-            System.out.print("length offsetTF " + lex2.lexicon.get(term).getLenOfTF() + "  ");
-            System.out.print("CF: " + lex2.lexicon.get(term).getCf() + "  ");
-            System.out.print("DF: " + lex2.lexicon.get(term).getDf() + "  ");
-
-            for(int i=0; i<lex2.lexicon.get(term).getDf(); i++){
-                System.out.print("TF: " + invInd2.allPostingLists.get(lex2.lexicon.get(term).getIndex()).postingList + "  ");
-            }
-            System.out.print("\n");
-        }
-        System.out.print("\n");
-        System.out.print("\n");
-        System.out.print("\n");
-
-        Lexicon.mergeBlocks("LEX1", "LEX2", "LEXMERGE1",
-                "DOCID1", "DOCID2", "DOCIDMERGE1",
-                "TF1", "TF2", "TFMERGE1");
-
-        long offsetFileLexicon = 0;
-        long offsetFileInvertedDocId = 0;
-        long offsetFileInvertedTf = 0;
-        long offsetFileSkipInfo = 0;
-        Path fileLex = Paths.get("LEXMERGE1");
-        FileChannel fcLex = FileChannel.open(fileLex, READ);
-        for( int i = 0; i< fcLex.size();i= i+54) {
-
-            ArrayList<Long> offsets = InvertedIndex.compression(offsetFileLexicon,"LEXMERGE1",
-                    "DOCIDMERGE1",
-                    "TFMERGE1", offsetFileInvertedDocId,
-                    offsetFileInvertedTf,offsetFileSkipInfo);
-
-            offsetFileLexicon += 54;
-            offsetFileSkipInfo = offsets.get(0);
-            offsetFileInvertedDocId = offsets.get(1);
-            offsetFileInvertedTf = offsets.get(2);
-        }
-
-        LexiconLine lexLine = readLexiconLine("LEXMERGE1", 54*1);
-
-*/
-
-
-    }
 }
 

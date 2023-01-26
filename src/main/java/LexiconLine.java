@@ -110,29 +110,22 @@ public class LexiconLine {
                 this.offsetTF+ " "+ this.lenOfDocID+" "+this.lenOfTF);
     }
 
-    public void saveLexiconLineOnFile(String filePath,long offset) throws FileNotFoundException {
-        RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
-        Path fileP = Paths.get(filePath );
+    public void saveLexiconLineOnFile(FileChannel fc,long offset) throws IOException {
         ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-            fc.position(offset);
-            buffer = ByteBuffer.wrap(getTerm().getBytes());
-            while (buffer.hasRemaining()) {
-                    fc.write(buffer);
-                }
-            buffer.clear();
-            byte[] valueByte =Lexicon.transformValueToByte(getCf(), getDf(), getOffsetDocID(), getOffsetTF(),
-                    getLenOffDocID(), getLenOffTF()) ;
-            fc.position(offset+22);
-            buffer = ByteBuffer.wrap(valueByte);
-            while (buffer.hasRemaining()) {
-                fc.write(buffer);
-            }
-            buffer.clear();
-
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
+        fc.position(offset);
+        buffer = ByteBuffer.wrap(getTerm().getBytes());
+        while (buffer.hasRemaining()) {
+            fc.write(buffer);
         }
+        buffer.clear();
+        byte[] valueByte =Lexicon.transformValueToByte(getCf(), getDf(), getOffsetDocID(), getOffsetTF(),
+                getLenOffDocID(), getLenOffTF()) ;
+        fc.position(offset+22);
+        buffer = ByteBuffer.wrap(valueByte);
+        while (buffer.hasRemaining()) {
+            fc.write(buffer);
+        }
+        buffer.clear();
     }
 
     public byte[] transformValueToByteWithSkip() {
@@ -162,28 +155,23 @@ public class LexiconLine {
         return l;
     }
 
-    public void saveLexiconLineWithSkip(String path, long startingPoint) throws FileNotFoundException {
-        RandomAccessFile file = new RandomAccessFile(path ,"rw");
-        Path fileP = Paths.get(path );
-        ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-            fc.position(startingPoint);
-            buffer = ByteBuffer.wrap(getTerm().getBytes());
-            while (buffer.hasRemaining()) {
-                fc.write(buffer);
-            }
-            buffer.clear();
-            fc.position(startingPoint+22);
-            byte[] valueByte =transformValueToByteWithSkip() ;
-            buffer = ByteBuffer.wrap(valueByte);
-            while (buffer.hasRemaining()) {
-                fc.write(buffer);
-            }
-            buffer.clear();
+    public void saveLexiconLineWithSkip(FileChannel fc, long startingPoint) throws IOException {
 
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
+        ByteBuffer buffer = null;
+        fc.position(startingPoint);
+        buffer = ByteBuffer.wrap(getTerm().getBytes());
+        while (buffer.hasRemaining()) {
+            fc.write(buffer);
         }
+        buffer.clear();
+        fc.position(startingPoint+22);
+        byte[] valueByte =transformValueToByteWithSkip() ;
+        buffer = ByteBuffer.wrap(valueByte);
+        while (buffer.hasRemaining()) {
+            fc.write(buffer);
+        }
+        buffer.clear();
+
     }
 
     public void printLexiconLineWithSkip(){

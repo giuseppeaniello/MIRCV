@@ -133,41 +133,4 @@ public class Preprocessing {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        String text= "0	The presence of communication amid scientific minds was equally important to the success of the Manhattan Project as scientific intellect was. The only cloud hanging over the impressive achievement of the atomic researchers and engineers is what their success truly meant; hundreds of thousands of innocent lives obliterated.";
-        String text2= "8841817\tThat's chemistry  123 too! Fireworks get their color from metal compounds (also known as metal salts) packed inside. You probably know that if you burn metals in a hot flame (such as a Bunsen burner in a school laboratory), they glow with very intense colorsÃ¢\u0080\u0094 that's exactly what's happening in fireworks. AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-        String test="[1123] (123) {123} [[123]] (3[2{1]})12-13-14 12/45/56 12\\?12\\?12 ciao/ [ciao ciao\\ /ciao \\ciao asd#asd asdas@asd asd12asd @Gianni Gianni@ Mario69 69Mario ";
-        String test2= test;
-
-
-        //REGEX TEST
-/*
-        test2=test2.replaceAll("(([a-zA-Z]+)([0-9]+)([a-zA-Z]+))"," ");
-        test2=test2.replaceAll("(([a-zA-Z]+)([-_.,#@+*Â£$%&]+)([a-zA-Z]+))"," ");
-
-        test2=test2.replaceAll("([\\[\\_\\(\\)\\{\\}\\]]+)([0-9]+)"," $2");
-
-        test2=test2.replaceAll("([0-9]+)([\\[\\_\\(\\)\\{\\}\\]]+)","$1 ");
-        //QUI
-        //test2=test2.replaceAll("[a-zA-Z]+[\\W]+[a-zA-Z]+","");
-        test2=test2.replaceAll("[0-9]+","");
-        //
-        test2=test2.replaceAll("(^[a-zA-Z]+)([0-9]+$)","$1 ");
-        test2=test2.replaceAll("(^[0-9]+)([a-zA-Z]+$)"," $2");
-        test2=test2.replaceAll("(^[\\W])([a-zA-Z]+$)"," $2");
-        test2=test2.replaceAll("(^[a-zA-Z]+)([\\W])+$","$1 ");
-        //test2=test2.replaceAll("[^a-zA-Z ]","");
-        test2=test2.replaceAll("[^a-zA-Z ]","");
-        test2=test2.replaceAll("[  ]{2,}"," ");
-        test2=test2.replaceAll("^[ ]","");
-*/
-        String a = "x y ciao mi y chiamo giuseppe x y";
-        HashSet<String> stopwords= getStopwords();
-        ArrayList<Text> b = removeStopwords(a,stopwords);
-
-        System.out.println(b);
-
-    }
-
-
 }

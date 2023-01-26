@@ -1,6 +1,8 @@
 import org.apache.hadoop.io.Text;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -27,22 +29,30 @@ public class MainQueryProcessing {
                 query += " ";
             }
             try {
+
                 ArrayList<Text> queryTerms = Preprocessing.preprocess(query);
                 System.out.println(queryTerms);
-                LexiconFinal lexQuery = Ranking.createLexiconWithQueryTerm(queryTerms);
+                String lexPath;
+                if(MainQueryProcessing.flagStopWordAndStemming == 1)
+                    lexPath="LexiconFinalStemmedAndStopWordRemoved";
+                else
+                    lexPath = "LexiconFinalWithoutStemmingAndStopWordRemoval";
+                RandomAccessFile lexFile = new RandomAccessFile(lexPath,"r");
+                FileChannel lexChannel = lexFile.getChannel();
+                LexiconFinal lexQuery = Ranking.createLexiconWithQueryTerm(queryTerms,lexChannel);
                 if(Integer.parseInt(args[args.length-2]) == 0){
-                    ConjunctiveQuery cq = new ConjunctiveQuery(queryTerms.size(), Integer.parseInt(args[args.length-1]));
+                    ConjunctiveQuery cq = new ConjunctiveQuery(lexQuery.lexicon.size(), Integer.parseInt(args[args.length-1]));
                     ResultQueue qq = cq.computeTopK(lexQuery);
                     for(QueueElement element : qq.queue)
                         System.out.println(element.getDocID());
                 }
                 else{
-                    MaxScore dq = new MaxScore(queryTerms.size(), Integer.parseInt(args[args.length-1]));
+                    MaxScore dq = new MaxScore(lexQuery.lexicon.size(), Integer.parseInt(args[args.length-1]));
                     ResultQueue qq = dq.maxScore(lexQuery);
                     for(QueueElement element : qq.queue)
                         System.out.println(element.getDocID());
                 }
-            break;
+                break;
             } catch (IOException e) {
                 e.printStackTrace();
             }

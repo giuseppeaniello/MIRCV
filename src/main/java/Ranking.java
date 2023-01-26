@@ -80,14 +80,14 @@ public class Ranking {
         return bm25;
     }
 
-    public ArrayList<SkipBlock> uploadAllSkipInfo(long startOffset,int nBlocks){
+    /*public ArrayList<SkipBlock> uploadAllSkipInfo(long startOffset,int nBlocks){
         ArrayList<SkipBlock> skipInfo = new ArrayList<>();
         for (int i = 0 ; i<nBlocks*32; i = i + 32){
             SkipBlock info = SkipBlock.readSkipBlockFromFile("SkipInfo",startOffset+i);
             skipInfo.add(info);
         }
         return skipInfo;
-    }
+    }*/
   /*  public PostingList uploadPostingList(ArrayList<SkipBlock> skipInfo){
         ArrayList<Long> docIds = new ArrayList<>();
         ArrayList<Integer> tfs = new ArrayList<>();
@@ -109,85 +109,54 @@ public class Ranking {
         }
     }*/
 
-    public static long binarySearchTermInLexicon(Text term) throws FileNotFoundException {
-        Path fileP;
-        RandomAccessFile file;
-        if(MainQueryProcessing.flagStopWordAndStemming == 1) {
-            fileP = Paths.get("LexiconFinalStemmedAndStopWordRemoved");
-            file = new RandomAccessFile(new File("LexiconFinalStemmedAndStopWordRemoved"), "r");
-        }
-        else{
-            fileP = Paths.get("LexiconFinalWithoutStemmingAndStopWordRemoval");
-            file = new RandomAccessFile(new File("LexiconFinalWithoutStemmingAndStopWordRemoval"), "r");
-        }
+    public static long binarySearchTermInLexicon(Text term,FileChannel fileChannel,MappedByteBuffer buffer) throws IOException {
+
         //Get file channel in read-only mode
         long midpoint ;
         //Get direct byte buffer access using channel.map() operation
 
-        try (FileChannel fileChannel = FileChannel.open(fileP, READ)) {
-            MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
-            long size = fileChannel.size()/50;
-            long lb = 0;
-            long ub = size;
-            midpoint=-1;
-            boolean found = false;
-            while(!found){
-                if(ub < lb) {
-                    midpoint = -1;
-                    break;
-                }
-                midpoint = lb + (ub-lb)/2;
-                byte[] tmp = new byte[20];
-                buffer.position((int) midpoint*50);
-                buffer.get(tmp,0,20);
-                Text termTmp = new Text(tmp);
-
-                if(termTmp.compareTo(term)<0)
-                    lb = midpoint +1 ;
-                else if (termTmp.compareTo(term)>0)
-                    ub = midpoint-1;
-                else if (termTmp.compareTo(term) == 0)
-                    found = true;
-                else
-                    System.out.println("Something in Binary Search go wrong");
+        long size = fileChannel.size()/50;
+        long lb = 0;
+        long ub = size;
+        midpoint=-1;
+        boolean found = false;
+        while(!found){
+            if(ub < lb) {
+                midpoint = -1;
+                break;
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            midpoint = lb + (ub-lb)/2;
+            byte[] tmp = new byte[20];
+            buffer.position((int) midpoint*50);
+            buffer.get(tmp,0,20);
+            Text termTmp = new Text(tmp);
+
+            if(termTmp.compareTo(term)<0)
+                lb = midpoint +1 ;
+            else if (termTmp.compareTo(term)>0)
+                ub = midpoint-1;
+            else if (termTmp.compareTo(term) == 0)
+                found = true;
+            else
+                System.out.println("Something in Binary Search go wrong");
         }
+
         return midpoint;
 
     }
 
-    public static LexiconFinal createLexiconWithQueryTerm(ArrayList<Text> terms) throws FileNotFoundException {
+    public static LexiconFinal createLexiconWithQueryTerm(ArrayList<Text> terms,FileChannel lexChannel) throws IOException {
         LexiconFinal lexQuery = new LexiconFinal();
+        //Get direct byte buffer access using channel.map() operation
+        MappedByteBuffer buffer = lexChannel.map(FileChannel.MapMode.READ_ONLY, 0, lexChannel.size());
         for (Text term:terms){
-            long midpoint = binarySearchTermInLexicon(term);
+            long midpoint = binarySearchTermInLexicon(term,lexChannel,buffer);
             if (midpoint!=-1) {
                 LexiconLineFinal l;
-                if(MainQueryProcessing.flagStopWordAndStemming == 1)
-                    l = LexiconLineFinal.readLineLexicon("LexiconFinalStemmedAndStopWordRemoved", midpoint * 50);
-                else
-                    l = LexiconLineFinal.readLineLexicon("LexiconFinalWithoutStemmingAndStopWordRemoval", midpoint * 50);
+                l = LexiconLineFinal.readLineLexicon(lexChannel, midpoint * 50);
                 lexQuery.lexicon.put(l.getTerm(), l.getLexiconValueFinal());
             }
         }
         return lexQuery;
     }
-
-
-    public static void main(String[] args) throws FileNotFoundException {
-
-        ArrayList<Text> terms = new ArrayList<>();
-
-        terms.add(new Text("ciao                "));
-        terms.add(new Text("anna                "));
-        terms.add(new Text("santi               "));
-        LexiconFinal lex = createLexiconWithQueryTerm(terms);
-        lex.printLexiconFinal();
-
-
-
-    }
-
-
 }

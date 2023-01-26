@@ -1,5 +1,6 @@
 import org.apache.hadoop.io.Text;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -104,21 +105,16 @@ public class InvertedIndex {
         return fromBooleanArrToByteArr(arrBool);
     }
 
-    public static byte[] readDocIDsOrTFsPostingListCompressed(String filePath,long startReadingPosition, int lenOffeset){
+    public static byte[] readDocIDsOrTFsPostingListCompressed(FileChannel fc,long startReadingPosition, int lenOffeset) throws IOException {
         byte[] result = new byte[lenOffeset];
-        Path fileP = Paths.get(filePath);
         ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, READ)) {
-            fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(lenOffeset);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            result = buffer.array();
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
+        fc.position(startReadingPosition);
+        buffer = ByteBuffer.allocate(lenOffeset);
+        do {
+            fc.read(buffer);
+        } while (buffer.hasRemaining());
+        result = buffer.array();
+        buffer.clear();
         return result;
     }
 
@@ -221,7 +217,7 @@ public class InvertedIndex {
         return result;
     }
 
-    public static void saveDocIDsOnFile(String filePath, Lexicon lex, FileChannel fc) throws IOException {
+    public static void saveDocIDsOnFile(Lexicon lex, FileChannel fc) throws IOException {
         int offset = 0;
 
         ByteBuffer buffer = null;
@@ -239,7 +235,7 @@ public class InvertedIndex {
         }
     }
 
-    public static void saveTFsOnFile(String filePath, Lexicon lex, FileChannel fc) throws IOException {
+    public static void saveTFsOnFile(Lexicon lex, FileChannel fc) throws IOException {
         int offset = 0;
         ByteBuffer buffer = null;
         for(Text term:lex.lexicon.keySet()){
@@ -256,20 +252,14 @@ public class InvertedIndex {
         }
     }
 
-    public static void saveDocIdsOrTfsPostingLists(String filePath, byte[] listPosting,long startingPoint) throws FileNotFoundException {
-        RandomAccessFile fileTf = new RandomAccessFile(filePath ,"rw");
-        Path fileP = Paths.get(filePath);
+    public static void saveDocIdsOrTfsPostingLists(FileChannel fc, byte[] listPosting,long startingPoint) throws IOException {
         ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-            fc.position(startingPoint);
-            buffer = ByteBuffer.wrap(listPosting);
-            while (buffer.hasRemaining()) {
-                fc.write(buffer);
-            }
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
+        fc.position(startingPoint);
+        buffer = ByteBuffer.wrap(listPosting);
+        while (buffer.hasRemaining()) {
+            fc.write(buffer);
         }
+        buffer.clear();
     }
     public static ArrayList<Long> trasformDgapInDocIds(ArrayList<Long> dgap){
         ArrayList<Long> result = new ArrayList<>();
@@ -282,22 +272,17 @@ public class InvertedIndex {
         return result;
     }
 
-    public static byte[] readOneDocIdPostingList(long startReadingPosition, String filePath, int df) {
-        Path fileP = Paths.get(filePath);
+    public static byte[] readOneDocIdPostingList(long startReadingPosition, FileChannel fc, int df) throws IOException {
+
         ByteBuffer buffer = null;
         byte[] resultByte = new byte[df*8];
-        try (FileChannel fc = FileChannel.open(fileP, READ)) {
-            fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(df*8);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            resultByte = buffer.array();
-
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
+        fc.position(startReadingPosition);
+        buffer = ByteBuffer.allocate(df*8);
+        do {
+            fc.read(buffer);
+        } while (buffer.hasRemaining());
+        resultByte = buffer.array();
+        buffer.clear();
         return resultByte;
     }
 
@@ -321,46 +306,38 @@ public class InvertedIndex {
         return converted;
     }
 
-    public static byte[] readOneTfsPostingList(long startReadingPosition, String filePath, int df) {
-        Path fileP = Paths.get(filePath);
+    public static byte[] readOneTfsPostingList(long startReadingPosition, FileChannel fc, int df) throws IOException {
         ByteBuffer buffer = null;
-        byte[] resultByte = new byte[df*4];
-        try (FileChannel fc = FileChannel.open(fileP, READ))
-        {
-            fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(df*4);
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            resultByte = buffer.array();
-
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
+        byte[] resultByte;
+        fc.position(startReadingPosition);
+        buffer = ByteBuffer.allocate(df*4);
+        do {
+            fc.read(buffer);
+        } while (buffer.hasRemaining());
+        resultByte = buffer.array();
+        buffer.clear();
         return resultByte;
     }
 
-    public static ArrayList<Long> compression(long startLexiconLine,String pathLexMerge,String pathInvDocIds,String pathInvTfs,
-                                   long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo, long offsetLexSkip, int flag) throws FileNotFoundException {
+   /* public static ArrayList<Long> compression(long startLexiconLine,FileChannel fcLexMerge,FileChannel fcInvDocIds,FileChannel fcInvTfs,
+                                   long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo, long offsetLexSkip, int flag) throws IOException {*/
+   public static ArrayList<Long> compression(long startLexiconLine,FileChannel fcLexMerge,FileChannel fcInvDocIds,FileChannel fcInvTfs,
+                                             long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo, long offsetLexSkip,
+                                             FileChannel lexAfterCompressionChannel, FileChannel invDocIdAfterCompressionChannel,
+                                             FileChannel invTfAfterCompressionChannel, FileChannel skipInfoChannel) throws IOException {
         //Open Lexicon to retrieve offset where is saved the PostingList
-        LexiconLine line = Lexicon.readLexiconLine(pathLexMerge,startLexiconLine);
+        LexiconLine line = Lexicon.readLexiconLine(fcLexMerge,startLexiconLine);
         //Save in Array elements that need to be compressed
         ArrayList<Long> postingDocIds;
         ArrayList<Integer> postingTfs;
-        postingDocIds =transformByteToLongArray(readOneDocIdPostingList(line.getOffsetDocID(),pathInvDocIds,line.getDf()));
-        postingTfs = transformByteToIntegerArray(readOneTfsPostingList(line.getOffsetTF(),pathInvTfs,line.getDf()));
+        postingDocIds =transformByteToLongArray(readOneDocIdPostingList(line.getOffsetDocID(),fcInvDocIds,line.getDf()));
+        postingTfs = transformByteToIntegerArray(readOneTfsPostingList(line.getOffsetTF(),fcInvTfs,line.getDf()));
         //Calculate numbers of block for the skipInfo
-        //int nBlocks = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
-        //line.setnBlock(nBlocks);
-        // questa mi sa che deve essere così perchè facendo floor + 1 nel caso in cui il numero viene tondo conta un blocco di troppo ***************************************
         int sizeBlock = (int) Math.ceil(Math.sqrt(postingDocIds.size()));
         ArrayList<Long> dGapArray = new ArrayList<>();
         ArrayList<Integer> tfArray = new ArrayList<>();
         long lastDoc=0; //Used to calculate dGap
         int currentBlock = 0;
-
-
         //Compression of posting List
         for(int i =0 ; i<postingDocIds.size();i++){
             if(i != postingDocIds.size()-1 && (i+1)%sizeBlock!=0){
@@ -369,8 +346,8 @@ public class InvertedIndex {
                 dGapArray.add(postingDocIds.get(i) - lastDoc);
                 lastDoc = postingDocIds.get(i);
             }
-
-            else if(i == postingDocIds.size()-1 || (i+1)%sizeBlock==0 ){   //Saving of the single block
+            //Saving of the single block
+            else if(i == postingDocIds.size()-1 || (i+1)%sizeBlock==0 ){
                 //Add last element of block
                 dGapArray.add(postingDocIds.get(i) - lastDoc);
                 tfArray.add(postingTfs.get(i));
@@ -380,26 +357,20 @@ public class InvertedIndex {
                 infoBlock.setFinalDocId(postingDocIds.get(i));
                 //Compression Tfs Array
                 byte[] compressedTfArray = compressListOfTFs(tfArray);
-                if(flag == 1)
-                    InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTFStemmedAndStopwordRemoved",compressedTfArray,offsetInvTFs);
-                else
-                    InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedTFWithoutStemmingAndStopwordRemoving",compressedTfArray,offsetInvTFs);
+
+                InvertedIndex.saveDocIdsOrTfsPostingLists(invTfAfterCompressionChannel, compressedTfArray, offsetInvTFs);
                 infoBlock.setLenBlockTf(compressedTfArray.length);
                 //Compression DGap Array
                 byte[] compressedDGap = compressListOfDocIDs(dGapArray);
-                if(flag == 1)
-                    InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocIdStemmedAndStopwordRemoved",compressedDGap,offsetInvDocids);
-                else
-                    InvertedIndex.saveDocIdsOrTfsPostingLists("InvertedDocIdWithoutStemmingAndStopwordRemoving",compressedDGap,offsetInvDocids);
+                InvertedIndex.saveDocIdsOrTfsPostingLists(invDocIdAfterCompressionChannel, compressedDGap, offsetInvDocids);
                 infoBlock.setLenBlockDocId(compressedDGap.length);
+                //Set of the first block
                 if(currentBlock == 0)
                     line.setOffsetSkipBlocks(offsetSkipInfo);
-                infoBlock.setOffsetDocId(offsetInvDocids); //Offset inserito punta al valore all'interno dell'InvertedIndex
+                //Offset inserted in the skipBlock
+                infoBlock.setOffsetDocId(offsetInvDocids);
                 infoBlock.setOffsetTf(offsetInvTFs);
-                if(flag == 1)
-                    infoBlock.saveSkipInfoBlock("SkipInfoStemmedAndStopwordRemoved", offsetSkipInfo, infoBlock.trasformInfoToByte());
-                else
-                    infoBlock.saveSkipInfoBlock("SkipInfoWithoutStemmingAndStopwordRemoving", offsetSkipInfo, infoBlock.trasformInfoToByte());
+                infoBlock.saveSkipInfoBlock(skipInfoChannel, offsetSkipInfo, infoBlock.trasformInfoToByte());
                 //Update all variables
                 currentBlock++;
                 offsetSkipInfo += 32; // 32 = vedi in classe skipinfo
@@ -412,115 +383,20 @@ public class InvertedIndex {
                 System.out.println("Something Wrong in the compression");
             }
         }
+
         line.setnBlock(currentBlock);
-        line.saveLexiconLineWithSkip("Lexicon",offsetLexSkip);
+        //Save new Lexicon with skipInfo
+        line.saveLexiconLineWithSkip(lexAfterCompressionChannel,offsetLexSkip);
+
         offsetLexSkip += 42;
         ArrayList<Long> offsets = new ArrayList<>();
         offsets.add(offsetSkipInfo);
         offsets.add(offsetInvDocids);
         offsets.add(offsetInvTFs);
         offsets.add(offsetLexSkip);
-        System.out.println("FINEEE");
+
         return offsets;
     }
 
-    public static void main(String[] argv ) throws IOException {
-/*
-        InvertedIndex invInd = new InvertedIndex();
-        InvertedIndex invInd1 = new InvertedIndex();
-        InvertedIndex invInd2 = new InvertedIndex();
-        Lexicon lex = new Lexicon();
 
-        lex.addElement(new Text("b                   "), 4, invInd);
-        lex.addElement(new Text("b                   "), 4, invInd);
-        lex.addElement(new Text("b                   "), 4, invInd);
-        lex.addElement(new Text("b                   "), 4, invInd);
-        lex.addElement(new Text("b                   "), 4, invInd);
-
-        lex.addElement(new Text("b                   "), 5, invInd);
-        lex.addElement(new Text("b                   "), 5, invInd);
-        lex.addElement(new Text("b                   "), 5, invInd);
-
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-        lex.addElement(new Text("b                   "), 7, invInd);
-
-        lex.addElement(new Text("b                   "),11,invInd);
-
-        lex.addElement(new Text("b                   "),14,invInd);
-        lex.addElement(new Text("b                   "),14,invInd);
-
-        lex.addElement(new Text("bb                  "),15,invInd1);
-
-        lex.addElement(new Text("b                   "),16,invInd);
-        lex.addElement(new Text("b                   "),16,invInd);
-        lex.addElement(new Text("b                   "),16,invInd);
-        lex.addElement(new Text("b                   "),16,invInd);
-        lex.addElement(new Text("b                   "),16,invInd);
-        lex.addElement(new Text("b                   "),16,invInd);
-        lex.addElement(new Text("b                   "),16,invInd);
-        lex.addElement(new Text("b                   "),16,invInd);
-
-
-        lex.addElement(new Text("b                   "),17,invInd);
-
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-        lex.addElement(new Text("b                   "),18,invInd);
-
-        lex.addElement(new Text("b                   "),19,invInd);
-
-        lex.addElement(new Text("b                   "),25,invInd);
-        lex.addElement(new Text("b                   "),25,invInd);
-        lex.addElement(new Text("b                   "),25,invInd);
-
-        lex.addElement(new Text("bb                  "),25,invInd1);
-        lex.addElement(new Text("bb                  "),25,invInd1);
-        lex.addElement(new Text("bb                  "),25,invInd1);
-        lex.addElement(new Text("bb                  "),47,invInd1);
-        lex.addElement(new Text("a                   "),50,invInd2);
-
-
-        saveDocIDsOnFile("INVDOC",lex);
-        saveTFsOnFile("INVTF",lex);
-        lex.saveLexiconOnFile("LEX");
-
-   //     ArrayList<Long> aaa = compression(0,"LEX","INVDOC","INVTF",0,0,0);
-
-
-        LexiconLine l ;
-
-        l = LexiconLine.readLexiconLineSkip("LEX",0);
-        l.printLexiconLine();
-
-/*
-        SkipInfo info = SkipInfo.readSkipInfoFromFile("SkipInfo",0);
-
-        byte[] a = readDocIDsOrTFsPostingListCompressed("InvertedTF",info.getOffsetTf(), info.getLenBlockTf());
-
-        System.out.println(decompressionListOfTfs(a));
-*/
-
-
-
-
-
-
-
-
-    }
 }
