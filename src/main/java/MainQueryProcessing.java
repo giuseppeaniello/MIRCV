@@ -3,6 +3,8 @@ import org.apache.hadoop.io.Text;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -29,7 +31,7 @@ public class MainQueryProcessing {
                 query += " ";
             }
             try {
-
+                long start = System.currentTimeMillis();
                 ArrayList<Text> queryTerms = Preprocessing.preprocess(query);
                 System.out.println(queryTerms);
                 String lexPath;
@@ -52,6 +54,9 @@ public class MainQueryProcessing {
                     for(QueueElement element : qq.queue)
                         System.out.println(element.getDocID());
                 }
+                long end = System.currentTimeMillis();
+                long time = end-start;
+                System.out.println("tempo per la query: " + time + " millis");
                 break;
             } catch (IOException e) {
                 e.printStackTrace();

@@ -22,7 +22,7 @@ public class ReadingDocuments {
     public static void readDoc(int flag) throws IOException {
 
         //Read from file the dataset with all DocIds and
-        File test2 = new File("collextion.tsv");
+        File test2 = new File("collection.tsv");
 
         DocumentTable documentTab = new DocumentTable();
         Preprocessing preproc = new Preprocessing();
@@ -42,7 +42,7 @@ public class ReadingDocuments {
             //Check to keep control of the RAM usage, when is over a threshold, the process is stopped and a new block
             // is created
             while ( it.hasNext() && ( (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()) <
-                    (0.1*Runtime.getRuntime().maxMemory()) ) ) {
+                    (0.7*Runtime.getRuntime().maxMemory()) ) ) {
 
                 String docCurrent = it.nextLine();
                 String docText = new String (docCurrent.split("\\t")[1].getBytes(StandardCharsets.UTF_8));
