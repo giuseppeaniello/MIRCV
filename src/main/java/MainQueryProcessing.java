@@ -42,6 +42,7 @@ public class MainQueryProcessing {
                 RandomAccessFile lexFile = new RandomAccessFile(lexPath,"r");
                 FileChannel lexChannel = lexFile.getChannel();
                 LexiconFinal lexQuery = Ranking.createLexiconWithQueryTerm(queryTerms,lexChannel);
+                lexQuery.printLexiconFinal();
                 if(Integer.parseInt(args[args.length-2]) == 0){
                     ConjunctiveQuery cq = new ConjunctiveQuery(lexQuery.lexicon.size(), Integer.parseInt(args[args.length-1]));
                     ResultQueue qq = cq.computeTopK(lexQuery);

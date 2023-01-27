@@ -116,7 +116,6 @@ public class MaxScore {
                 return false;
             }
            else {
-               System.out.println("ENTRO");
                SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(skipChannel, offsetSkipInfo + 32*currentBlocks.get(index));
                info.set(index, newInfo);
                ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
@@ -126,7 +125,7 @@ public class MaxScore {
                ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
                        tfChannel, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                Ptf.set(index, tfs);
-               System.out.println("FINE");
+
                return true;
            }
         }
