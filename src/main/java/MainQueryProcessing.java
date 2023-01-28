@@ -3,6 +3,7 @@ import org.apache.hadoop.io.Text;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -20,7 +21,14 @@ public class MainQueryProcessing {
         try {
             MainQueryProcessing.flagStopWordAndStemming = Integer.parseInt(args[args.length-3]);
             Preprocessing p = new Preprocessing();
-            DocumentTable.readDocumentTable();
+            String pathDocTable;
+            if(MainQueryProcessing.flagStopWordAndStemming==1)
+                pathDocTable = "document_table_stemmed_and_stopword_removed";
+            else
+                pathDocTable = "document_table_without_stemming_and_stopword_removal";
+            RandomAccessFile docTableFile = new RandomAccessFile(pathDocTable,"r");
+            FileChannel docTableChannel = docTableFile.getChannel();
+            DocumentTable.readDocumentTable(docTableChannel);
         } catch (IOException e) {
             e.printStackTrace();
         }

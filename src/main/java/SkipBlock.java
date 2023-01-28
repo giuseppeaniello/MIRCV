@@ -2,6 +2,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -102,6 +103,17 @@ public class SkipBlock {
         } while (buffer.hasRemaining());
         skipInf = transformSkipInfoByteToValue(buffer.array());
         buffer.clear();
+
+        return skipInf;
+    }
+    public static SkipBlock readSkipBlockFromFileMap(MappedByteBuffer map, long startReadingPosition) throws IOException {
+
+        SkipBlock skipInf = null;
+        byte[] result = new byte[32];
+        map.position((int) startReadingPosition);
+        map.get(result,0,32);
+
+        skipInf = transformSkipInfoByteToValue(result);
 
         return skipInf;
     }

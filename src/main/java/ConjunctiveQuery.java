@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
@@ -88,11 +90,8 @@ public class ConjunctiveQuery {
         return dfVector.size();
     }
 
-    public boolean nextDocId(int index, long offsetSkipInfo, int nBlocks,FileChannel skipChannnel,
-                             FileChannel docIdChannel, FileChannel tfChannel) throws IOException {
-        String pathSkipInfo;
-        String pathDocId;
-        String pathTF;
+    public boolean nextDocId(int index, long offsetSkipInfo, int nBlocks, MappedByteBuffer skipChannnel,
+                             MappedByteBuffer docIdChannel, MappedByteBuffer tfChannel) throws IOException {
 
         P.get(index).remove(0);
         Ptf.get(index).remove(0);
@@ -104,13 +103,13 @@ public class ConjunctiveQuery {
             }
             else {
 
-                SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(skipChannnel, offsetSkipInfo + 32*currentBlocks.get(index));
+                SkipBlock newInfo = SkipBlock.readSkipBlockFromFileMap(skipChannnel, offsetSkipInfo + 32*currentBlocks.get(index));
                 info.set(index, newInfo);
                 ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
-                        InvertedIndex.readDocIDsOrTFsPostingListCompressed(docIdChannel, newInfo.getoffsetDocId(),
+                        InvertedIndex.readDocIDsOrTFsPostingListCompressedMap(docIdChannel, newInfo.getoffsetDocId(),
                                 newInfo.getLenBlockDocId())));
                 P.set(index, docids);
-                ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressedMap(
                         tfChannel, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                 Ptf.set(index, tfs);
 
@@ -120,8 +119,8 @@ public class ConjunctiveQuery {
         return false;
     }
 
-    public boolean nextGEQ(int index, long value, long startSkipBlock, int nBlock ,FileChannel skipChannel,
-                           FileChannel docIdChannel, FileChannel tfChannel) throws IOException {
+    public boolean nextGEQ(int index, long value, long startSkipBlock, int nBlock ,MappedByteBuffer skipChannel,
+                           MappedByteBuffer docIdChannel, MappedByteBuffer tfChannel) throws IOException {
 
         for (int i = 0; i< P.get(index).size();i++){
             if(P.get(index).get(i) < value){
@@ -134,13 +133,13 @@ public class ConjunctiveQuery {
             while(currentBlocks.get(index) < nBlock){
                 currentBlocks.set(index, currentBlocks.get(index)+1);
                 // leggere il prossimo SkipBlock
-                SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(skipChannel, startSkipBlock+32*currentBlocks.get(index));
+                SkipBlock newInfo = SkipBlock.readSkipBlockFromFileMap(skipChannel, startSkipBlock+32*currentBlocks.get(index));
                 if(newInfo.getFinalDocId() >= value){
                     ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
-                            InvertedIndex.readDocIDsOrTFsPostingListCompressed(docIdChannel, newInfo.getoffsetDocId(),
+                            InvertedIndex.readDocIDsOrTFsPostingListCompressedMap(docIdChannel, newInfo.getoffsetDocId(),
                                     newInfo.getLenBlockDocId())));
                     P.set(index, docids);
-                    ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
+                    ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressedMap(
                             tfChannel, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                     Ptf.set(index, tfs);
                     for(int i=0; i<P.get(index).size(); i++){
@@ -182,27 +181,29 @@ public class ConjunctiveQuery {
         String pathSkipInfo;
         String pathDocId;
         String pathTF;
-        String pathLex;
+
         if(MainQueryProcessing.flagStopWordAndStemming == 1){
             pathSkipInfo = "SkipInfoStemmedAndStopwordRemoved";
             pathDocId = "InvertedDocIdStemmedAndStopwordRemoved";
             pathTF = "InvertedTFStemmedAndStopwordRemoved";
-            pathLex = "LexiconFinalStemmedAndStopWordRemoved";
         }
         else{
             pathSkipInfo = "SkipInfoWithoutStemmingAndStopwordRemoving";
             pathDocId = "InvertedDocIdWithoutStemmingAndStopwordRemoving";
             pathTF = "InvertedTFWithoutStemmingAndStopwordRemoving";
-            pathLex = "LexiconFinalWithoutStemmingAndStopWordRemoval";
         }
-       /* RandomAccessFile lexFile = new RandomAccessFile(new File(pathLex), "r");
-        FileChannel lexChannel = lexFile.getChannel();*/
+
         RandomAccessFile invertedDocIdFile = new RandomAccessFile(new File(pathDocId), "r");
-        FileChannel invDocIdsChannel = invertedDocIdFile.getChannel();
+        //FileChannel invDocIdsChannel = invertedDocIdFile.getChannel();
         RandomAccessFile invTfsFile = new RandomAccessFile(new File(pathTF), "r");
-        FileChannel invertedTfsChannel = invTfsFile.getChannel();
+        //FileChannel invertedTfsChannel = invTfsFile.getChannel();
         RandomAccessFile skipInfoFile = new RandomAccessFile(new File(pathSkipInfo), "r");
-        FileChannel skipInfoChannel = skipInfoFile.getChannel();
+       // FileChannel skipInfoChannel = skipInfoFile.getChannel();
+
+        ///PROVA MAP ALL Posting
+        MappedByteBuffer byteBufferDocId = invertedDocIdFile.getChannel().map(FileChannel.MapMode.READ_ONLY,0,invertedDocIdFile.length());
+        MappedByteBuffer byteBufferTf = invTfsFile.getChannel().map(FileChannel.MapMode.READ_ONLY,0,invTfsFile.length());
+        MappedByteBuffer byteBufferInfo = skipInfoFile.getChannel().map(FileChannel.MapMode.READ_ONLY,0,skipInfoFile.length());
 
         ArrayList<Integer> dfVector = new ArrayList<>();
         //Caricare primi blocchi posting ordinati in base al df
@@ -211,17 +212,17 @@ public class ConjunctiveQuery {
             dfVector.add(index, lex.lexicon.get(term).getDf());
 
             //Calcolo skipInfo dei primi blocchi e li ordino in base a sigma
-            info.add(index,SkipBlock.readSkipBlockFromFile(skipInfoChannel,lex.lexicon.get(term).getOffsetSkipBlocks()));
+            info.add(index,SkipBlock.readSkipBlockFromFileMap(byteBufferInfo,lex.lexicon.get(term).getOffsetSkipBlocks()));
 
             //Trovo postingList primo blocco e lo inserisco nel vettore P(matrice delle postingList di ogni queryTerm ordinato in base a sigma)
             ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
-                    InvertedIndex.readDocIDsOrTFsPostingListCompressed(invDocIdsChannel,info.get(index).getoffsetDocId(),
+                    InvertedIndex.readDocIDsOrTFsPostingListCompressedMap(byteBufferDocId,info.get(index).getoffsetDocId(),
                             info.get(index).getLenBlockDocId())));
             P.add(index,docids);
 
             //Troviamo le tf dei primi blocchi ordinati in base a sigma
-            ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
-                    invertedTfsChannel,info.get(index).getOffsetTf(),info.get(index).getLenBlockTf()));
+            ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressedMap(
+                    byteBufferTf,info.get(index).getOffsetTf(),info.get(index).getLenBlockTf()));
             Ptf.add(index,tfs);
             termOrdered.add(index,term);
         }
@@ -232,12 +233,13 @@ public class ConjunctiveQuery {
         while (!finish) {
             for ( i = 1; i<n; i++ ){
                 finish = nextGEQ(i,current,lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(),lex.lexicon.get(termOrdered.get(i)).getnBlock(),
-                        skipInfoChannel,invDocIdsChannel,invertedTfsChannel);
+                        byteBufferInfo,byteBufferDocId,byteBufferTf);
+
                 if(finish)
                     break;
                 if(P.get(i).get(0) > current){
-                    finish = nextGEQ(0,P.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(),lex.lexicon.get(termOrdered.get(i)).getnBlock(),
-                            skipInfoChannel,invDocIdsChannel,invertedTfsChannel);
+                    finish = nextGEQ(0,P.get(i).get(0),lex.lexicon.get(termOrdered.get(0)).getOffsetSkipBlocks(),lex.lexicon.get(termOrdered.get(0)).getnBlock(),
+                            byteBufferInfo,byteBufferDocId,byteBufferTf);
                     if(finish)
                         break;
                     if(P.get(0).get(0)>P.get(i).get(0)){
@@ -250,7 +252,7 @@ public class ConjunctiveQuery {
                     }
                     break;
                 }
-                //i = i +1;
+
             }
             if (i == n && !finish){
                 for (int j = 0; j<n; j++){
@@ -259,7 +261,7 @@ public class ConjunctiveQuery {
                 topK.push(new QueueElement(current , score));
                 score=0;
                 finish = nextDocId(0,lex.lexicon.get(termOrdered.get(0)).getOffsetSkipBlocks(),lex.lexicon.get(termOrdered.get(0)).getnBlock(),
-                        skipInfoChannel,invDocIdsChannel,invertedTfsChannel);
+                        byteBufferInfo,byteBufferDocId,byteBufferTf);
                 if(finish)
                     break;
                 current = P.get(0).get(0);

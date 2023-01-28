@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.ArrayList;
@@ -115,6 +116,17 @@ public class InvertedIndex {
         } while (buffer.hasRemaining());
         result = buffer.array();
         buffer.clear();
+        return result;
+    }
+    ///read with byteBuffer
+    public static byte[] readDocIDsOrTFsPostingListCompressedMap(MappedByteBuffer map, long startReadingPosition, int lenOffeset) throws IOException {
+        byte[] result = new byte[lenOffeset];
+
+        map.position((int) startReadingPosition);
+        map.get(result,0,lenOffeset);
+        //buffer.position((int) midpoint*50);
+        //            buffer.get(tmp,0,20);
+
         return result;
     }
 

@@ -61,44 +61,38 @@ public class DocumentTable {
     }
 
     // method to load the document table from disk to main memory
-    public static DocumentTable readDocumentTable(){
-        System.out.println("Document table letta: ");
-        Path fileP;
-        if(MainQueryProcessing.flagStopWordAndStemming==1)
-            fileP = Paths.get("document_table_stemmed_and_stopword_removed");
-        else
-            fileP = Paths.get("document_table_without_stemming_and_stopword_removal");
+    public static DocumentTable readDocumentTable(FileChannel fc) throws IOException {
+        System.out.println("Loading document table");
+
         DocumentTable result = new DocumentTable();
         ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, READ)) {
-            for(int i = 0; i<fc.size()-4; i+=12) {
-                fc.position(i);
-                buffer = ByteBuffer.allocate(8);
-                do {
-                    fc.read(buffer);
-                } while (buffer.hasRemaining());
-                byte[] docIdByte = buffer.array();
-                buffer.clear();
-                fc.position( i+8 );
-                buffer = ByteBuffer.allocate(4);
-                do {
-                    fc.read(buffer);
-                } while (buffer.hasRemaining());
-                byte[] lenDocByte = buffer.array();
-                buffer.clear();
-                long docId = convertByteArrToLong(docIdByte); // method to convert byte[] to long
-                int lenDoc = convertByteArrToInt(lenDocByte); // method to convert byte[] to int
-                result.docTab.put(docId, lenDoc);
-            }
-            fc.position(fc.size()-4);
+
+        for(int i = 0; i<fc.size()-4; i+=12) {
+            fc.position(i);
+            buffer = ByteBuffer.allocate(8);
+            do {
+                fc.read(buffer);
+            } while (buffer.hasRemaining());
+            byte[] docIdByte = buffer.array();
+            buffer.clear();
+            fc.position( i+8 );
             buffer = ByteBuffer.allocate(4);
             do {
                 fc.read(buffer);
-            } while(buffer.hasRemaining());
-            result.setAverageLength(ByteBuffer.wrap(buffer.array()).getFloat());
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
+            } while (buffer.hasRemaining());
+            byte[] lenDocByte = buffer.array();
+            buffer.clear();
+            long docId = convertByteArrToLong(docIdByte); // method to convert byte[] to long
+            int lenDoc = convertByteArrToInt(lenDocByte); // method to convert byte[] to int
+            result.docTab.put(docId, lenDoc);
         }
+        fc.position(fc.size()-4);
+        buffer = ByteBuffer.allocate(4);
+        do {
+            fc.read(buffer);
+        } while(buffer.hasRemaining());
+        result.setAverageLength(ByteBuffer.wrap(buffer.array()).getFloat());
+        System.out.println("Document table uploaded");
         return result;
     }
 
