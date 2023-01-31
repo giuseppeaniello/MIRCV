@@ -1,3 +1,5 @@
+package indexing;
+
 import org.apache.hadoop.io.Text;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -12,7 +14,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 
 public class LexiconFinal {
 
-    TreeMap<Text,LexiconValueFinal> lexicon;
+    public TreeMap<Text,LexiconValueFinal> lexicon;
 
     public LexiconFinal(){
         this.lexicon = new TreeMap<>();

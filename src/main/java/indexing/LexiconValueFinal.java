@@ -1,3 +1,5 @@
+package indexing;
+
 import java.nio.ByteBuffer;
 
 public class LexiconValueFinal {

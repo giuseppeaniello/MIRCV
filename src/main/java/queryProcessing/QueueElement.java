@@ -1,8 +1,10 @@
+package queryProcessing;
+
 public class QueueElement {
     private long docID;
-    private float score;
+    private double score;
 
-    public QueueElement(long docID, float score){
+    public QueueElement(long docID, double score){
         this.docID = docID;
         this.score = score;
     }
@@ -19,7 +21,7 @@ public class QueueElement {
         return docID;
     }
 
-    public float getScore() {
+    public double getScore() {
         return score;
     }
 }

@@ -1,15 +1,15 @@
+package queryProcessing;
+
 import org.apache.hadoop.io.Text;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import static java.lang.Math.log;
-
+import indexing.*;
 public class MaxScore {
 
     private  ArrayList<Integer> currentBlocks;
@@ -22,10 +22,10 @@ public class MaxScore {
     //Define P (matrix of all first block of posting list)
     private ArrayList<ArrayList<Long>> P;
     private ArrayList<ArrayList<Integer>> Ptf;
-    private float score;
+    private double score;
     private ArrayList<Text> termOrdered;
 
-    private float threshold;
+    private double threshold;
     private int pivot;
     private long current;
     private ResultQueue topK;
@@ -50,14 +50,14 @@ public class MaxScore {
         this.Ptf = new ArrayList<>();
         this.score = 0;
         this.termOrdered = new ArrayList<>();
-        this.threshold = 0;
+        this.threshold = -Float.MAX_VALUE;
         this.pivot = 0;
         this.topK = new ResultQueue();
         this.ub = new ArrayList<>();
         this.next  = 0;
     }
 
-    public float getScore() {
+    public double getScore() {
         return score;
     }
 
@@ -133,7 +133,7 @@ public class MaxScore {
         return true;
     }
 
-    public void nextGEQ(int index, long value, long startSkipBlock, int nBlock,FileChannel skipChannel,
+    public boolean nextGEQ(int index, long value, long startSkipBlock, int nBlock,FileChannel skipChannel,
                         FileChannel docIdChannel, FileChannel tfChannel) throws IOException {
 
 
@@ -147,7 +147,7 @@ public class MaxScore {
         if(P.get(index).isEmpty()){
             while(currentBlocks.get(index) < nBlock){
                 currentBlocks.set(index, currentBlocks.get(index)+1);
-                // leggere il prossimo SkipBlock
+                // leggere il prossimo queryProcessing.SkipBlock
                 SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(skipChannel, startSkipBlock+32*currentBlocks.get(index));
                 if(newInfo.getFinalDocId() >= value){
                     ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
@@ -164,11 +164,11 @@ public class MaxScore {
                             i--;
                         }
                         else
-                            return;
+                            return true;
                     }
                 }
             }
-            // blocchi finiti per quella PostingList
+            // blocchi finiti per quella indexing.PostingList
             P.remove(index);
             Ptf.remove(index);
             sigma.remove(index);
@@ -177,9 +177,10 @@ public class MaxScore {
             n -= 1;
             currentBlocks.remove(index);
             ub.remove(index);
+            return false;
         }
 
-        //Add pigAio
+        return true;
     }
 
     public  int findIndexToAdd( float numberToAdd){
@@ -189,17 +190,18 @@ public class MaxScore {
         }
         return sigma.size();
     }
-    public static float scoreTFIDF(int tf,long df){
-        return (float) ((1 + log(tf))*Ranking.idf(df));
+    public static double scoreTFIDF(int tf,long df){
+        return ((1 + log(tf))* Ranking.idf(df));
     }
 
-    public static float scoreBM25(int tf, float df, float dl){
+    public static double scoreBM25(int tf, float df, float dl){
         float b = 0.75F;
         float k = 1.2F;
-        return (float) ( (tf/ ((k*( (1-b)+ (b*(dl/DocumentTable.getAverageLength())) ))+tf) ) * log(Ranking.totalNumberDocuments/df));
+        return  ( (tf/ ((k*( (1-b)+ (b*(dl/ DocumentTable.getAverageLength())) ))+tf) ) * log(Ranking.totalNumberDocuments/df));
     }
 
-    public static float score(int tf, long df, float dl){
+
+    public static double score(int tf, long df, float dl){
         if(scoringFunction != 1)
             return scoreTFIDF(tf, df);
         else
@@ -207,7 +209,7 @@ public class MaxScore {
     }
 
     public ResultQueue maxScore(LexiconFinal lex) throws IOException {
-        //MaxScore maxScore = new MaxScore(lex.lexicon.size(), scoringFunction);
+        //queryProcessing.MaxScore maxScore = new queryProcessing.MaxScore(lex.lexicon.size(), scoringFunction);
         String pathSkipInfo;
         String pathDocID;
         String pathTF;
@@ -240,7 +242,7 @@ public class MaxScore {
             sigma.add(index,lex.lexicon.get(term).getTermUpperBoundTFIDF());
 
             //Calcolo skipInfo dei primi blocchi e li ordino in base a sigma
-            info.add(index,SkipBlock.readSkipBlockFromFile(skipInfoChannel,lex.lexicon.get(term).getOffsetSkipBlocks()));
+            info.add(index, SkipBlock.readSkipBlockFromFile(skipInfoChannel,lex.lexicon.get(term).getOffsetSkipBlocks()));
 
             //Trovo postingList primo blocco e lo inserisco nel vettore P(matrice delle postingList di ogni queryTerm ordinato in base a sigma)
             ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
@@ -267,6 +269,7 @@ public class MaxScore {
             next = Long.MAX_VALUE;
             for(int i = pivot ;i<n ; i++) {
                 if(P.get(i).get(0) == current){
+                    //return (float) newscoreBM25(tf,df,dl,cf);
                     score += score(Ptf.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getDf(), DocumentTable.getDocTab().get(P.get(i).get(0))) ;
                     if( !nextDocId(i,lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(),lex.lexicon.get(termOrdered.get(i)).getnBlock(),
                             skipInfoChannel,invDocIdsChannel,invertedTfsChannel) ){
@@ -281,13 +284,18 @@ public class MaxScore {
             for(int i = pivot-1; i >= 0; i--){
                 if (score + ub.get(i) <= threshold)
                     break;
-                nextGEQ(i, current, lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(), lex.lexicon.get(termOrdered.get(i)).getnBlock(),
-                        skipInfoChannel,invDocIdsChannel,invertedTfsChannel);
+                if(! nextGEQ(i, current, lex.lexicon.get(termOrdered.get(i)).getOffsetSkipBlocks(), lex.lexicon.get(termOrdered.get(i)).getnBlock(),
+                        skipInfoChannel,invDocIdsChannel,invertedTfsChannel)) {
+                    i--;
+                    continue;
+                }
                 if(P.get(i).get(0) == current){
-                     score += score(Ptf.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getDf(), DocumentTable.getDocTab().get(P.get(i).get(0)));
+                    score += score(Ptf.get(i).get(0),lex.lexicon.get(termOrdered.get(i)).getDf(), DocumentTable.getDocTab().get(P.get(i).get(0)));
                 }
             }
             if (topK.push(new QueueElement(current, score))){
+
+
                 threshold = topK.queue.get(topK.queue.size()-1).getScore();
                 while(pivot<n && ub.get(pivot)<threshold){
                     pivot +=1;

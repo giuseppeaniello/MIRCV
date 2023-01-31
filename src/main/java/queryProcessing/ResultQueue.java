@@ -1,7 +1,6 @@
+package queryProcessing;
+
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.PriorityQueue;
-import java.util.TreeMap;
 
 public class ResultQueue{
     ArrayList<QueueElement> queue;

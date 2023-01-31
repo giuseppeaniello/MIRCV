@@ -1,19 +1,18 @@
+package indexing;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.hadoop.io.Text;
+import preprocessing.Preprocessing;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import static java.nio.file.StandardOpenOption.READ;
 
 public class ReadingDocuments {
 
@@ -34,7 +33,7 @@ public class ReadingDocuments {
 
         while (it.hasNext()) {
 
-            //instantiate a new Inverted Index and Lexicon per block
+            //instantiate a new Inverted Index and indexing.Lexicon per block
             Lexicon lex = new Lexicon();
             InvertedIndex invInd = new InvertedIndex();
             //For each block numberFileUsed is increased
@@ -47,12 +46,12 @@ public class ReadingDocuments {
                 String docCurrent = it.nextLine();
                 String docText = new String (docCurrent.split("\\t")[1].getBytes(StandardCharsets.UTF_8));
                 String docId = docCurrent.split("\\t")[0];
-                //Preprocessing of document before adding it in the lexicon
+                //preprocessing.Preprocessing of document before adding it in the lexicon
                 ArrayList<Text> docPreprocessed = preproc.preprocess(docText);
                 //Check if it is null(document without words)
                 if(docPreprocessed!=null) {
                     for (Text term : docPreprocessed) {
-                        //Each term is added in the lexicon and in the InvertedIndex
+                        //Each term is added in the lexicon and in the indexing.InvertedIndex
                         lex.addElement(term, Long.parseLong(docId), invInd);
                     }
                 }
@@ -68,7 +67,7 @@ public class ReadingDocuments {
             FileChannel invertedTfsChannel = invDocTfsFile.getChannel();
 
 
-            //Saving block of Lexicon, InvertedIndex with Tfs and InvertedIndex with DocIds
+            //Saving block of indexing.Lexicon, indexing.InvertedIndex with Tfs and indexing.InvertedIndex with DocIds
             InvertedIndex.saveDocIDsOnFile( lex, invDocIdsChannel);
             InvertedIndex.saveTFsOnFile( lex,invertedTfsChannel);
             lex.saveLexiconOnFile(lexChannel);
@@ -114,7 +113,7 @@ public class ReadingDocuments {
         FileChannel invTFChannel = invTFFile.getChannel();
 
         ///
-        RandomAccessFile lexFileAfterCompression = new RandomAccessFile(new File("Lexicon"), "rw");
+        RandomAccessFile lexFileAfterCompression = new RandomAccessFile(new File("indexing.Lexicon"), "rw");
         FileChannel lexChannelAfterCompression = lexFileAfterCompression.getChannel();
         String pathInvDocId;
         if (flag == 1){
@@ -169,7 +168,7 @@ public class ReadingDocuments {
         System.out.println("InvertedTF size after compression: "+ invTFFileAfterCompression.length());
         System.out.println("End compression phase "+ dtf.format(LocalDateTime.now()));
 
-        System.out.println("Start building final Lexicon with TermUpperBound "+dtf.format(LocalDateTime.now()));
+        System.out.println("Start building final indexing.Lexicon with TermUpperBound "+dtf.format(LocalDateTime.now()));
         Lexicon lex = Lexicon.readAllLexicon(lexChannelAfterCompression);
         LexiconFinal lexFinal = new LexiconFinal();
         for(Text term : lex.lexicon.keySet()){
@@ -199,7 +198,7 @@ public class ReadingDocuments {
         FileChannel finalLexiconChannel = finalLexicon.getChannel();
         lexFinal.saveLexiconFinal(finalLexiconChannel);
 
-        System.out.println("End building final Lexicon with TermUpperBound "+dtf.format(LocalDateTime.now()));
+        System.out.println("End building final indexing.Lexicon with TermUpperBound "+dtf.format(LocalDateTime.now()));
         System.out.println("Finish phase Indexing "+dtf.format(LocalDateTime.now()));
 
     }

@@ -1,3 +1,7 @@
+package indexing;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -7,12 +11,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 
-import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 public class DocumentTable {
-    private static HashMap<Long, Integer> docTab; // key=docID val=length
-    private static float averageLength; // average length of all documents
+    //DocTab contains as key the DocId and as key the length of document
+    private static HashMap<Long, Integer> docTab;
+    // average length of all documents
+    private static float averageLength;
 
     public DocumentTable(){
         docTab = new HashMap<>();
@@ -105,6 +110,7 @@ public class DocumentTable {
         setAverageLength(sum/ docTab.size());
     }
 
+
     private static byte[] convertIntToByteArray(int length) {
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putInt(length);
@@ -112,13 +118,14 @@ public class DocumentTable {
     }
 
     private static byte[] convertFloatToByteArray(float value) {
+
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putFloat(value);
         return bb.array();
     }
 
     private static long convertByteArrToLong(byte[] bytes) {
-        long value = 0l;
+        long value = 0L;
         for (byte b : bytes) {
             value = (value << 8) + (b & 255);
         }
@@ -139,6 +146,7 @@ public class DocumentTable {
         return bb.array();
     }
 
+    //Method used to test the document table
     public void printDocumentTable(){
         for (Long key : docTab.keySet() ){
             System.out.println("Doc: "+ key+ " Length: "+ docTab.get(key));

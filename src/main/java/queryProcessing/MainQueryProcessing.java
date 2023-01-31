@@ -1,17 +1,17 @@
-import org.apache.hadoop.io.Text;
+package queryProcessing;
 
+import org.apache.hadoop.io.Text;
+import preprocessing.Preprocessing;
+import indexing.LexiconFinal;
+import indexing.Ranking;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Scanner;
-
+import indexing.DocumentTable;
 
 public class MainQueryProcessing {
-    static int flagStopWordAndStemming;
+    public static int flagStopWordAndStemming;
 
     // first args (from args[0] to args[N-4] included are query terms
     // args[N-3] is the flag for stemming and stopwords removal, args[N-3]==1 the stemming and stopwords removal are applied

@@ -1,21 +1,18 @@
+package indexing;
+
 import org.apache.hadoop.io.Text;
-import java.io.File;
-import java.io.FileNotFoundException;
+
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static java.lang.Math.log;
-import static java.nio.file.StandardOpenOption.READ;
 
 public class Ranking {
 
     HashMap<Long,Float> docScores;
-    static int totalNumberDocuments = 8841822;
+    public static int totalNumberDocuments = 8841822;
 
     public Ranking(){
         this.docScores = new HashMap<>();
@@ -80,30 +77,30 @@ public class Ranking {
         return bm25;
     }
 
-    /*public ArrayList<SkipBlock> uploadAllSkipInfo(long startOffset,int nBlocks){
-        ArrayList<SkipBlock> skipInfo = new ArrayList<>();
+    /*public ArrayList<queryProcessing.SkipBlock> uploadAllSkipInfo(long startOffset,int nBlocks){
+        ArrayList<queryProcessing.SkipBlock> skipInfo = new ArrayList<>();
         for (int i = 0 ; i<nBlocks*32; i = i + 32){
-            SkipBlock info = SkipBlock.readSkipBlockFromFile("SkipInfo",startOffset+i);
+            queryProcessing.SkipBlock info = queryProcessing.SkipBlock.readSkipBlockFromFile("SkipInfo",startOffset+i);
             skipInfo.add(info);
         }
         return skipInfo;
     }*/
-  /*  public PostingList uploadPostingList(ArrayList<SkipBlock> skipInfo){
+  /*  public indexing.PostingList uploadPostingList(ArrayList<queryProcessing.SkipBlock> skipInfo){
         ArrayList<Long> docIds = new ArrayList<>();
         ArrayList<Integer> tfs = new ArrayList<>();
-        for (SkipBlock  info : skipInfo){
+        for (queryProcessing.SkipBlock  info : skipInfo){
             long offsetDocids = info.getoffsetDocId();
             long offesetTfs = info.getOffsetTf();
             int lenDocIds = info.getLenBlockDocId();
             int lenTfs = info.getLenBlockTf();
-            docIds.addAll( InvertedIndex.trasformDgapInDocIds(
-                    InvertedIndex.decompressionListOfDocIds(
-                            InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedDocId",offsetDocids,lenDocIds))));
-            tfs.addAll(InvertedIndex.decompressionListOfTfs(
-                    InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedTF",offesetTfs,lenTfs)));
+            docIds.addAll( indexing.InvertedIndex.trasformDgapInDocIds(
+                    indexing.InvertedIndex.decompressionListOfDocIds(
+                            indexing.InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedDocId",offsetDocids,lenDocIds))));
+            tfs.addAll(indexing.InvertedIndex.decompressionListOfTfs(
+                    indexing.InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedTF",offesetTfs,lenTfs)));
 
         }
-        PostingList postingLists = new PostingList();
+        indexing.PostingList postingLists = new indexing.PostingList();
         for (int i = 0; i< docIds.size(); i++){
             postingLists.postingList.put(docIds.get(i),tfs.get(i));
         }

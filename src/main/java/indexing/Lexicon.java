@@ -1,8 +1,10 @@
+package indexing;
+
 import com.google.common.primitives.Bytes;
 import org.apache.hadoop.io.Text;
+import queryProcessing.SkipBlock;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -10,8 +12,6 @@ import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.TreeMap;
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
 
 public class Lexicon {
 
@@ -23,7 +23,7 @@ public class Lexicon {
         this.currentIndex = 0;
     }
 
-    // method to add a term in Lexicon
+    // method to add a term in indexing.Lexicon
     public void addElement(Text term, long docId, InvertedIndex invInd){
        // case new term
         if(!lexicon.containsKey(term)){
@@ -84,7 +84,7 @@ public class Lexicon {
 
     }
 
-    // method to convert all the field of a LexiconValue in byte[]
+    // method to convert all the field of a indexing.LexiconValue in byte[]
     public static byte[] transformValueToByte( int cF, int dF, long offsetDocId, long offsetTF, int lenOfDocID,int lenOfTF ) {
         ByteBuffer bb = ByteBuffer.allocate(32);
         bb.putInt(cF);
@@ -96,7 +96,7 @@ public class Lexicon {
         return bb.array();
     }
 
-    // method to read all the field of a LexiconValue from byte[]
+    // method to read all the field of a indexing.LexiconValue from byte[]
     public static LexiconValue transformByteToValue(byte[] value){
         LexiconValue lexValue = new LexiconValue(0,0);
         int count = 0;
@@ -144,7 +144,7 @@ public class Lexicon {
         do {
             fc.read(buffer);
         } while (buffer.hasRemaining());
-        // setting all the read values in the LexiconLine to be returned
+        // setting all the read values in the indexing.LexiconLine to be returned
         LexiconValue values = transformByteToValue(buffer.array());
         buffer.clear();
         lexVal.setCf(values.getCf());
@@ -157,7 +157,7 @@ public class Lexicon {
         return lexVal;
     }
 
-    // method to read a term from a block of Lexicon during SPIMI
+    // method to read a term from a block of indexing.Lexicon during SPIMI
     public static Text readTermFromBlock(FileChannel fc, int startReadingPosition) throws IOException {
         ByteBuffer buffer = null;
         Text term = null;
@@ -171,7 +171,7 @@ public class Lexicon {
         return term;
     }
 
-    // method to merge all the blocks created during SPIMI in order to obtain a single Lexicon and a single InvertedIndex
+    // method to merge all the blocks created during SPIMI in order to obtain a single indexing.Lexicon and a single indexing.InvertedIndex
     // this merge is performed two files at a time until there is just one file left
       public static void mergeBlocks(FileChannel fcLex1, FileChannel fcLex2, FileChannel fcLexMerge, FileChannel fcDocID1,
                                    FileChannel fcDocID2, FileChannel fcDocIDMerge, FileChannel fcTF1, FileChannel fcTF2,
@@ -416,8 +416,8 @@ public class Lexicon {
                     invTfChannel , info.get(i).getOffsetTf(), info.get(i).getLenBlockTf()));
             result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lexicon.get(term).getDf());
         }
-        //InvertedIndex.decompressionListOfDocIds(InvertedIndex.readDocIDsOrTFsPostingListCompressed(invDocIdChannelAfterCompression,83051,5))
-        //InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(invTFChannelAfterCompression,82246,1))
+        //indexing.InvertedIndex.decompressionListOfDocIds(indexing.InvertedIndex.readDocIDsOrTFsPostingListCompressed(invDocIdChannelAfterCompression,83051,5))
+        //indexing.InvertedIndex.decompressionListOfTfs(indexing.InvertedIndex.readDocIDsOrTFsPostingListCompressed(invTFChannelAfterCompression,82246,1))
         return result;
     }
 

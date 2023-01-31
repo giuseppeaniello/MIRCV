@@ -1,55 +1,46 @@
-import org.apache.hadoop.io.Text;
+package indexing;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import org.apache.hadoop.io.Text;
+import queryProcessing.SkipBlock;
+
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
-import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
-
 public class InvertedIndex {
-
+    //It is a list that contains all the posting list for each term
     static List<PostingList> allPostingLists;
-
-
-
     public InvertedIndex(){
         allPostingLists = new ArrayList<PostingList>();
     }
 
-    // case term appeared for the first time
+    //Case term appeared for the first time
     public void addPostingOfNewTerm(long docID){ //add the first posting of a new posting list
         PostingList ps = new PostingList(docID);
         allPostingLists.add(ps);
     }
 
-    // case term already appeared but in different document
-    public void addPostingOfExistingTerm(long index, long docID){ //add a new posting in existing posting list
+    //Case term already appeared but in different document
+    public void addPostingOfExistingTerm(long index, long docID){
+        //add a new posting in existing posting list
         allPostingLists.get((int) index).postingList.put(docID, 1);
     }
-
-    // case term already appeared in the same document
+    //Case term already appeared in the same document
     public void incrementPostingTF(long index, long docID){
         allPostingLists.get((int) index).incrementTF(docID); //increment the TF of the posting of that document
     }
-
-
+    //Clean of inverted index used when a block is built
     public void clearInvertedIndex(){
         this.allPostingLists.clear();
         this.allPostingLists = null;
         System.gc();
     }
-
-
+    //Unary compression of tfs
     public static byte[] compressListOfTFs(ArrayList<Integer> array){
         // use unary compression
         int numOfBitsNecessary = 0;
@@ -73,7 +64,7 @@ public class InvertedIndex {
         }
         return fromBooleanArrToByteArr(result);
     }
-
+    //Gamma compression of D-gap
     public static byte[] compressListOfDocIDs(ArrayList<Long> list){
         List<Boolean> result = new ArrayList<>(); // lista in cui mettiamo tutto via via, non posso usare array perchè non conosco dimensione
         for(long elem : list) {
@@ -105,7 +96,7 @@ public class InvertedIndex {
             arrBool[i] = result.get(i);
         return fromBooleanArrToByteArr(arrBool);
     }
-
+    //Function to read from file a compressed Posting list
     public static byte[] readDocIDsOrTFsPostingListCompressed(FileChannel fc,long startReadingPosition, int lenOffeset) throws IOException {
         byte[] result = new byte[lenOffeset];
         ByteBuffer buffer = null;
@@ -119,17 +110,7 @@ public class InvertedIndex {
         return result;
     }
     ///read with byteBuffer
-    public static byte[] readDocIDsOrTFsPostingListCompressedMap(MappedByteBuffer map, long startReadingPosition, int lenOffeset) throws IOException {
-        byte[] result = new byte[lenOffeset];
-
-        map.position((int) startReadingPosition);
-        map.get(result,0,lenOffeset);
-        //buffer.position((int) midpoint*50);
-        //            buffer.get(tmp,0,20);
-
-        return result;
-    }
-
+    //Function to cm
     private static String binaryWhitoutMostSignificant(long docID){
         return Long.toBinaryString(docID).substring(1); // convert docID in binary and trash first element
     }
@@ -337,7 +318,7 @@ public class InvertedIndex {
                                              long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo, long offsetLexSkip,
                                              FileChannel lexAfterCompressionChannel, FileChannel invDocIdAfterCompressionChannel,
                                              FileChannel invTfAfterCompressionChannel, FileChannel skipInfoChannel) throws IOException {
-        //Open Lexicon to retrieve offset where is saved the PostingList
+        //Open indexing.Lexicon to retrieve offset where is saved the indexing.PostingList
         LexiconLine line = Lexicon.readLexiconLine(fcLexMerge,startLexiconLine);
         //Save in Array elements that need to be compressed
         ArrayList<Long> postingDocIds;
@@ -397,7 +378,7 @@ public class InvertedIndex {
         }
 
         line.setnBlock(currentBlock);
-        //Save new Lexicon with skipInfo
+        //Save new indexing.Lexicon with skipInfo
         line.saveLexiconLineWithSkip(lexAfterCompressionChannel,offsetLexSkip);
 
         offsetLexSkip += 42;

@@ -1,12 +1,10 @@
+package indexing;
+
 import org.apache.hadoop.io.Text;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import static java.nio.file.StandardOpenOption.READ;
 
 public class LexiconLineFinal {
     private Text term;

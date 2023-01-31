@@ -1,3 +1,5 @@
+package preprocessing;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -5,7 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.tartarus.snowball.ext.PorterStemmer;
 import org.apache.hadoop.io.Text;
-
+import  queryProcessing.*;
 public class Preprocessing {
 
     private static HashSet<String> stopwords ; //Get the list of stopwords

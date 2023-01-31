@@ -1,3 +1,5 @@
+package indexing;
+
 public class LexiconValue {
 
     private int  cf;

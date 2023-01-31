@@ -1,13 +1,13 @@
+package indexing;
+
 import org.apache.hadoop.io.Text;
-import java.io.FileNotFoundException;
+
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import static java.nio.file.StandardOpenOption.READ;
-import static java.nio.file.StandardOpenOption.WRITE;
 
 public class LexiconLine {
 
