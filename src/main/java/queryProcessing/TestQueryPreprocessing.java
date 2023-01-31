@@ -57,7 +57,7 @@ public class TestQueryPreprocessing {
     }
     public static void main (String []args) throws IOException {
         int flagStopWordAndStemming = 1;
-        MainQueryProcessing.flagStopWordAndStemming=1;
+        MainQueryProcessing.setFlagStemmingAndStopWordRemoval(true);
         TestQueryPreprocessing tqp = new TestQueryPreprocessing();
         tqp.readQueryFromDocument();
         tqp.preprocessingQuery();
@@ -84,7 +84,7 @@ public class TestQueryPreprocessing {
                 if(count %100 ==0)
                     System.out.println(count);
                 if(!lexQuery.lexicon.isEmpty()) {
-                    MaxScore dq = new MaxScore(lexQuery.lexicon.size(), 1);
+                    MaxScore dq = new MaxScore(lexQuery.lexicon.size(), MaxScore.getScoringFunction());
                     ResultQueue qq = dq.maxScore(lexQuery);
                     if(!qq.queue.isEmpty())
                         tqp.result.put(id, qq.queue.get(0).getDocID());

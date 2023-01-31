@@ -27,9 +27,13 @@ public class ConjunctiveQuery {
     private ArrayList<Text> termOrdered;
     private double score;
     private ArrayList<Integer> currentBlocks;
-    private static int scoringFunction; // 0 means TFIDF and 1 means BM25
+    private static boolean scoringFunction; // 0 means TFIDF and 1 means BM25
 
-    public ConjunctiveQuery(int n, int scoringFunction){
+    public static boolean getScoringFunction() {
+        return scoringFunction;
+    }
+
+    public ConjunctiveQuery(int n, boolean scoringFunction){
         ConjunctiveQuery.scoringFunction = scoringFunction;
         this.n = n;
         this.score = 0;
@@ -173,10 +177,10 @@ public class ConjunctiveQuery {
     }
 
     public static double score(int tf, long df, float dl){
-        if(scoringFunction != 1)
-            return scoreTFIDF(tf, df);
-        else
+        if(scoringFunction)
             return scoreBM25(tf, df, dl);
+        else
+            return scoreTFIDF(tf, df);
     }
 
     public ResultQueue computeTopK(LexiconFinal lex) throws IOException {
@@ -184,7 +188,7 @@ public class ConjunctiveQuery {
         String pathDocId;
         String pathTF;
 
-        if(MainQueryProcessing.flagStopWordAndStemming == 1){
+        if(MainQueryProcessing.getFlagStemmingAndStopWordRemoval()){
             pathSkipInfo = "SkipInfoStemmedAndStopwordRemoved";
             pathDocId = "InvertedDocIdStemmedAndStopwordRemoved";
             pathTF = "InvertedTFStemmedAndStopwordRemoved";
