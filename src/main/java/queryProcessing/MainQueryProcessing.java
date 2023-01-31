@@ -18,14 +18,6 @@ public class MainQueryProcessing {
     private static boolean flagConjunctiveOrDisjunctive; // 1 means disjunctive
     private static boolean flagTfidfOrBM25; // 1 means BM25
 
-    public MainQueryProcessing(){
-        System.out.println("Do you want stemming and stopword removal? \n 0 = NO \n 1 = YES");
-        Scanner input = new Scanner(System.in);
-        if(input.nextLine().equals("1"))
-            flagStemmingAndStopWordRemoval = true;
-        else
-            flagStemmingAndStopWordRemoval = false;
-    }
 
     public static void setFlagStemmingAndStopWordRemoval(boolean flagStemmingAndStopWordRemoval) {
         MainQueryProcessing.flagStemmingAndStopWordRemoval = flagStemmingAndStopWordRemoval;
@@ -35,16 +27,13 @@ public class MainQueryProcessing {
         return flagStemmingAndStopWordRemoval;
     }
 
-    public static boolean getFlagConjunctiveOrDisjunctive() {
-        return flagConjunctiveOrDisjunctive;
-    }
-
-    public static boolean getFlagTfidfOrBM25() {
-        return flagTfidfOrBM25;
-    }
-
     public static void main(String[] args){
-        MainQueryProcessing queryProc = new MainQueryProcessing();
+        System.out.println("Do you want stemming and stopword removal? \n 0 = NO \n 1 = YES");
+        Scanner input = new Scanner(System.in);
+        if(input.nextLine().equals("1"))
+            flagStemmingAndStopWordRemoval = true;
+        else
+            flagStemmingAndStopWordRemoval = false;
         try {
             Preprocessing p = new Preprocessing();
             String pathDocTable;
@@ -55,48 +44,49 @@ public class MainQueryProcessing {
             RandomAccessFile docTableFile = new RandomAccessFile(pathDocTable,"r");
             FileChannel docTableChannel = docTableFile.getChannel();
             DocumentTable.readDocumentTable(docTableChannel);
-            Scanner input = new Scanner(System.in);
+            //Scanner input = new Scanner(System.in);
             while(true){
                 System.out.println("Do you want to perform conjunctive or disjunctive query? \n 0 = CONJUNCTIVE \n 1 = DISJUNCTIVE");
-                if(input.nextLine().equals("1"))
-                    flagConjunctiveOrDisjunctive = true;
-                else
-                    flagConjunctiveOrDisjunctive = false;
+                flagConjunctiveOrDisjunctive = input.nextLine().equals("1");
                 System.out.println("Do you want to use TFIDF or BM25 as scoring function? \n 0 = TFIDF \n 1 = BM25");
-                if(input.nextLine().equals("1"))
-                    flagTfidfOrBM25 = true;
-                else
-                    flagTfidfOrBM25 = false;
+                flagTfidfOrBM25 = input.nextLine().equals("1");
                 System.out.println("Insert your query and press enter: ");
                 String query = input.nextLine();
                 long start = System.currentTimeMillis();
                 ArrayList<Text> queryTerms = Preprocessing.preprocess(query);
                 String lexPath;
                 if(flagStemmingAndStopWordRemoval)
-                    lexPath="LexiconFinalStemmedAndStopWordRemoved";
+                    lexPath= "LexiconFinalStemmedAndStopWordRemoved";
                 else
                     lexPath = "LexiconFinalWithoutStemmingAndStopWordRemoval";
                 RandomAccessFile lexFile = new RandomAccessFile(lexPath,"r");
                 FileChannel lexChannel = lexFile.getChannel();
                 LexiconFinal lexQuery = Ranking.createLexiconWithQueryTerm(queryTerms,lexChannel);
-
-
                 if(flagConjunctiveOrDisjunctive){
                     MaxScore dq = new MaxScore(lexQuery.lexicon.size(), flagTfidfOrBM25);
                     ResultQueue qq = dq.maxScore(lexQuery);
+                    /*
                     for(QueueElement element : qq.queue)
                         System.out.println(element.getDocID());
+                     */
+                    qq.printResults();
                 }
                 else{
                     ConjunctiveQuery cq = new ConjunctiveQuery(lexQuery.lexicon.size(), flagTfidfOrBM25);
                     ResultQueue qq = cq.computeTopK(lexQuery);
+                    /*
                     for(QueueElement element : qq.queue)
                         System.out.println(element.getDocID());
+                     */
+                    qq.printResults();
                 }
                 long end = System.currentTimeMillis();
                 long time = end-start;
                 System.out.println("Your query took: " + time + " milliseconds");
                 System.out.println("Press 1 to perform another query, press 0 to stop the program");
+                docTableChannel.close();
+                lexChannel.close();
+
                 if (input.nextLine().equals("1"))
                     continue;
                 else
