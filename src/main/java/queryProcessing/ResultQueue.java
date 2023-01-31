@@ -7,7 +7,7 @@ public class ResultQueue{
     int k;
     public ResultQueue(){
         this.queue = new ArrayList<>();
-        this.k = 1;
+        this.k = 11;
         for(int i=0; i<k; i++)
             queue.add(new QueueElement(-1, -1));
     }

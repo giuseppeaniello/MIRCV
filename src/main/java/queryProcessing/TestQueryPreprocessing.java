@@ -86,10 +86,12 @@ public class TestQueryPreprocessing {
                 if(!lexQuery.lexicon.isEmpty()) {
                     MaxScore dq = new MaxScore(lexQuery.lexicon.size(), MaxScore.getScoringFunction());
                     ResultQueue qq = dq.maxScore(lexQuery);
-                    if(!qq.queue.isEmpty())
+                    System.out.println("NEXT");
+                    lexQuery.printLexiconFinal();
+
                         tqp.result.put(id, qq.queue.get(0).getDocID());
-                    else
-                        tqp.result.put(id,-1L);
+
+
 
 
                 }

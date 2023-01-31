@@ -18,13 +18,11 @@ public class InvertedIndex {
     public InvertedIndex(){
         allPostingLists = new ArrayList<PostingList>();
     }
-
     //Case term appeared for the first time
     public void addPostingOfNewTerm(long docID){ //add the first posting of a new posting list
         PostingList ps = new PostingList(docID);
         allPostingLists.add(ps);
     }
-
     //Case term already appeared but in different document
     public void addPostingOfExistingTerm(long index, long docID){
         //add a new posting in existing posting list

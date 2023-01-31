@@ -76,36 +76,7 @@ public class Ranking {
         float bm25 = (float) ( (tf/ ((k*( (1-b)+ (b*(dl/averagedl)) ))+tf) ) * log(totalNumberDocuments/df));
         return bm25;
     }
-
-    /*public ArrayList<queryProcessing.SkipBlock> uploadAllSkipInfo(long startOffset,int nBlocks){
-        ArrayList<queryProcessing.SkipBlock> skipInfo = new ArrayList<>();
-        for (int i = 0 ; i<nBlocks*32; i = i + 32){
-            queryProcessing.SkipBlock info = queryProcessing.SkipBlock.readSkipBlockFromFile("SkipInfo",startOffset+i);
-            skipInfo.add(info);
-        }
-        return skipInfo;
-    }*/
-  /*  public indexing.PostingList uploadPostingList(ArrayList<queryProcessing.SkipBlock> skipInfo){
-        ArrayList<Long> docIds = new ArrayList<>();
-        ArrayList<Integer> tfs = new ArrayList<>();
-        for (queryProcessing.SkipBlock  info : skipInfo){
-            long offsetDocids = info.getoffsetDocId();
-            long offesetTfs = info.getOffsetTf();
-            int lenDocIds = info.getLenBlockDocId();
-            int lenTfs = info.getLenBlockTf();
-            docIds.addAll( indexing.InvertedIndex.trasformDgapInDocIds(
-                    indexing.InvertedIndex.decompressionListOfDocIds(
-                            indexing.InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedDocId",offsetDocids,lenDocIds))));
-            tfs.addAll(indexing.InvertedIndex.decompressionListOfTfs(
-                    indexing.InvertedIndex.readDocIDsOrTFsPostingListCompressed("InvertedTF",offesetTfs,lenTfs)));
-
-        }
-        indexing.PostingList postingLists = new indexing.PostingList();
-        for (int i = 0; i< docIds.size(); i++){
-            postingLists.postingList.put(docIds.get(i),tfs.get(i));
-        }
-    }*/
-
+    //Binary Search in the disco of the term, using mapping of the file in memory
     public static long binarySearchTermInLexicon(Text term,FileChannel fileChannel,MappedByteBuffer buffer) throws IOException {
 
         //Get file channel in read-only mode

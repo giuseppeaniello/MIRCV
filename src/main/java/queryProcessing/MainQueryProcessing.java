@@ -100,6 +100,7 @@ public class MainQueryProcessing {
                 if (input.nextLine().equals("1"))
                     continue;
                 else
+                    System.out.println("Good bye!");
                     return;
             }
         } catch (IOException e) {

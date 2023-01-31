@@ -1,5 +1,4 @@
 package indexing;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.io.FileNotFoundException;
@@ -12,7 +11,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 
 import static java.nio.file.StandardOpenOption.WRITE;
-
 public class DocumentTable {
     //DocTab contains as key the DocId and as key the length of document
     private static HashMap<Long, Integer> docTab;
@@ -23,55 +21,42 @@ public class DocumentTable {
         docTab = new HashMap<>();
         averageLength = 0;
     }
-
     public static HashMap<Long, Integer> getDocTab() {
         return docTab;
     }
-
     public void setAverageLength(float averageLength) {
         this.averageLength = averageLength;
     }
-
     public static float getAverageLength() {
         return averageLength;
     }
-
     // method to save the document table on file filePath
-    public void saveDocumentTable(String filePath) throws FileNotFoundException {
-        RandomAccessFile file = new RandomAccessFile(filePath ,"rw");
-        Path fileP = Paths.get(filePath);
+    public void saveDocumentTable(FileChannel fc) throws IOException {
         ByteBuffer buffer = null;
-        try (FileChannel fc = FileChannel.open(fileP, WRITE)) {
-            for(Long key : docTab.keySet()){
-                buffer = ByteBuffer.wrap(convertLongToByteArr(key));
-                while (buffer.hasRemaining()) {
-                    fc.write(buffer);
-                }
-                buffer.clear();
-                byte[] valueByte = convertIntToByteArray(docTab.get(key));
-                buffer = ByteBuffer.wrap(valueByte);
-                while (buffer.hasRemaining()) {
-                    fc.write(buffer);
-                }
-                buffer.clear();
-            }
-            buffer = ByteBuffer.wrap(convertFloatToByteArray(averageLength));
+        for(Long key : docTab.keySet()){
+            buffer = ByteBuffer.wrap(convertLongToByteArr(key));
             while (buffer.hasRemaining()) {
                 fc.write(buffer);
             }
             buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
+            byte[] valueByte = convertIntToByteArray(docTab.get(key));
+            buffer = ByteBuffer.wrap(valueByte);
+            while (buffer.hasRemaining()) {
+                fc.write(buffer);
+            }
+            buffer.clear();
         }
+        buffer = ByteBuffer.wrap(convertFloatToByteArray(averageLength));
+        while (buffer.hasRemaining()) {
+            fc.write(buffer);
+        }
+        buffer.clear();
     }
-
     // method to load the document table from disk to main memory
     public static DocumentTable readDocumentTable(FileChannel fc) throws IOException {
         System.out.println("Loading document table");
-
         DocumentTable result = new DocumentTable();
         ByteBuffer buffer = null;
-
         for(int i = 0; i<fc.size()-4; i+=12) {
             fc.position(i);
             buffer = ByteBuffer.allocate(8);
@@ -109,21 +94,16 @@ public class DocumentTable {
         }
         setAverageLength(sum/ docTab.size());
     }
-
-
     private static byte[] convertIntToByteArray(int length) {
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putInt(length);
         return bb.array();
     }
-
     private static byte[] convertFloatToByteArray(float value) {
-
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putFloat(value);
         return bb.array();
     }
-
     private static long convertByteArrToLong(byte[] bytes) {
         long value = 0L;
         for (byte b : bytes) {
@@ -131,7 +111,6 @@ public class DocumentTable {
         }
         return value;
     }
-
     private static int convertByteArrToInt(byte[] bytes){
         int value = 0;
         for (byte b : bytes) {
@@ -139,13 +118,11 @@ public class DocumentTable {
         }
         return value;
     }
-
     public static byte[] convertLongToByteArr(long number){
         ByteBuffer bb = ByteBuffer.allocate(8);
         bb.putLong(number);
         return bb.array();
     }
-
     //Method used to test the document table
     public void printDocumentTable(){
         for (Long key : docTab.keySet() ){
@@ -153,7 +130,4 @@ public class DocumentTable {
         }
         System.out.println("Average length: " + averageLength);
     }
-
-
-
 }

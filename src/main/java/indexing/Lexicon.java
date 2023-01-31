@@ -352,8 +352,8 @@ public class Lexicon {
         deleteFile("Inverted_Index_TF_number_" + 1);
         deleteFile("Inverted_Index_TF_number_" + 2);
         //Iteration of merging process
-        if(ReadingDocuments.nFileUsed > 2 ) {
-            for (int i = 3; i <= ReadingDocuments.nFileUsed; i++) {
+        if(Indexing.nFileUsed > 2 ) {
+            for (int i = 3; i <= Indexing.nFileUsed; i++) {
                 //Open all fileChannel
                 lexFile1 = new RandomAccessFile(new File("Lexicon_Merge_number_"+(i-2)), "r");
                 lexChannel1 = lexFile1.getChannel();
