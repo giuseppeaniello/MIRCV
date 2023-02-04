@@ -22,9 +22,9 @@ public class Ranking {
         return (float) log(totalNumberDocuments/df);
     }
 
+    // compute the TFIDF score of a single document for a term
     public void updateScoreTFIDF(long docId,int tf,long df){
         float tfidfWeight = 0;
-        //calcolare tf del term in quel docId
         tfidfWeight = (float) ((1 + log(tf))*idf(df));
         if (!this.docScores.containsKey(docId))
             this.docScores.put(docId,tfidfWeight);
@@ -32,6 +32,7 @@ public class Ranking {
             this.docScores.replace(docId, this.docScores.get(docId), this.docScores.get(docId)+tfidfWeight);
     }
 
+    // compute the TFIDF score of all documents for a term
     public void calculateTFIDFScoreQueryTerm( ArrayList<Long> docIds, ArrayList<Integer> tfs,long df){
         for (int i = 0; i<docIds.size(); i++){
             updateScoreTFIDF(docIds.get(i),tfs.get(i),df);
@@ -53,6 +54,7 @@ public class Ranking {
         return max;
     }
 
+    // compute the BM25 score of a single document for a term
     public void updateScoreRSVBM25(long docId,float bm25){
         if (!this.docScores.containsKey(docId))
             this.docScores.put(docId,bm25);
@@ -60,6 +62,7 @@ public class Ranking {
             this.docScores.replace(docId, this.docScores.get(docId), this.docScores.get(docId)+bm25);
     }
 
+    // compute the BM25 score of all documents for a term
     public void computeRSVbm25(ArrayList<Long> docIds, ArrayList<Integer> tfs, DocumentTable dt, int df){
         long id;
         float bm25;
@@ -76,13 +79,12 @@ public class Ranking {
         float bm25 = (float) ( (tf/ ((k*( (1-b)+ (b*(dl/averagedl)) ))+tf) ) * log(totalNumberDocuments/df));
         return bm25;
     }
-    //Binary Search in the disco of the term, using mapping of the file in memory
-    public static long binarySearchTermInLexicon(Text term,FileChannel fileChannel,MappedByteBuffer buffer) throws IOException {
 
+    //Binary Search on file of the term, using mapping of the file in memory
+    public static long binarySearchTermInLexicon(Text term,FileChannel fileChannel,MappedByteBuffer buffer) throws IOException {
         //Get file channel in read-only mode
         long midpoint ;
         //Get direct byte buffer access using channel.map() operation
-
         long size = fileChannel.size()/50;
         long lb = 0;
         long ub = size;
@@ -108,11 +110,11 @@ public class Ranking {
             else
                 System.out.println("Something in Binary Search go wrong");
         }
-
         return midpoint;
 
     }
 
+    // method to perform the binary search of all query terms
     public static LexiconFinal createLexiconWithQueryTerm(ArrayList<Text> terms,FileChannel lexChannel) throws IOException {
         LexiconFinal lexQuery = new LexiconFinal();
         //Get direct byte buffer access using channel.map() operation
@@ -127,4 +129,5 @@ public class Ranking {
         }
         return lexQuery;
     }
+
 }

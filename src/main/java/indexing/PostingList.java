@@ -11,10 +11,12 @@ public class PostingList {
         this.postingList = new LinkedHashMap<>();
         this.postingList.put(docID, 1);
     }
+
     public PostingList(){
         this.postingList = new LinkedHashMap<>();
     }
 
+    // method used to increment the TF of a posting in this posting list by 1
     public void incrementTF(long docID){
         this.postingList.replace(docID, this.postingList.get(docID)+1);
     }

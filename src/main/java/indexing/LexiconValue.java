@@ -63,6 +63,7 @@ public class LexiconValue {
     public void setOffsetSkipBlocks(long offsetSkipBlocks) {
         this.offsetSkipBlocks = offsetSkipBlocks;
     }
+
     public void setnBlock(int nBlock) {
         this.nBlock = nBlock;
     }

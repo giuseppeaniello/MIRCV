@@ -10,7 +10,6 @@ public class LexiconLineFinal {
     private Text term;
     private int  cf;
     private int df;
-
     float termUpperBoundTFIDF;
     float termUpperBoundBM25;
     private int nBlock;
@@ -81,6 +80,7 @@ public class LexiconLineFinal {
     public void setTermUpperBoundTFIDF(float termUpperBoundTFIDF) {
         this.termUpperBoundTFIDF = termUpperBoundTFIDF;
     }
+
     public LexiconValueFinal getLexiconValueFinal(){
         LexiconValueFinal l = new LexiconValueFinal();
         l.setCf(getCf());
@@ -89,10 +89,10 @@ public class LexiconLineFinal {
         l.setnBlock(getnBlock());
         l.setTermUpperBoundTFIDF(getTermUpperBoundTFIDF());
         l.setTermUpperBoundBM25(getTermUpperBoundBM25());
-
         return l;
     }
 
+    // method to read a LexiconLineFinal from file
     public static LexiconLineFinal readLineLexicon(FileChannel fc, long offset) throws IOException {
         ByteBuffer buffer;
         LexiconLineFinal lex = new LexiconLineFinal();

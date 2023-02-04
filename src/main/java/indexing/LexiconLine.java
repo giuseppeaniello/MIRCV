@@ -110,6 +110,7 @@ public class LexiconLine {
                 this.offsetTF+ " "+ this.lenOfDocID+" "+this.lenOfTF);
     }
 
+    // method to save a LexiconLine on file
     public void saveLexiconLineOnFile(FileChannel fc,long offset) throws IOException {
         ByteBuffer buffer = null;
         fc.position(offset);
@@ -128,6 +129,7 @@ public class LexiconLine {
         buffer.clear();
     }
 
+
     public byte[] transformValueToByteWithSkip() {
         ByteBuffer bb = ByteBuffer.allocate(20);
         bb.putInt(getCf());
@@ -138,6 +140,7 @@ public class LexiconLine {
         return bb.array();
     }
 
+    // method to read bytes of a LexiconLine on file and convert it into an actual LexiconLine object
     public static LexiconLine transformByteWIthSkipToLexicon(byte[] value){
         LexiconLine l = new LexiconLine();
         int count =0;
@@ -155,8 +158,8 @@ public class LexiconLine {
         return l;
     }
 
+    // Method to save a single LexiconLine with also skip info
     public void saveLexiconLineWithSkip(FileChannel fc, long startingPoint) throws IOException {
-
         ByteBuffer buffer = null;
         fc.position(startingPoint);
         buffer = ByteBuffer.wrap(getTerm().getBytes());
@@ -171,38 +174,10 @@ public class LexiconLine {
             fc.write(buffer);
         }
         buffer.clear();
-
     }
 
     public void printLexiconLineWithSkip(){
         System.out.println("TERM: "+getTerm()+"CF: "+ getCf()+" DF: "+getDf()+" Off: "+getOffsetSkipBlocks()+" Nblock: "+getnBlock());
-    }
-
-    public static LexiconLine readLexiconLineSkip(String filePath,long startReadingPosition){
-        Path fileP = Paths.get(filePath);
-        ByteBuffer buffer = null;
-        LexiconLine lexVal = new LexiconLine();
-        try (FileChannel fc = FileChannel.open(fileP, READ)) {
-            fc.position(startReadingPosition);
-            buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            Text term = new Text(buffer.array());
-            buffer.clear();
-
-            fc.position(startReadingPosition+22);
-            buffer = ByteBuffer.allocate(20); //54 is the total number of bytes to read a complete term of the lexicon
-            do {
-                fc.read(buffer);
-            } while (buffer.hasRemaining());
-            lexVal = transformByteWIthSkipToLexicon(buffer.array());
-            lexVal.setTerm(term);
-            buffer.clear();
-        } catch (IOException ex) {
-            System.err.println("I/O Error: " + ex);
-        }
-        return lexVal;
     }
 
 

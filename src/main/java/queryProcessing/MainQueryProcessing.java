@@ -86,7 +86,7 @@ public class MainQueryProcessing {
                     ResultQueue qq = dq.maxScore(lexQuery);
                     for(QueueElement element : qq.queue) {
                         if (element.getDocID() == -1)
-                            System.out.println("No Result Founded");
+                            System.out.println("No Result Found");
                         else
                             System.out.println(element.getDocID() - 1);
                     }
@@ -96,7 +96,7 @@ public class MainQueryProcessing {
                     ResultQueue qq = cq.computeTopK(lexQuery);
                     for(QueueElement element : qq.queue){
                         if (element.getDocID() == -1)
-                            System.out.println("No Result Founded");
+                            System.out.println("No Result Found");
                         else
                             System.out.println(element.getDocID()-1);
 

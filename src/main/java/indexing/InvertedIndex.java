@@ -23,21 +23,25 @@ public class InvertedIndex {
         PostingList ps = new PostingList(docID);
         allPostingLists.add(ps);
     }
+
     //Case term already appeared but in different document
     public void addPostingOfExistingTerm(long index, long docID){
         //add a new posting in existing posting list
         allPostingLists.get((int) index).postingList.put(docID, 1);
     }
+
     //Case term already appeared in the same document
     public void incrementPostingTF(long index, long docID){
         allPostingLists.get((int) index).incrementTF(docID); //increment the TF of the posting of that document
     }
+
     //Clean of inverted index used when a block is built
     public void clearInvertedIndex(){
         this.allPostingLists.clear();
         this.allPostingLists = null;
         System.gc();
     }
+
     //Unary compression of tfs
     public static byte[] compressListOfTFs(ArrayList<Integer> array){
         // use unary compression
@@ -62,6 +66,7 @@ public class InvertedIndex {
         }
         return fromBooleanArrToByteArr(result);
     }
+
     //Gamma compression of D-gap
     public static byte[] compressListOfDocIDs(ArrayList<Long> list){
         List<Boolean> result = new ArrayList<>(); // lista in cui mettiamo tutto via via, non posso usare array perchè non conosco dimensione
@@ -94,6 +99,12 @@ public class InvertedIndex {
             arrBool[i] = result.get(i);
         return fromBooleanArrToByteArr(arrBool);
     }
+
+    // method exploited in compressListOfDocIds()
+    private static String binaryWhitoutMostSignificant(long docID){
+        return Long.toBinaryString(docID).substring(1); // convert docID in binary and trash first element
+    }
+
     //Function to read from file a compressed Posting list
     public static byte[] readDocIDsOrTFsPostingListCompressed(FileChannel fc,long startReadingPosition, int lenOffeset) throws IOException {
         byte[] result = new byte[lenOffeset];
@@ -106,11 +117,6 @@ public class InvertedIndex {
         result = buffer.array();
         buffer.clear();
         return result;
-    }
-    ///read with byteBuffer
-    //Function to cm
-    private static String binaryWhitoutMostSignificant(long docID){
-        return Long.toBinaryString(docID).substring(1); // convert docID in binary and trash first element
     }
 
     public static ArrayList<Long> transformByteToLongArray(byte[] value){
@@ -125,7 +131,6 @@ public class InvertedIndex {
 
     public static ArrayList<Integer> transformByteToIntegerArray(byte[] value){
         ArrayList<Integer> convertArray= new ArrayList<>();
-
         ByteBuffer bb = ByteBuffer.wrap(value);
         for(int i =0; i<value.length/4;i++) {
             convertArray.add(bb.getInt());
@@ -163,34 +168,42 @@ public class InvertedIndex {
         int count = 0;
         for(int i=0; i<boolArray.length; i++){
             count++;
-            if(boolArray[i] == false){ // quando trova il primo 0 vuol dire che il numero è finito
-                listOfTFs.add(count); // lo aggiunge alla lista, adesso bisogna riprendere dal byte successivo
-                i = i + ( 8*(int)( Math.floor(count/8) +1 ) ) - count; // in questo modo si riparte dall'inizio del byte successivo (in realtà dal bit prima ma poi appena ricomincia in for fa i++)
+            // when first 0 is found means the number is finished
+            if(boolArray[i] == false){
+                // add it to the list, now restart from next byte
+                listOfTFs.add(count);
+                // ho to starting point of next byte (actually one bit before but then there is i++)
+                i = i + ( 8*(int)( Math.floor(count/8) +1 ) ) - count;
                 count = 0;
             }
         }
         return listOfTFs;
     }
 
-    public static ArrayList<Long> decompressionListOfDocIds(byte[] compression){ //// DA TESTARE
+    public static ArrayList<Long> decompressionListOfDocIds(byte[] compression){
         ArrayList<Long> result = new ArrayList<>();
         boolean[] boolArray = fromByteArrToBooleanArr(compression);
-        int count = 0; //tengo il conto della posizione a cui sono arrivato a guardare
+        // keep count of last position watched
+        int count = 0;
         while(count < boolArray.length) {
-            int leftPart = 1; // leftPart incrementa di 1 finchè non incontro uno 0
+            // increase left part of 1 while a 0 is encountered
+            int leftPart = 1;
             for (int i = 0; i < boolArray.length; i++) {
                 if (boolArray[count] == false) {
-                    count++; //salto lo zero finale della unary
+                    // jump the final 0 of unary compression
+                    count++;
                     break;
                 }
                 else{
                     leftPart++;
                     count++;
                 }
-            } //arrivato qui ho la prima parte
-            // ora vogliamo decodificare la seconda parte
-            String str = "1"; // nella compressione togliamo il bit più significativo quindi qua lo riaggiungo
-            for (int i=0; i<(leftPart -1); i++) { //creo una stringa in cui ho la codifica binaria della seconda parte
+            } // here first part is completed
+            // decode second part
+            // add most significant byte removed during the compression
+            String str = "1";
+            // create string with binary encoding of second part
+            for (int i=0; i<(leftPart -1); i++) {
                 if (boolArray[count] == true) {
                     str += '1';
                     count++;
@@ -201,16 +214,16 @@ public class InvertedIndex {
                 }
             }
             result.add(Long.parseLong(str, 2));
-            //ora allineiamo a byte (se ho già trovato la codifica non serve che andiamo avanti a leggere fino al byte dopo
+            // alligning to byte
             while( (count % 8) != 0 )
                 count++;
         }
         return result;
     }
 
+    // method to save list of DocIds on file
     public static void saveDocIDsOnFile(Lexicon lex, FileChannel fc) throws IOException {
         int offset = 0;
-
         ByteBuffer buffer = null;
         for(Text term:lex.lexicon.keySet()){
             lex.lexicon.get(term).setOffsetDocID(offset);
@@ -226,6 +239,7 @@ public class InvertedIndex {
         }
     }
 
+    // method to save list of TFs on file
     public static void saveTFsOnFile(Lexicon lex, FileChannel fc) throws IOException {
         int offset = 0;
         ByteBuffer buffer = null;
@@ -252,6 +266,8 @@ public class InvertedIndex {
         }
         buffer.clear();
     }
+
+    // method to convert docIds in D-gaps
     public static ArrayList<Long> trasformDgapInDocIds(ArrayList<Long> dgap){
         ArrayList<Long> result = new ArrayList<>();
         long sum = 0;
@@ -263,8 +279,8 @@ public class InvertedIndex {
         return result;
     }
 
+    // method to read docId posting list of a term
     public static byte[] readOneDocIdPostingList(long startReadingPosition, FileChannel fc, int df) throws IOException {
-
         ByteBuffer buffer = null;
         byte[] resultByte = new byte[df*8];
         fc.position(startReadingPosition);
@@ -277,26 +293,7 @@ public class InvertedIndex {
         return resultByte;
     }
 
-    public static byte[] transformArrayLongToByteArray(ArrayList<Long> array){
-        byte[] converted;
-        ByteBuffer bb = ByteBuffer.allocate(array.size()*8);
-        for (Long tmp : array)
-            bb.putLong(tmp);
-
-        converted=bb.array();
-        return converted;
-    }
-
-    public static byte[] transformArrayIntToByteArray(ArrayList<Integer> array){
-        byte[] converted;
-        ByteBuffer bb = ByteBuffer.allocate(array.size()*4);
-        for (Integer tmp : array)
-            bb.putLong(tmp);
-
-        converted=bb.array();
-        return converted;
-    }
-
+    // method to read TF posting list of a term
     public static byte[] readOneTfsPostingList(long startReadingPosition, FileChannel fc, int df) throws IOException {
         ByteBuffer buffer = null;
         byte[] resultByte;
@@ -310,8 +307,7 @@ public class InvertedIndex {
         return resultByte;
     }
 
-   /* public static ArrayList<Long> compression(long startLexiconLine,FileChannel fcLexMerge,FileChannel fcInvDocIds,FileChannel fcInvTfs,
-                                   long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo, long offsetLexSkip, int flag) throws IOException {*/
+    // method to perform compression of docId posting lists and TFs posting lists. It also performs Skip Info creation
    public static ArrayList<Long> compression(long startLexiconLine,FileChannel fcLexMerge,FileChannel fcInvDocIds,FileChannel fcInvTfs,
                                              long offsetInvDocids, long offsetInvTFs, long offsetSkipInfo, long offsetLexSkip,
                                              FileChannel lexAfterCompressionChannel, FileChannel invDocIdAfterCompressionChannel,
@@ -374,11 +370,9 @@ public class InvertedIndex {
                 System.out.println("Something Wrong in the compression");
             }
         }
-
         line.setnBlock(currentBlock);
         //Save new indexing.Lexicon with skipInfo
         line.saveLexiconLineWithSkip(lexAfterCompressionChannel,offsetLexSkip);
-
         offsetLexSkip += 42;
         ArrayList<Long> offsets = new ArrayList<>();
         offsets.add(offsetSkipInfo);

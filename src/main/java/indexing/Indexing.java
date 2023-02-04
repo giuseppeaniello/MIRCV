@@ -173,7 +173,7 @@ public class Indexing {
             //Compute termUpperBoundBM25
             Ranking rankBM25 = lex.computeScoresForATermBM25ForUpperBound(term, documentTab,skipInfoChannel,invDocIdChannelAfterCompression,invTFChannelAfterCompression);
             lexValueFinal.setTermUpperBoundBM25(rankBM25.computeTermUpperBound());
-            //Add in a final Lexicon
+            //Add in final Lexicon
             lexFinal.lexicon.put(term,lexValueFinal);
         }
         Lexicon.deleteFile("Lexicon");

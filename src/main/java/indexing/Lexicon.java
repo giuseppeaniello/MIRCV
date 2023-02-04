@@ -202,13 +202,12 @@ public class Lexicon {
                 lineLexMerge.setCf(lineLex1.getCf() + lineLex2.getCf());
                 // the two DFs are summed
                 lineLexMerge.setDf(lineLex1.getDf() + lineLex2.getDf());
-                //
-                //Fusione delle due posting con docids (la seconda va inserita alla fine della prima) Check per verificare
+                // two docId posting lists connected one at the end of the other
                 byte[] byteArrayMergeDocId = Bytes.concat(InvertedIndex.readOneDocIdPostingList(lineLex1.getOffsetDocID(), fcDocID1, lineLex1.getDf()),
                         InvertedIndex.readOneDocIdPostingList(lineLex2.getOffsetDocID(), fcDocID2, lineLex2.getDf()));
                 InvertedIndex.saveDocIdsOrTfsPostingLists(fcDocIDMerge,byteArrayMergeDocId,offsetDocIdMerge);
                 lineLexMerge.setOffsetDocID(offsetDocIdMerge);
-                //Fusione delle due Posting con tf
+                // two TF posting lists connected one at the end of the other
                 byte[] byteArrayMergeTf = Bytes.concat(InvertedIndex.readOneTfsPostingList(lineLex1.getOffsetTF(), fcTF1, lineLex1.getDf()),
                         InvertedIndex.readOneTfsPostingList(lineLex2.getOffsetTF(),fcTF2,lineLex2.getDf()));
                 InvertedIndex.saveDocIdsOrTfsPostingLists(fcTFMerge,byteArrayMergeTf,offsetTFMerge);
@@ -222,8 +221,10 @@ public class Lexicon {
                 readingPositionFileLex2 += 54;
                 offsetFileLexMerge += 54;
             }
-            else if (t1.compareTo(t2) > 0) { // caso t1>t2
-                LexiconLine lineLex = readLexiconLine(fcLex2, readingPositionFileLex2); //leggi lexiconLine
+            // case t1 > t2
+            else if (t1.compareTo(t2) > 0) {
+                // read LexiconLine
+                LexiconLine lineLex = readLexiconLine(fcLex2, readingPositionFileLex2);
 
                 InvertedIndex.saveDocIdsOrTfsPostingLists(fcDocIDMerge,
                         InvertedIndex.readOneDocIdPostingList(lineLex.getOffsetDocID(),fcDocID2, lineLex.getDf()),offsetDocIdMerge);
@@ -234,12 +235,13 @@ public class Lexicon {
                 lineLex.setOffsetTF(offsetTFMerge);
 
                 lineLex.saveLexiconLineOnFile(fcLexMerge, offsetFileLexMerge);
-                //Set degli elementi aggiornati
+                //Set of updated elements
                 offsetDocIdMerge += lineLex.getLenOffDocID();
                 offsetTFMerge += lineLex.getLenOffTF();
                 readingPositionFileLex2 += 54;
                 offsetFileLexMerge += 54;
-            } else { // caso t2>t1
+                //case t2 > t1
+            } else {
                 LexiconLine lineLex = readLexiconLine(fcLex1, readingPositionFileLex1);
 
                 InvertedIndex.saveDocIdsOrTfsPostingLists(fcDocIDMerge,
@@ -258,6 +260,7 @@ public class Lexicon {
                 offsetFileLexMerge += 54;
             }
         }
+        // case lex2 is finished
         while (readingPositionFileLex1 < fcLex1.size()) {
             LexiconLine lineLex = readLexiconLine(fcLex1, readingPositionFileLex1);
 
@@ -276,6 +279,7 @@ public class Lexicon {
             readingPositionFileLex1 += 54;
             offsetFileLexMerge += 54;
         }
+        // case lex1 is finished
         while (readingPositionFileLex2 < fcLex2.size()) {
             LexiconLine lineLex = readLexiconLine(fcLex2, readingPositionFileLex2);
 
@@ -294,9 +298,9 @@ public class Lexicon {
             readingPositionFileLex2 += 54;
             offsetFileLexMerge += 54;
         }
-
     }
 
+    // method to delete files already merged
     public static void deleteFile(String path) {
         try {
             Files.deleteIfExists(Paths.get(path));
@@ -310,6 +314,7 @@ public class Lexicon {
         }
     }
 
+    // method to perform the recursive merging of all blocks
     public static  void mergeAllBlocks() throws IOException {
         //Open all fileChannel
         RandomAccessFile lexFile1 = new RandomAccessFile(new File("Lexicon_number_"+1), "r");
@@ -331,7 +336,8 @@ public class Lexicon {
         FileChannel invDocIdsChannelMerge = invDocIdFileMerge.getChannel();
         RandomAccessFile invTfsFileMerge = new RandomAccessFile(new File("Inverted_Index_Merge_TF_number_1"), "rw");
         FileChannel invertedTfsChannelMerge = invTfsFileMerge.getChannel();
-        //Start with merging of two first blocks
+        // Start with merging of two first blocks
+        // First iteration is done by hand because names of files are different in the first step
         mergeBlocks( lexChannel1, lexChannel2, lexChannelMerge,
                      invDocIdsChannel1, invDocIdsChannel2, invDocIdsChannelMerge,
                     invertedTfsChannel1, invertedTfsChannel2, invertedTfsChannelMerge);
@@ -352,9 +358,10 @@ public class Lexicon {
         deleteFile("Inverted_Index_TF_number_" + 1);
         deleteFile("Inverted_Index_TF_number_" + 2);
         //Iteration of merging process
+        //Check if there are other file to merge
         if(Indexing.nFileUsed > 2 ) {
             for (int i = 3; i <= Indexing.nFileUsed; i++) {
-                //Open all fileChannel
+                //Open all fileChannels
                 lexFile1 = new RandomAccessFile(new File("Lexicon_Merge_number_"+(i-2)), "r");
                 lexChannel1 = lexFile1.getChannel();
                 lexFile2 = new RandomAccessFile(new File("Lexicon_number_"+(i)), "r");
@@ -395,17 +402,16 @@ public class Lexicon {
                 deleteFile("Inverted_Index_Merge_TF_number_" + (i-2));
                 deleteFile("Inverted_Index_TF_number_" + (i));
             }
-
         }
     }
 
+    // Method to compute TFIDF upper bound for a term
     public  Ranking computeScoresForATermTfidfForUpperBound(Text term,FileChannel skipInfoFileChannel,
                                                             FileChannel invDocIdChannel,FileChannel invTfChannel) throws IOException {
         Ranking result = new Ranking();
         long tmpPosPosting = lexicon.get(term).getOffsetSkipBlocks();
         int nBlocks = lexicon.get(term).getnBlock();
         ArrayList<SkipBlock> info = new ArrayList<>();
-
         for (int i = 0; i < nBlocks; i++) {
             info.add(SkipBlock.readSkipBlockFromFile(skipInfoFileChannel, tmpPosPosting + (i * 32)));
         }
@@ -416,18 +422,16 @@ public class Lexicon {
                     invTfChannel , info.get(i).getOffsetTf(), info.get(i).getLenBlockTf()));
             result.calculateTFIDFScoreQueryTerm(postingDocid, postingTf, lexicon.get(term).getDf());
         }
-        //indexing.InvertedIndex.decompressionListOfDocIds(indexing.InvertedIndex.readDocIDsOrTFsPostingListCompressed(invDocIdChannelAfterCompression,83051,5))
-        //indexing.InvertedIndex.decompressionListOfTfs(indexing.InvertedIndex.readDocIDsOrTFsPostingListCompressed(invTFChannelAfterCompression,82246,1))
         return result;
     }
 
+    // Method to compute BM25 upper bound for a term
     public  Ranking computeScoresForATermBM25ForUpperBound(Text term, DocumentTable docTab, FileChannel skipInfoFileChannel,
                                                            FileChannel invDocIdChannel,FileChannel invTfChannel) throws IOException {
         Ranking result = new Ranking();
         long tmpPosPosting = lexicon.get(term).getOffsetSkipBlocks();
         int nBlocks = lexicon.get(term).getnBlock();
         ArrayList<SkipBlock> info = new ArrayList<>();
-
             for (int i = 0; i < nBlocks; i++) {
                 info.add(SkipBlock.readSkipBlockFromFile(skipInfoFileChannel, tmpPosPosting + (i * 32)));
             }
@@ -442,21 +446,21 @@ public class Lexicon {
         return result;
     }
 
+    // Method to read all the lexicon given the fileChannel, exploited during terms upper bound computation
+    // not exploited during query processing
     public static Lexicon readAllLexicon(FileChannel fc) throws IOException {
-
         ByteBuffer buffer = null;
         Lexicon lex = new Lexicon();
-
         for(int i = 0; i<fc.size(); i=i+42) {
             fc.position(i);
-            buffer = ByteBuffer.allocate(22); //50 is the total number of bytes to read a complete term of the lexicon
+            buffer = ByteBuffer.allocate(22);
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
             Text term = new Text(buffer.array());
             buffer.clear();
             fc.position( i+ 22);
-            buffer = ByteBuffer.allocate(20); //42 is the total number of bytes to read a complete term of the lexicon
+            buffer = ByteBuffer.allocate(20);
             do {
                 fc.read(buffer);
             } while (buffer.hasRemaining());
@@ -470,8 +474,6 @@ public class Lexicon {
 
             lex.lexicon.put(term,val);
         }
-
-
         return lex;
     }
 

@@ -21,15 +21,19 @@ public class DocumentTable {
         docTab = new HashMap<>();
         averageLength = 0;
     }
+
     public static HashMap<Long, Integer> getDocTab() {
         return docTab;
     }
+
     public void setAverageLength(float averageLength) {
         this.averageLength = averageLength;
     }
+
     public static float getAverageLength() {
         return averageLength;
     }
+
     // method to save the document table on file filePath
     public void saveDocumentTable(FileChannel fc) throws IOException {
         ByteBuffer buffer = null;
@@ -52,6 +56,7 @@ public class DocumentTable {
         }
         buffer.clear();
     }
+
     // method to load the document table from disk to main memory
     public static DocumentTable readDocumentTable(FileChannel fc) throws IOException {
         System.out.println("Loading document table");
@@ -94,16 +99,19 @@ public class DocumentTable {
         }
         setAverageLength(sum/ docTab.size());
     }
+
     private static byte[] convertIntToByteArray(int length) {
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putInt(length);
         return bb.array();
     }
+
     private static byte[] convertFloatToByteArray(float value) {
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putFloat(value);
         return bb.array();
     }
+
     private static long convertByteArrToLong(byte[] bytes) {
         long value = 0L;
         for (byte b : bytes) {
@@ -111,6 +119,7 @@ public class DocumentTable {
         }
         return value;
     }
+
     private static int convertByteArrToInt(byte[] bytes){
         int value = 0;
         for (byte b : bytes) {
@@ -118,11 +127,13 @@ public class DocumentTable {
         }
         return value;
     }
+
     public static byte[] convertLongToByteArr(long number){
         ByteBuffer bb = ByteBuffer.allocate(8);
         bb.putLong(number);
         return bb.array();
     }
+
     //Method used to test the document table
     public void printDocumentTable(){
         for (Long key : docTab.keySet() ){

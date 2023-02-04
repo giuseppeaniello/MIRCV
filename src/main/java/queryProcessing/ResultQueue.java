@@ -36,11 +36,5 @@ public class ResultQueue{
         }
     }
 
-    public void printResults(){
-        System.out.println("Results: ");
-        for(QueueElement qe : this.queue){
-            System.out.println('\t' + qe.getDocID());
-        }
-    }
 
 }
