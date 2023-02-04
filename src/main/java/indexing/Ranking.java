@@ -39,11 +39,6 @@ public class Ranking {
         }
     }
 
-    public void printRankingTerm(){
-        for (Long key : docScores.keySet()){
-            System.out.println("DOCID: "+key+" SCORE: "+docScores.get(key));
-        }
-    }
 
     public float computeTermUpperBound(){
         float max = 0;

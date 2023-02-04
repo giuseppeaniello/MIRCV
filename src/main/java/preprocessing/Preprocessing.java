@@ -7,7 +7,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.tartarus.snowball.ext.PorterStemmer;
 import org.apache.hadoop.io.Text;
-import  queryProcessing.*;
 public class Preprocessing {
 
     private static HashSet<String> stopwords ; //Get the list of stopwords
@@ -39,7 +38,7 @@ public class Preprocessing {
         }
     }
 
-    public static HashSet<String> getStopwords() throws IOException { //ritorna il dizionario di stopwords
+    public static HashSet<String> getStopwords() throws IOException { //return the dictionary used for stopwords
         File file = new File("stopwords.txt");
         HashSet<String> stopwords = new HashSet<>();
         LineIterator it = FileUtils.lineIterator(file,"UTF-8");
@@ -74,6 +73,8 @@ public class Preprocessing {
         // removes non-printable characters from Unicode
         document_in = document_in.replaceAll("\\p{C}", "");
         document_in= document_in.replaceAll("'s","");
+        // remove special characters, words with numbers at the start, at the end and in between it's characters
+        // splits words containing non words characters and return only the character's part
         document_in= document_in.replaceAll("(([a-zA-Z]+)([0-9]+)([a-zA-Z]+))"," ");
         document_in= document_in.replaceAll("(([a-zA-Z]+)([-_.,#@+*Â£$%&]+)([a-zA-Z]+))"," ");
         document_in= document_in.replaceAll("([\\[\\_\\(\\)\\{\\}\\]]+)([0-9]+)","$2");
@@ -81,18 +82,14 @@ public class Preprocessing {
         document_in= document_in.replaceAll("([\\W])([a-zA-Z]+)"," $2");
         document_in= document_in.replaceAll("([a-zA-Z]+)([\\W])+","$1 ");
         document_in= document_in.replaceAll("[!._'?\"Â£#$,;%&=\\{\\}\\[\\]\\(\\)]","");
-        //new part
         document_in= document_in.replaceAll("(^[a-zA-Z]+)([0-9]+$)","$1 ");
         document_in= document_in.replaceAll("(^[0-9]+)([a-zA-Z]+$)"," $2");
         document_in= document_in.replaceAll("(^[\\W])([a-zA-Z]+$)"," $2");
         document_in= document_in.replaceAll("(^[a-zA-Z]+)([\\W])+$","$1 ");
-        //test2=test2.replaceAll("[^a-zA-Z ]","");
         document_in= document_in.replaceAll("[^a-zA-Z ]","");
         document_in= document_in.replaceAll("[  ]{2,}"," ");
         document_in= document_in.replaceAll("^[ ]","");
-        //document_in= document_in.replaceAll("[!._'?]\\{{]][[}\\+\\*_^'!Â£$%()=%&]","");
-        //document_in= document_in.replaceAll("[!-._'?\[["]]{{}}}]","");
-        //document_in= document_in.replaceAll("[!-._'?\"]","");
+
         return document_in;
     }
 
