@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 public class Indexing {
     public static  int nFileUsed = 0;
-    public static void readDoc(int flag) throws IOException {
+    public static void readDoc(boolean flag) throws IOException {
         //Read from file the dataset with all DocIds and
         File test2 = new File("collection.tsv");
         DocumentTable documentTab = new DocumentTable();
@@ -39,16 +39,17 @@ public class Indexing {
                 String docText = new String (docCurrent.split("\\t")[1].getBytes(StandardCharsets.UTF_8));
                 String docId = docCurrent.split("\\t")[0];
                 //Preprocessing of document before adding it in the lexicon
-                ArrayList<Text> docPreprocessed = preproc.preprocess(docText);
+                ArrayList<Text> docPreprocessed = preproc.preprocess(docText, flag);
                 //Check if it is null(document without words)
                 if(docPreprocessed!=null) {
                     for (Text term : docPreprocessed) {
                         //Each term is added in the lexicon and in the indexing.InvertedIndex
-                        lex.addElement(term, Long.parseLong(docId), invInd);
+                        lex.addElement(term, Long.parseLong(docId)+1, invInd);
                     }
+                    // aggiunge il docID e la sua lunghezza alla document table
+                    DocumentTable.getDocTab().put(Long.parseLong(docId)+1, docPreprocessed.size());
                 }
-                // aggiunge il docID e la sua lunghezza alla document table
-                DocumentTable.getDocTab().put(Long.parseLong(docId), docPreprocessed.size());
+
             }
             //Open all file and instanced the corresponding file channel
             RandomAccessFile lexFile = new RandomAccessFile(new File("Lexicon_number_"+nFileUsed), "rw");
@@ -74,7 +75,7 @@ public class Indexing {
         //Differentiation that includes stopwords and stemming or not
         //Define Path and fileChannel
         String docTablePath;
-        if(flag == 1)
+        if(flag)
             docTablePath = "document_table_stemmed_and_stopword_removed";
         else
             docTablePath = "document_table_without_stemming_and_stopword_removal";
@@ -104,7 +105,7 @@ public class Indexing {
         FileChannel lexChannelAfterCompression = lexFileAfterCompression.getChannel();
         //Define files where save values after compression
         String pathInvDocId;
-        if (flag == 1){
+        if (flag){
             pathInvDocId = "InvertedDocIdStemmedAndStopwordRemoved";
         }
         else{
@@ -113,7 +114,7 @@ public class Indexing {
         RandomAccessFile invDocAfterCompression = new RandomAccessFile(new File(pathInvDocId), "rw");
         FileChannel invDocIdChannelAfterCompression = invDocAfterCompression.getChannel();
         String pathInvTf;
-        if(flag == 1){
+        if(flag){
             pathInvTf ="InvertedTFStemmedAndStopwordRemoved";
         }
         else{
@@ -122,7 +123,7 @@ public class Indexing {
         RandomAccessFile invTFFileAfterCompression = new RandomAccessFile(new File(pathInvTf), "rw");
         FileChannel invTFChannelAfterCompression = invTFFileAfterCompression.getChannel();
         String pathSkipInfo;
-        if(flag == 1){
+        if(flag){
             pathSkipInfo = "SkipInfoStemmedAndStopwordRemoved";
         }
         else{
@@ -156,7 +157,7 @@ public class Indexing {
         System.out.println("InvertedTF size after compression: "+ invTFFileAfterCompression.length());
         System.out.println("End compression phase "+ dtf.format(LocalDateTime.now()));
         //Start phase of computing MaxScore(TFID and BM25)
-        System.out.println("Start building final indexing.Lexicon with TermUpperBound "+dtf.format(LocalDateTime.now()));
+        System.out.println("Start building final Lexicon with TermUpperBound "+dtf.format(LocalDateTime.now()));
         Lexicon lex = Lexicon.readAllLexicon(lexChannelAfterCompression);
         LexiconFinal lexFinal = new LexiconFinal();
         for(Text term : lex.lexicon.keySet()){
@@ -178,7 +179,7 @@ public class Indexing {
         Lexicon.deleteFile("Lexicon");
         //Define Path where the new Lexicon is saved
         String lexPath;
-        if(flag == 1) {
+        if(flag) {
             lexPath = "LexiconFinalStemmedAndStopWordRemoved";
         }
         else {

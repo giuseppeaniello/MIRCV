@@ -6,7 +6,7 @@ public class MainIndexing {
 
     public static void main(String[] args) {
         try { // flag==1 means stemming and stopword removal are applied
-            Indexing.readDoc(1);
+            Indexing.readDoc(true);
         } catch (IOException e) {
             e.printStackTrace();
         }

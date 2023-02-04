@@ -17,8 +17,8 @@ public class Preprocessing {
         this.stopwords=getStopwords();
     }
 
-    public static ArrayList<Text> preprocess(String doc_in) throws IOException {  //applies the preprocessing
-        if(MainQueryProcessing.getFlagStemmingAndStopWordRemoval()){ //If check==1 the stemming and stopwords removal are applied
+    public static ArrayList<Text> preprocess(String doc_in, boolean flag) throws IOException {  //applies the preprocessing
+        if(flag){ //If check==1 the stemming and stopwords removal are applied
             String doc_out=doc_in;
             doc_out=textclean(doc_out); //Text cleaned and converted from ASCII to UNICODE
             doc_out=doc_out.toLowerCase(); //Text to lower case
@@ -41,8 +41,6 @@ public class Preprocessing {
 
     public static HashSet<String> getStopwords() throws IOException { //ritorna il dizionario di stopwords
         File file = new File("stopwords.txt");
-        //String file=("C:\\Users\\Rauro\\OneDrive\\Desktop\\Uni\\Information Retrivial\\stopwords.txt");
-        //File test2 = new File("C:\\Users\\edoar\\Documents\\Università\\Multim Inf Ret\\collectionReduction.tsv");
         HashSet<String> stopwords = new HashSet<>();
         LineIterator it = FileUtils.lineIterator(file,"UTF-8");
         while (it.hasNext()) {

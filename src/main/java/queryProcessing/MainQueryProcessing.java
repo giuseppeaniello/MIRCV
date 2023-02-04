@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 public class MainQueryProcessing {
 
-    private static boolean flagStemmingAndStopWordRemoval; // 1 means stemming and stopword removal
+    private static boolean flagStemmingAndStopWordRemoval; // 1 mean stemming and stopword removal
     private static boolean flagConjunctiveOrDisjunctive; // 1 means disjunctive
     private static boolean flagTfidfOrBM25; // 1 means BM25
 
@@ -70,7 +70,7 @@ public class MainQueryProcessing {
                 System.out.println("Insert your query and press enter: ");
                 String query = input.nextLine();
                 long start = System.currentTimeMillis();
-                ArrayList<Text> queryTerms = Preprocessing.preprocess(query);
+                ArrayList<Text> queryTerms = Preprocessing.preprocess(query, flagStemmingAndStopWordRemoval);
                 String lexPath;
                 if(flagStemmingAndStopWordRemoval)
                     lexPath="LexiconFinalStemmedAndStopWordRemoved";
@@ -84,14 +84,23 @@ public class MainQueryProcessing {
                 if(flagConjunctiveOrDisjunctive){
                     MaxScore dq = new MaxScore(lexQuery.lexicon.size(), flagTfidfOrBM25);
                     ResultQueue qq = dq.maxScore(lexQuery);
-                    for(QueueElement element : qq.queue)
-                        System.out.println(element.getDocID());
+                    for(QueueElement element : qq.queue) {
+                        if (element.getDocID() == -1)
+                            System.out.println("No Result Founded");
+                        else
+                            System.out.println(element.getDocID() - 1);
+                    }
                 }
                 else{
                     ConjunctiveQuery cq = new ConjunctiveQuery(lexQuery.lexicon.size(), flagTfidfOrBM25);
                     ResultQueue qq = cq.computeTopK(lexQuery);
-                    for(QueueElement element : qq.queue)
-                        System.out.println(element.getDocID());
+                    for(QueueElement element : qq.queue){
+                        if (element.getDocID() == -1)
+                            System.out.println("No Result Founded");
+                        else
+                            System.out.println(element.getDocID()-1);
+
+                    }
                 }
                 long end = System.currentTimeMillis();
                 long time = end-start;

@@ -39,7 +39,7 @@ public class TestQueryPreprocessing {
         for (Integer id : query.keySet()){
             String text = query.get(id);
 
-            ArrayList<Text> tmp = Preprocessing.preprocess(text);
+            ArrayList<Text> tmp = Preprocessing.preprocess(text, true);
             queryPreproc.put(id,tmp);
         }
     }
@@ -56,7 +56,7 @@ public class TestQueryPreprocessing {
 
     }
     public static void main (String []args) throws IOException {
-        int flagStopWordAndStemming = 1;
+
         MainQueryProcessing.setFlagStemmingAndStopWordRemoval(true);
         TestQueryPreprocessing tqp = new TestQueryPreprocessing();
         tqp.readQueryFromDocument();
@@ -81,23 +81,18 @@ public class TestQueryPreprocessing {
             count++;
             if(tqp.queryPreproc.get(id)!=null && tqp.queryPreproc.get(id).size()!=0) {
                 lexQuery = Ranking.createLexiconWithQueryTerm(tqp.queryPreproc.get(id), lexChannel);
-                if(count %100 ==0)
+                if(count %1000 ==0)
                     System.out.println(count);
                 if(!lexQuery.lexicon.isEmpty()) {
                     MaxScore dq = new MaxScore(lexQuery.lexicon.size(), MaxScore.getScoringFunction());
                     ResultQueue qq = dq.maxScore(lexQuery);
-                    System.out.println("NEXT");
-                    lexQuery.printLexiconFinal();
-
-                        tqp.result.put(id, qq.queue.get(0).getDocID());
-
-
-
-
+                    if(qq.queue!= null && !qq.queue.isEmpty())
+                        tqp.result.put(id, qq.queue.get(0).getDocID()-1);
+                    else
+                        tqp.result.put(id, -1L);
                 }
             }else
                 tqp.result.put(id,-1L);
-            //System.out.println(qq.queue.size());
             lexQuery.lexicon.clear();
         }
         long end = System.currentTimeMillis();
