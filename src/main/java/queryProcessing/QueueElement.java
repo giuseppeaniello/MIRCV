@@ -9,14 +9,6 @@ public class QueueElement {
         this.score = score;
     }
 
-    public void setScore(float score) {
-        this.score = score;
-    }
-
-    public void setDocID(long docID) {
-        this.docID = docID;
-    }
-
     public long getDocID() {
         return docID;
     }

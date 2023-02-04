@@ -61,6 +61,7 @@ public class SkipBlock {
         this.lenBlockDocId = lenBlockId;
     }
 
+    // method to convert a SkipBlock object into a byte[] to write it on file
     public byte[] trasformInfoToByte(){
         byte[] converted;
         ByteBuffer bb = ByteBuffer.allocate(32);
@@ -73,8 +74,8 @@ public class SkipBlock {
         return converted;
     }
 
+    // method to save on file a skip block
     public void saveSkipInfoBlock(FileChannel fc, long startingPoint, byte[] info) throws IOException {
-
         ByteBuffer buffer = null;
         fc.position(startingPoint);
         buffer = ByteBuffer.wrap(info);
@@ -82,14 +83,12 @@ public class SkipBlock {
             fc.write(buffer);
         }
         buffer.clear();
-
     }
 
+    // method to read from file a skipblock
     public static SkipBlock readSkipBlockFromFile(FileChannel fc, long startReadingPosition) throws IOException {
-
         ByteBuffer buffer = null;
         SkipBlock skipInf = null;
-
         fc.position(startReadingPosition);
         buffer = ByteBuffer.allocate(32);
         do {
@@ -100,24 +99,15 @@ public class SkipBlock {
 
         return skipInf;
     }
-    public static SkipBlock readSkipBlockFromFileMap(MappedByteBuffer map, long startReadingPosition) throws IOException {
-
-        SkipBlock skipInf = null;
-        byte[] result = new byte[32];
-        map.position((int) startReadingPosition);
-        map.get(result,0,32);
-
-        skipInf = transformSkipInfoByteToValue(result);
-
-        return skipInf;
-    }
 
     public void printSkipInfo(){
         System.out.println("LastDoc: "+getFinalDocId()+" LenDocID: "+getLenBlockDocId()+ " LenTf: "+getLenBlockTf()+
                 " OffDocId: "+getoffsetDocId()+" OffTf: "+getOffsetTf());
     }
 
-    public static SkipBlock transformSkipInfoByteToValue(byte[] value){
+    // method to convert the byte[] of a skip block into an actual SkipBlock object
+    // exploited during reading from file
+    private static SkipBlock transformSkipInfoByteToValue(byte[] value){
         SkipBlock skipInf = new SkipBlock();//Vedere che valori mettere
         int count = 0;
         for (byte b : value) {

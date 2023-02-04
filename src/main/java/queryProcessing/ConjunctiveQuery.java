@@ -58,7 +58,7 @@ public class ConjunctiveQuery {
     // loaded from file
     public boolean nextDocId(int index, long offsetSkipInfo, int nBlocks, FileChannel skipChannnel,
                              FileChannel docIdChannel, FileChannel tfChannel) throws IOException {
-        // keep track of the currend document by deleting the previous ones
+        // skip to the current document by deleting the current one
         P.get(index).remove(0);
         Ptf.get(index).remove(0);
         // case block is finished
@@ -92,6 +92,7 @@ public class ConjunctiveQuery {
     // exploiting the lastDocument field in SkipInfo
     public boolean nextGEQ(int index, long value, long startSkipBlock, int nBlock ,FileChannel skipChannel,
                            FileChannel docIdChannel, FileChannel tfChannel) throws IOException {
+        // remove all the postings with docId <= value
         for (int i = 0; i< P.get(index).size();i++){
             if(P.get(index).get(i) < value){
                 P.get(index).remove(i);
@@ -99,6 +100,7 @@ public class ConjunctiveQuery {
                 i--;
             }
         }
+        // case there are no more postings in the block
         if(P.get(index).isEmpty()){
             while(currentBlocks.get(index) < nBlock){
                 currentBlocks.set(index, currentBlocks.get(index)+1);
@@ -113,7 +115,7 @@ public class ConjunctiveQuery {
                     ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
                             tfChannel, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                     Ptf.set(index, tfs);
-                    // remove documents until the result is in position 0
+                    // remove postings with docId < value
                     for(int i=0; i<P.get(index).size(); i++){
                         if(P.get(index).get(i) < value) {
                             P.get(index).remove(i);

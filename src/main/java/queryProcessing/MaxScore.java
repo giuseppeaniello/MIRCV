@@ -14,17 +14,12 @@ public class MaxScore {
 
     private  ArrayList<Integer> currentBlocks;
     private int n;
-    //Upload first Skip Blocks for each term
     private ArrayList<SkipBlock> info;
-
-    //Define sigma(vector of term upperBound)
     private ArrayList<Float> sigma;
-    //Define P (matrix of all first block of posting list)
     private ArrayList<ArrayList<Long>> P;
     private ArrayList<ArrayList<Integer>> Ptf;
     private double score;
     private ArrayList<Text> termOrdered;
-
     private double threshold;
     private int pivot;
     private long current;
@@ -49,8 +44,9 @@ public class MaxScore {
         this.info = new ArrayList<>();
         //Define sigma(vector of term upperBound)
         this.sigma = new ArrayList<>();
-        //Define P (matrix of all first block of posting list)
+        //Define P (matrix of all first block of docId posting list)
         this.P = new ArrayList<>();
+        //Define Ptf (matrix of all first block of TF posting list)
         this.Ptf = new ArrayList<>();
         this.score = 0;
         this.termOrdered = new ArrayList<>();
@@ -61,6 +57,7 @@ public class MaxScore {
         this.next  = 0;
     }
 
+    // method to find the minimum docId among the first posting of each posting list in P
     public long findMinDocId(){
         ArrayList<Long> tmp = new ArrayList<>();
         for(ArrayList<Long> postingList : P){
@@ -69,14 +66,19 @@ public class MaxScore {
         return Collections.min(tmp);
     }
 
+    // next() operation:
+    // has to check cases in which there is no next document and cases in which
+    // there are other documents but they are in different blocks so they have to be
+    // loaded from file
     public boolean nextDocId(int index, long offsetSkipInfo, int nBlocks,FileChannel skipChannel,
                              FileChannel docIdChannel, FileChannel tfChannel) throws IOException {
-
+        // skip to the next document by removing the current one
         P.get(index).remove(0);
         Ptf.get(index).remove(0);
-        //Add case finish block
+        // case there are no more postings in this block
         if(P.get(index).size()==0){
             currentBlocks.set(index,currentBlocks.get(index)+1);
+            // case there are no more blocks to load
             if(offsetSkipInfo + 32*currentBlocks.get(index) >= offsetSkipInfo+32*nBlocks){
                 P.remove(index);
                 Ptf.remove(index);
@@ -88,6 +90,7 @@ public class MaxScore {
                 ub.remove(index);
                 return false;
             }
+            // case there is at least one block to load
            else {
                SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(skipChannel, offsetSkipInfo + 32*currentBlocks.get(index));
                info.set(index, newInfo);
@@ -104,10 +107,14 @@ public class MaxScore {
         return true;
     }
 
+    // nextGEQ(docId) operation:
+    // has to check cases in which there is no next document and cases in which
+    // there are other documents but they are in different blocks so they have to be
+    // loaded from file, this operation loads a block only if there could be the result of the nexGEQ
+    // exploiting the lastDocument field in SkipInfo
     public boolean nextGEQ(int index, long value, long startSkipBlock, int nBlock,FileChannel skipChannel,
                         FileChannel docIdChannel, FileChannel tfChannel) throws IOException {
-
-
+        // remove all the postings with docId < value
         for (int i = 0; i< P.get(index).size();i++){
             if(P.get(index).get(i) < value){
                 P.get(index).remove(i);
@@ -115,10 +122,12 @@ public class MaxScore {
                 i--;
             }
         }
+        // case there are no more postings in the block
         if(P.get(index).isEmpty()){
+            // while there are blocks to load
             while(currentBlocks.get(index) < nBlock){
                 currentBlocks.set(index, currentBlocks.get(index)+1);
-                // leggere il prossimo queryProcessing.SkipBlock
+                // load next SkipBlock in memory
                 SkipBlock newInfo = SkipBlock.readSkipBlockFromFile(skipChannel, startSkipBlock+32*currentBlocks.get(index));
                 if(newInfo.getFinalDocId() >= value){
                     ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
@@ -128,6 +137,7 @@ public class MaxScore {
                     ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
                             tfChannel, newInfo.getOffsetTf(), newInfo.getLenBlockTf()));
                     Ptf.set(index, tfs);
+                    // remove all the postings with docId < value
                     for(int i=0; i<P.get(index).size(); i++){
                         if(P.get(index).get(i) < value) {
                             P.get(index).remove(i);
@@ -139,7 +149,7 @@ public class MaxScore {
                     }
                 }
             }
-            // blocchi finiti per quella indexing.PostingList
+            // there are no more blocks to load
             P.remove(index);
             Ptf.remove(index);
             sigma.remove(index);
@@ -153,24 +163,29 @@ public class MaxScore {
         return true;
     }
 
-    public  int findIndexToAdd( float numberToAdd){
+    // method to find the position in P in which load the block
+    // in order to keep posting list ordered by term upper bound
+    public  int findIndexToAdd(float numberToAdd){
         for(int i=0; i<sigma.size(); i++){
             if(sigma.get(i) >= numberToAdd)
                 return i;
         }
         return sigma.size();
     }
+
+    // method to compute the TFIDF score
     public static double scoreTFIDF(int tf,long df){
         return ((1 + log(tf))* Ranking.idf(df));
     }
 
+    // method to compute the BM25 score
     public static double scoreBM25(int tf, float df, int dl){
         float b = 0.75F;
         float k = 1.2F;
         return  ( (tf/ ((k*( (1-b)+ (b*(dl/ DocumentTable.getAverageLength())) ))+tf) ) * log(Ranking.totalNumberDocuments/df));
     }
 
-
+    // method to compute the score based on the scoring function chose by the user
     public static double score(int tf, long df, int dl){
         if(scoringFunction)
             return scoreBM25(tf, df, dl);
@@ -178,10 +193,12 @@ public class MaxScore {
             return scoreTFIDF(tf, df);
     }
 
+    // method used to find the top k documents in the disjunctive query case
     public ResultQueue maxScore(LexiconFinal lex) throws IOException {
         String pathSkipInfo;
         String pathDocID;
         String pathTF;
+        // check the flag to find right files to read
         if(MainQueryProcessing.getFlagStemmingAndStopWordRemoval()){
             pathSkipInfo = "SkipInfoStemmedAndStopwordRemoved";
             pathDocID = "InvertedDocIdStemmedAndStopwordRemoved";
@@ -199,7 +216,6 @@ public class MaxScore {
         FileChannel invertedTfsChannel = invTfsFile.getChannel();
         RandomAccessFile skipInfoFile = new RandomAccessFile(new File(pathSkipInfo), "r");
         FileChannel skipInfoChannel = skipInfoFile.getChannel();
-
         for (Text term : lex.lexicon.keySet()){
             //Find the ordered position where the value is inserted
             int index = findIndexToAdd(lex.lexicon.get(term).getTermUpperBoundTFIDF());
@@ -207,23 +223,23 @@ public class MaxScore {
             sigma.add(index,lex.lexicon.get(term).getTermUpperBoundTFIDF());
             //compute skipInfo of the first block and sorted by sigma
             info.add(index, SkipBlock.readSkipBlockFromFile(skipInfoChannel,lex.lexicon.get(term).getOffsetSkipBlocks()));
-            //Find the first posting list of the block and inserted in the vector P(matrix of PostingList of each queryTerm sorted by sigma)
+            //Find the first posting list of the block and insert in the vector P(matrix of PostingList of each queryTerm sorted by sigma)
             ArrayList<Long> docids = InvertedIndex.trasformDgapInDocIds(InvertedIndex.decompressionListOfDocIds(
                     InvertedIndex.readDocIDsOrTFsPostingListCompressed(invDocIdsChannel,info.get(index).getoffsetDocId(),
                             info.get(index).getLenBlockDocId())));
             P.add(index,docids);
-            //Find tfs of postingLists sorted by sigma
+            //Find tfs postingLists sorted by sigma
             ArrayList<Integer> tfs = InvertedIndex.decompressionListOfTfs(InvertedIndex.readDocIDsOrTFsPostingListCompressed(
                     invertedTfsChannel,info.get(index).getOffsetTf(),info.get(index).getLenBlockTf()));
             Ptf.add(index,tfs);
             //variable used to save the term order
             termOrdered.add(index,term);
         }
-        //Adding of Document Upper Bound
+        //Adding Document Upper Bound
         ub.add(0,sigma.get(0));
         for (int i = 1; i < sigma.size(); i++)
             ub.add(ub.get(i-1)+ sigma.get(i));
-        //Find min among alle the postingLists in P
+        //Find min among all the postingLists in P
         current = findMinDocId();
         while(pivot < n && n != 0){
             score = 0;

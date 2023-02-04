@@ -14,9 +14,9 @@ import java.util.Scanner;
 
 public class MainQueryProcessing {
 
-    private static boolean flagStemmingAndStopWordRemoval; // 1 mean stemming and stopword removal
-    private static boolean flagConjunctiveOrDisjunctive; // 1 means disjunctive
-    private static boolean flagTfidfOrBM25; // 1 means BM25
+    private static boolean flagStemmingAndStopWordRemoval; // 1 means stemming and stopword removal
+    private static boolean flagConjunctiveOrDisjunctive; // 1 means disjunctive, 0 means conjunctive
+    private static boolean flagTfidfOrBM25; // 1 means BM25, 0 means TFIDF
 
     public MainQueryProcessing(){
         System.out.println("Do you want stemming and stopword removal? \n 0 = NO \n 1 = YES");
@@ -33,14 +33,6 @@ public class MainQueryProcessing {
 
     public static boolean getFlagStemmingAndStopWordRemoval() {
         return flagStemmingAndStopWordRemoval;
-    }
-
-    public static boolean getFlagConjunctiveOrDisjunctive() {
-        return flagConjunctiveOrDisjunctive;
-    }
-
-    public static boolean getFlagTfidfOrBM25() {
-        return flagTfidfOrBM25;
     }
 
     public static void main(String[] args){
@@ -79,8 +71,6 @@ public class MainQueryProcessing {
                 RandomAccessFile lexFile = new RandomAccessFile(lexPath,"r");
                 FileChannel lexChannel = lexFile.getChannel();
                 LexiconFinal lexQuery = Ranking.createLexiconWithQueryTerm(queryTerms,lexChannel);
-
-
                 if(flagConjunctiveOrDisjunctive){
                     MaxScore dq = new MaxScore(lexQuery.lexicon.size(), flagTfidfOrBM25);
                     ResultQueue qq = dq.maxScore(lexQuery);
@@ -115,9 +105,6 @@ public class MainQueryProcessing {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
-
 
 }
