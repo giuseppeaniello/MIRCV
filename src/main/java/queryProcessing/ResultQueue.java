@@ -1,5 +1,4 @@
 package queryProcessing;
-
 import java.util.ArrayList;
 
 public class ResultQueue{
@@ -34,6 +33,13 @@ public class ResultQueue{
                 queue.remove(i);
                 return;
             }
+        }
+    }
+
+    public void printResults(){
+        System.out.println("Results: ");
+        for(QueueElement qe : this.queue){
+            System.out.println('\t' + qe.getDocID());
         }
     }
 
