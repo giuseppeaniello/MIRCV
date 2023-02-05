@@ -71,6 +71,10 @@ public class MainQueryProcessing {
                 RandomAccessFile lexFile = new RandomAccessFile(lexPath,"r");
                 FileChannel lexChannel = lexFile.getChannel();
                 LexiconFinal lexQuery = Ranking.createLexiconWithQueryTerm(queryTerms,lexChannel);
+                if(lexQuery.lexicon.isEmpty()){
+                    System.out.println("None of the query term is in our collection, please retry \n \n");
+                    continue;
+                }
                 if(flagConjunctiveOrDisjunctive){
                     MaxScore dq = new MaxScore(lexQuery.lexicon.size(), flagTfidfOrBM25);
                     ResultQueue qq = dq.maxScore(lexQuery);
@@ -106,5 +110,5 @@ public class MainQueryProcessing {
             e.printStackTrace();
         }
     }
-
+    
 }
